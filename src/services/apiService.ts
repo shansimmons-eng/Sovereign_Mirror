@@ -74,6 +74,16 @@ export async function calculateVeracity(active: number, control: number): Promis
   return Math.max(0, active - control);
 }
 
+export async function fetchRTSW() {
+  const response = await fetch(`${API_BASE}/rtsw/latest`).catch(() => null);
+  if (response?.ok) {
+    const data = await response.json();
+    useNodeStore.getState().setRTSW(data);
+    return data;
+  }
+  return null;
+}
+
 export async function checkQuorum(activeNodes: number, affirmingNodes: number): Promise<{ quorum: number; reached: boolean }> {
   const response = await fetch(`${API_BASE}/quorum/calculate`, {
     method: 'POST',

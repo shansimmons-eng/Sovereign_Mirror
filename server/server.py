@@ -6,7 +6,10 @@ Uses Python's built-in http.server - no external dependencies
 
 import json
 import math
+import time
 from http.server import HTTPServer, BaseHTTPRequestHandler
+import urllib.request
+import urllib.error
 
 PORT = 3001
 PHI = 0.618
@@ -29,6 +32,48 @@ def calculate_atrophy_decay(virtual_resonance, elapsed_ms, t_limit=86400000, dec
 
 def get_threshold_with_entropy():
     return PHI * (1 + ENTROPY)
+
+PLASMA_URL = "https://services.swpc.noaa.gov/json/plasma-7-day.json"
+MAGNET_URL = "https://services.swpc.noaa.gov/json/mag-7-day.json"
+_rtsw_cache = None
+_rtsw_fetch_time = 0
+RTSW_CACHE_TTL_SEC = 30
+
+def fetch_rtsw():
+    global _rtsw_cache, _rtsw_fetch_time
+    now = time.time()
+    if _rtsw_cache is not None and (now - _rtsw_fetch_time) < RTSW_CACHE_TTL_SEC:
+        return _rtsw_cache
+    try:
+        plasma_req = urllib.request.Request(PLASMA_URL, headers={'User-Agent': 'SovereignMirror/1.0'})
+        with urllib.request.urlopen(plasma_req, timeout=10) as r:
+            plasma_data = json.loads(r.read().decode())
+        latest_plasma = plasma_data[-1] if plasma_data else {}
+    except Exception as e:
+        print(f"[RTSW] plasma fetch error: {e}")
+        latest_plasma = {}
+    try:
+        mag_req = urllib.request.Request(MAGNET_URL, headers={'User-Agent': 'SovereignMirror/1.0'})
+        with urllib.request.urlopen(mag_req, timeout=10) as r:
+            mag_data = json.loads(r.read().decode())
+        latest_mag = mag_data[-1] if mag_data else {}
+    except Exception as e:
+        print(f"[RTSW] mag fetch error: {e}")
+        latest_mag = {}
+    result = {
+        'speed': float(latest_plasma.get('speed', 400)),
+        'density': float(latest_plasma.get('density', 10)),
+        'temperature': float(latest_plasma.get('temperature', 100000)),
+        'bx': float(latest_mag.get('bx', 0)),
+        'by': float(latest_mag.get('by', 0)),
+        'bz': float(latest_mag.get('bz', 0)),
+        'bt': float(latest_mag.get('bt', 0)),
+        'timestamp': int(now * 1000),
+        'source': 'NOAA SWPC'
+    }
+    _rtsw_cache = result
+    _rtsw_fetch_time = now
+    return result
 
 class KernelHandler(BaseHTTPRequestHandler):
     def log_message(self, format, *args):
@@ -63,6 +108,10 @@ class KernelHandler(BaseHTTPRequestHandler):
                 'commit': 'SOVEREIGN_MIRROR_PHASE_7',
                 'timestamp': self.timestamp()
             })
+        elif self.path == '/api/rtsw/latest':
+            rtsw = fetch_rtsw()
+            print(f"[RTSW] speed={rtsw['speed']:.1f} density={rtsw['density']:.2f} bt={rtsw['bt']:.1f}")
+            self.send_json(rtsw)
         else:
             self.send_json({'error': 'Not found'}, 404)
     
@@ -161,11 +210,12 @@ if __name__ == '__main__':
     print(f"[TRUSTED_KERNEL] Server running on port {PORT}")
     print(f"[TRUSTED_KERNEL] Using Python built-in http.server (no dependencies)")
     print(f"  GET  /api/health")
+    print(f"  GET  /api/rtsw/latest")
+    print(f"  GET  /api/kernel/version")
     print(f"  POST /api/pgate/engage")
     print(f"  POST /api/veracity/calculate")
     print(f"  POST /api/quorum/calculate")
     print(f"  POST /api/atrophy/calculate")
-    print(f"  GET  /api/kernel/version")
     print()
     print("Test curl:")
     print('curl -X POST http://localhost:3001/api/pgate/engage -H "Content-Type: application/json" -d "{\"mode\": \"resonance\", \"level\": 0.75}"')
