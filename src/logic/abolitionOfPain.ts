@@ -1,5 +1,5 @@
 export function calculateFriction(paths: number[]): number {
-  return paths.reduce((max, friction) => Math.max(max, friction), Infinity);
+  return paths.reduce((max, friction) => Math.max(max, friction), -Infinity);
 }
 
 export function isPainInducing(friction: number): boolean {

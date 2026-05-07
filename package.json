@@ -2,7 +2,7 @@
   "name": "sovereign-mirror",
   "version": "0.1.0-alpha",
   "description": "Distributed governance simulator built on Radical Veracity principles",
-  "private": false,
+  "private": true,
   "type": "module",
   "scripts": {
     "dev": "vite",

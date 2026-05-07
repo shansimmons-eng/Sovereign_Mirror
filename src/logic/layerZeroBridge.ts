@@ -24,7 +24,7 @@ export interface TelemetryConfig {
 
 const DEFAULT_CONFIG: TelemetryConfig = {
   samplingIntervalMs: 30000,
-  apiKey: process.env.OPENWEATHER_API_KEY || '',
+  apiKey: import.meta.env.VITE_OPENWEATHER_API_KEY || '',
   mockMode: true,
   useOpenWeather: true,
   latitude: 40.7128,

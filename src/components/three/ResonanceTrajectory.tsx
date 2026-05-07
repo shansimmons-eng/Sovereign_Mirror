@@ -76,6 +76,8 @@ function SceneContent({ nodeIds, flux }: SceneContentProps) {
   const colorArray = useMemo(() => new Float32Array(MAX_NODES * 3), []);
   const opacityArray = useMemo(() => new Float32Array(MAX_NODES), []);
   const nodeDataCache = useMemo(() => new Map<string, { veracityVelocity: number; resonanceVelocity: number; status: string }>(), []);
+  const tempColor = useMemo(() => new THREE.Color(), []);
+  const tempColor2 = useMemo(() => new THREE.Color(), []);
 
   const fluxRef = useRef(flux);
   const smoothedFlux = useRef(flux);
@@ -194,27 +196,26 @@ function SceneContent({ nodeIds, flux }: SceneContentProps) {
       if (isNaN(dummy.matrix.elements[0])) continue;
       mesh.setMatrixAt(i, dummy.matrix);
 
-      let color = DORMANT;
       const shimmerBase = Math.sin(instanceTime * 2.5 + i) * 0.3 + 0.7;
       const shimmer = shimmerBase * oscillationStrength + shimmerBase * 0.3;
 
       const dvFactor = THREE.MathUtils.clamp(data.veracityVelocity * 100, 0, 1);
 
       if (morphFactor > 0.7) {
-        const veracityColor = GOLD.clone().lerp(ELECTRIC_BLUE, dvFactor);
-        const constructionGlow = veracityColor.clone().lerp(ROSE, morphFactor * 0.3);
-        color = constructionGlow.clone().multiplyScalar(shimmer);
+        tempColor.copy(GOLD).lerp(ELECTRIC_BLUE, dvFactor);
+        tempColor2.copy(tempColor).lerp(ROSE, morphFactor * 0.3);
+        tempColor.copy(tempColor2).multiplyScalar(shimmer);
       } else if (morphFactor > 0.3) {
-        const veracityColor = AMBER.clone().lerp(ELECTRIC_BLUE, dvFactor * 0.5);
-        color = veracityColor.clone().lerp(ROSE, (morphFactor - 0.3) * 2).multiplyScalar(shimmer);
+        tempColor.copy(AMBER).lerp(ELECTRIC_BLUE, dvFactor * 0.5);
+        tempColor.lerp(ROSE, (morphFactor - 0.3) * 2).multiplyScalar(shimmer);
       } else {
-        const veracityColor = DORMANT.clone().lerp(ELECTRIC_BLUE, dvFactor * 0.3);
-        color = veracityColor.clone().multiplyScalar(shimmer);
+        tempColor.copy(DORMANT).lerp(ELECTRIC_BLUE, dvFactor * 0.3);
+        tempColor.multiplyScalar(shimmer);
       }
 
-      colorArray[i * 3] = color.r;
-      colorArray[i * 3 + 1] = color.g;
-      colorArray[i * 3 + 2] = color.b;
+      colorArray[i * 3] = tempColor.r;
+      colorArray[i * 3 + 1] = tempColor.g;
+      colorArray[i * 3 + 2] = tempColor.b;
       const finalOpacity = baselineOpacity + pulseAlpha * morphFactor;
       opacityArray[i] = Math.max(0.1, Math.min(0.6, finalOpacity));
     }

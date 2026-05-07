@@ -1,5 +1,5 @@
-import { NodeAtom } from '../logic/types';
-import { veracityGate } from '../logic/veracityGate';
+import { NodeAtom } from '../../logic/types';
+import { veracityGate } from '../../logic/veracityGate';
 
 export interface StateDriftError extends Error {
   nodeId: string;

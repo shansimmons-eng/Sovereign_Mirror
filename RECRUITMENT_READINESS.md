@@ -222,7 +222,7 @@ We are actively seeking **Sustainability Scientists** and **ZK-Engineers** to pa
 
 ### Contact
 
-- **GitHub**: github.com/sovereign-mirror
+- **GitHub**: github.com/Sovereign_Mirror
 - **Documentation**: See SYSTEM_LOGIC.md for core mandates
 
 ---

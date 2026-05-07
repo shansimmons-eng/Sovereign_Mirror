@@ -1,12 +1,9 @@
 import { store } from '../ledger/store';
 import { logEvent } from '../ledger/slices/veracitySlice';
 import { triggerPhysicalization } from '../ledger/slices/physicalizationSlice';
-import { nodeAtomFamily } from '../atoms/nodeAtoms';
-import { validatorAtomFamily, validatorIds, validateNode, aggregateValidatorResults, ValidatorResult } from './validatorAtoms';
-import { veracityGate } from '../../logic/veracityGate';
-import { GOLDEN_RATIO, THRESHOLD_ENTROPY } from '../../logic/types';
-
-const CONFIRMATION_CYCLES = 7;
+import { useNodeStore } from '../stores/nodeStore';
+import { validatorIds, validateNode, aggregateValidatorResults, ValidatorResult } from './validatorAtoms';
+import { GOLDEN_RATIO, THRESHOLD_ENTROPY, NodeAtom } from '../../logic/types';
 
 interface ValidatorState {
   pendingValidations: Map<string, Promise<ValidatorResult[]>>;
@@ -18,10 +15,10 @@ const validationState: ValidatorState = {
   validatedNodes: new Set(),
 };
 
-async function runValidators(nodeId: string, node: ReturnType<typeof nodeAtomFamily.get>): Promise<ValidatorResult[]> {
+async function runValidators(nodeId: string, node: NodeAtom): Promise<ValidatorResult[]> {
   const results = await Promise.all(
     validatorIds.map(async (validatorId) => {
-      const result = await validateNode(validatorId, node as NodeAtom);
+      const result = await validateNode(validatorId, node);
       store.dispatch(logEvent({
         id: `VAL_${Date.now()}_${validatorId}`,
         nodeId,
@@ -48,10 +45,13 @@ export async function validateAndCommit(nodeId: string): Promise<boolean> {
     return pending.then(() => true);
   }
 
-  const node = nodeAtomFamily(nodeId);
-  const nodeValue = typeof node === 'function' ? node : node;
+  const nodeValue = useNodeStore.getState().getNode(nodeId);
+  if (!nodeValue) {
+    console.warn(`[VALIDATOR_CONSENSUS] Node ${nodeId} not found in store`);
+    return false;
+  }
 
-  const validationPromise = runValidators(nodeId, nodeValue as NodeAtom);
+  const validationPromise = runValidators(nodeId, nodeValue);
   validationState.pendingValidations.set(nodeId, validationPromise);
 
   try {

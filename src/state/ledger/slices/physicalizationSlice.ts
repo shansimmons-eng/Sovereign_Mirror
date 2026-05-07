@@ -1,5 +1,7 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
+const MAX_EVENTS = 500;
+
 export type PhysicalizationEventType =
   | 'P_GATE_ACTIVATED'
   | 'P_GATE_TRIGGERED'
@@ -32,12 +34,21 @@ const physicalizationSlice = createSlice({
   reducers: {
     triggerPhysicalization: (state, action: PayloadAction<PhysicalizationEvent>) => {
       state.events.push(action.payload);
+      if (state.events.length > MAX_EVENTS) {
+        state.events = state.events.slice(-MAX_EVENTS);
+      }
     },
     logPGateState: (state, action: PayloadAction<PhysicalizationEvent>) => {
       state.events.push(action.payload);
+      if (state.events.length > MAX_EVENTS) {
+        state.events = state.events.slice(-MAX_EVENTS);
+      }
     },
     rejectPhysicalization: (state, action: PayloadAction<PhysicalizationEvent>) => {
       state.events.push({ ...action.payload, eventType: 'PHYSICALIZATION_REJECTED' });
+      if (state.events.length > MAX_EVENTS) {
+        state.events = state.events.slice(-MAX_EVENTS);
+      }
     },
   },
 });

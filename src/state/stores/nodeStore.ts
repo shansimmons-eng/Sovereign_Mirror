@@ -30,16 +30,12 @@ export const useNodeStore = create<NodeState>((set, get) => ({
 
   updateNode: (nodeId, updates) => {
     const { nodes } = get();
-    set({
-      nodes: {
-        ...nodes,
-        [nodeId]: {
-          ...nodes[nodeId],
-          ...updates,
-          nodeId,
-        } as NodeAtom,
-      },
-    });
+    const existing = nodes[nodeId];
+    const updated = existing
+      ? Object.assign({}, existing, updates, { nodeId })
+      : { ...updates, nodeId } as NodeAtom;
+    nodes[nodeId] = updated;
+    set({ nodes });
   },
 
   getNode: (nodeId) => get().nodes[nodeId],

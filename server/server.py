@@ -11,6 +11,8 @@ from http.server import HTTPServer, BaseHTTPRequestHandler
 PORT = 3001
 PHI = 0.618
 ENTROPY = 0.07
+ALLOWED_ORIGINS = ['http://localhost:5173', 'http://localhost:4173']
+MAX_BODY_SIZE = 4096
 
 def veracity_gate(active, control):
     return max(0, active - control)
@@ -32,10 +34,16 @@ class KernelHandler(BaseHTTPRequestHandler):
     def log_message(self, format, *args):
         print(f"[KERNEL] {args[0]}")
     
+    def get_cors_origin(self):
+        origin = self.headers.get('Origin', '')
+        if origin in ALLOWED_ORIGINS:
+            return origin
+        return ALLOWED_ORIGINS[0]
+    
     def send_json(self, data, status=200):
         self.send_response(status)
         self.send_header('Content-Type', 'application/json')
-        self.send_header('Access-Control-Allow-Origin', '*')
+        self.send_header('Access-Control-Allow-Origin', self.get_cors_origin())
         self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
         self.send_header('Access-Control-Allow-Headers', 'Content-Type')
         self.end_headers()
@@ -60,6 +68,9 @@ class KernelHandler(BaseHTTPRequestHandler):
     
     def do_POST(self):
         content_length = int(self.headers.get('Content-Length', 0))
+        if content_length > MAX_BODY_SIZE:
+            self.send_json({'error': 'Request body too large'}, 413)
+            return
         body = self.rfile.read(content_length).decode()
         
         try:
@@ -99,6 +110,9 @@ class KernelHandler(BaseHTTPRequestHandler):
             if not isinstance(active, (int, float)) or not isinstance(control, (int, float)):
                 self.send_json({'error': 'active and control must be numbers'}, 400)
                 return
+            if not math.isfinite(active) or not math.isfinite(control):
+                self.send_json({'error': 'active and control must be finite'}, 400)
+                return
             
             result = veracity_gate(active, control)
             self.send_json({'veracity': result, 'timestamp': self.timestamp()})
@@ -107,13 +121,16 @@ class KernelHandler(BaseHTTPRequestHandler):
             active_nodes = data.get('activeNodes')
             affirming_nodes = data.get('affirmingNodes')
             
-            if not isinstance(active_nodes, int):
-                self.send_json({'error': 'activeNodes must be a number'}, 400)
+            if not isinstance(active_nodes, (int, float)) or active_nodes < 1:
+                self.send_json({'error': 'activeNodes must be a number >= 1'}, 400)
                 return
             
-            quorum = calculate_quorum(active_nodes)
+            quorum = calculate_quorum(int(active_nodes))
             reached = None
             if affirming_nodes is not None:
+                if not isinstance(affirming_nodes, (int, float)):
+                    self.send_json({'error': 'affirmingNodes must be a number'}, 400)
+                    return
                 reached = affirming_nodes >= quorum
             
             self.send_json({'quorum': quorum, 'reached': reached, 'timestamp': self.timestamp()})
@@ -124,6 +141,9 @@ class KernelHandler(BaseHTTPRequestHandler):
             
             if not isinstance(virtual_resonance, (int, float)) or not isinstance(elapsed_ms, (int, float)):
                 self.send_json({'error': 'virtualResonance and elapsedMs must be numbers'}, 400)
+                return
+            if not math.isfinite(virtual_resonance) or not math.isfinite(elapsed_ms):
+                self.send_json({'error': 'virtualResonance and elapsedMs must be finite'}, 400)
                 return
             
             result = calculate_atrophy_decay(virtual_resonance, elapsed_ms)
@@ -137,7 +157,7 @@ class KernelHandler(BaseHTTPRequestHandler):
         return int(time.time() * 1000)
 
 if __name__ == '__main__':
-    server = HTTPServer(('0.0.0.0', PORT), KernelHandler)
+    server = HTTPServer(('127.0.0.1', PORT), KernelHandler)
     print(f"[TRUSTED_KERNEL] Server running on port {PORT}")
     print(f"[TRUSTED_KERNEL] Using Python built-in http.server (no dependencies)")
     print(f"  GET  /api/health")

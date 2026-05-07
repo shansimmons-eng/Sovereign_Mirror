@@ -2,15 +2,56 @@ import { createServer } from 'node:http';
 import { veracityGate, calculateQuorum, calculateAtrophyDecay, getThresholdWithEntropy } from './logic/kernel.js';
 
 const PORT = 3001;
+const ALLOWED_ORIGINS = ['http://localhost:5173', 'http://localhost:4173'];
+const MAX_BODY_SIZE = 4096;
+const RATE_LIMIT_WINDOW_MS = 60000;
+const RATE_LIMIT_MAX = 100;
+const requestCounts = new Map();
+
+function getRateLimitKey(req) {
+  return req.socket.remoteAddress || 'unknown';
+}
+
+function isRateLimited(key) {
+  const now = Date.now();
+  const entry = requestCounts.get(key);
+  if (!entry || now - entry.windowStart > RATE_LIMIT_WINDOW_MS) {
+    requestCounts.set(key, { windowStart: now, count: 1 });
+    return false;
+  }
+  entry.count++;
+  return entry.count > RATE_LIMIT_MAX;
+}
+
+function getCorsOrigin(req) {
+  const origin = req.headers.origin;
+  if (origin && ALLOWED_ORIGINS.includes(origin)) return origin;
+  return ALLOWED_ORIGINS[0];
+}
+
+function validateNumber(value, name) {
+  if (typeof value !== 'number' || !isFinite(value)) {
+    return `${name} must be a finite number`;
+  }
+  return null;
+}
 
 const server = createServer((req, res) => {
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  const origin = getCorsOrigin(req);
+  res.setHeader('Access-Control-Allow-Origin', origin);
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
   if (req.method === 'OPTIONS') {
     res.writeHead(204);
     res.end();
+    return;
+  }
+
+  const rateLimitKey = getRateLimitKey(req);
+  if (isRateLimited(rateLimitKey)) {
+    res.writeHead(429, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ error: 'Too many requests' }));
     return;
   }
 
@@ -24,14 +65,26 @@ const server = createServer((req, res) => {
 
   if (url.pathname === '/api/pgate/engage' && req.method === 'POST') {
     let body = '';
-    req.on('data', chunk => body += chunk);
+    let size = 0;
+    req.on('data', chunk => {
+      size += chunk.length;
+      if (size > MAX_BODY_SIZE) { req.destroy(); return; }
+      body += chunk;
+    });
     req.on('end', () => {
       try {
         const { mode, level } = JSON.parse(body);
 
-        if (!mode || typeof level !== 'number') {
+        if (!mode || typeof mode !== 'string') {
           res.writeHead(400, { 'Content-Type': 'application/json' });
-          res.end(JSON.stringify({ error: 'mode and level are required' }));
+          res.end(JSON.stringify({ error: 'mode must be a non-empty string' }));
+          return;
+        }
+
+        const levelErr = validateNumber(level, 'level');
+        if (levelErr) {
+          res.writeHead(400, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: levelErr }));
           return;
         }
 
@@ -64,10 +117,22 @@ const server = createServer((req, res) => {
 
   if (url.pathname === '/api/veracity/calculate' && req.method === 'POST') {
     let body = '';
-    req.on('data', chunk => body += chunk);
+    let size = 0;
+    req.on('data', chunk => {
+      size += chunk.length;
+      if (size > MAX_BODY_SIZE) { req.destroy(); return; }
+      body += chunk;
+    });
     req.on('end', () => {
       try {
         const { active, control } = JSON.parse(body);
+        const activeErr = validateNumber(active, 'active');
+        const controlErr = validateNumber(control, 'control');
+        if (activeErr || controlErr) {
+          res.writeHead(400, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: activeErr || controlErr }));
+          return;
+        }
         const result = veracityGate(active, control);
         res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ veracity: result, timestamp: Date.now() }));
@@ -81,10 +146,29 @@ const server = createServer((req, res) => {
 
   if (url.pathname === '/api/quorum/calculate' && req.method === 'POST') {
     let body = '';
-    req.on('data', chunk => body += chunk);
+    let size = 0;
+    req.on('data', chunk => {
+      size += chunk.length;
+      if (size > MAX_BODY_SIZE) { req.destroy(); return; }
+      body += chunk;
+    });
     req.on('end', () => {
       try {
         const { activeNodes, affirmingNodes } = JSON.parse(body);
+        const nodesErr = validateNumber(activeNodes, 'activeNodes');
+        if (nodesErr || activeNodes < 1) {
+          res.writeHead(400, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: nodesErr || 'activeNodes must be >= 1' }));
+          return;
+        }
+        if (affirmingNodes !== undefined) {
+          const affErr = validateNumber(affirmingNodes, 'affirmingNodes');
+          if (affErr) {
+            res.writeHead(400, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: affErr }));
+            return;
+          }
+        }
         const quorum = calculateQuorum(activeNodes);
         const reached = affirmingNodes !== undefined ? affirmingNodes >= quorum : null;
         res.writeHead(200, { 'Content-Type': 'application/json' });
@@ -99,10 +183,22 @@ const server = createServer((req, res) => {
 
   if (url.pathname === '/api/atrophy/calculate' && req.method === 'POST') {
     let body = '';
-    req.on('data', chunk => body += chunk);
+    let size = 0;
+    req.on('data', chunk => {
+      size += chunk.length;
+      if (size > MAX_BODY_SIZE) { req.destroy(); return; }
+      body += chunk;
+    });
     req.on('end', () => {
       try {
         const { virtualResonance, elapsedMs } = JSON.parse(body);
+        const vrErr = validateNumber(virtualResonance, 'virtualResonance');
+        const msErr = validateNumber(elapsedMs, 'elapsedMs');
+        if (vrErr || msErr) {
+          res.writeHead(400, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: vrErr || msErr }));
+          return;
+        }
         const result = calculateAtrophyDecay(virtualResonance, elapsedMs);
         res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ atrophied: result, timestamp: Date.now() }));

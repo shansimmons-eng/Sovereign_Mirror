@@ -14,7 +14,7 @@ interface TestNodeUpdate {
 }
 
 const INJECTION_LOG_INTERVAL = 5000;
-const SIMULATION_TICK = 100;
+const SIMULATION_TICK = 500;
 
 class SimulationLogger {
   private suspiciousAttempts: Map<string, TestNodeUpdate[]> = new Map();
@@ -69,13 +69,19 @@ const simulationLogger = new SimulationLogger();
 
 function useNodeSimulation(nodeId: string, active: boolean) {
   const [node, setNode] = useAtom(nodeAtomFamily(nodeId));
+  const nodeRef = useRef(node);
   const previousValuesRef = useRef({ veracityScore: 0, resonanceScore: 0 });
   const updateNode = useNodeStore((s) => s.updateNode);
+
+  useEffect(() => {
+    nodeRef.current = node;
+  }, [node]);
 
   useEffect(() => {
     if (!active) return;
 
     const interval = setInterval(() => {
+      const currentNode = nodeRef.current;
       const newVeracity = Math.random() * 1.5;
       const newResonance = Math.random() * 1.0;
 
@@ -87,19 +93,19 @@ function useNodeSimulation(nodeId: string, active: boolean) {
           nodeId,
           veracityScore: newVeracity,
           resonanceScore: newResonance,
-          frictionMultiplier: node.frictionMultiplier,
+          frictionMultiplier: currentNode.frictionMultiplier,
           timestamp: Date.now(),
         }, 'Sudden veracity spike > 0.5 per tick');
       }
 
-      const result = veracityGate(newVeracity, node.frictionMultiplier * node.resonanceScore);
+      const result = veracityGate(newVeracity, currentNode.frictionMultiplier * currentNode.resonanceScore);
 
       if (result > 0) {
         syncVeracityToLedger(
           nodeId,
           newVeracity,
           deltaV / SIMULATION_TICK,
-          node.frictionMultiplier,
+          currentNode.frictionMultiplier,
           newResonance
         );
       }
@@ -111,7 +117,7 @@ function useNodeSimulation(nodeId: string, active: boolean) {
       const newStatus = result > 0 ? 'refining' : 'virtual';
 
       setNode({
-        ...node,
+        ...currentNode,
         veracityScore: newVeracity,
         resonanceScore: newResonance,
         virtualResonance: newResonance,
@@ -129,7 +135,7 @@ function useNodeSimulation(nodeId: string, active: boolean) {
     }, SIMULATION_TICK);
 
     return () => clearInterval(interval);
-  }, [active, nodeId, node, setNode, updateNode]);
+  }, [active, nodeId, setNode, updateNode]);
 }
 
 function TestNodeSimulator({ nodeCount }: { nodeCount: number }) {

@@ -19,7 +19,7 @@ npm run dev
 ## Environment Variables
 
 ```env
-OPENWEATHER_API_KEY=your_api_key_here
+VITE_OPENWEATHER_API_KEY=your_api_key_here
 ```
 
 ## Core Logic Gates

@@ -1,4 +1,5 @@
 import { atom } from 'jotai';
+import { atomFamily } from 'jotai/utils';
 import { NodeAtom } from '../../logic/types';
 import { veracityGate } from '../../logic/veracityGate';
 
