@@ -5,6 +5,10 @@ import { GOLDEN_RATIO, THRESHOLD_ENTROPY } from '../logic/types';
 
 const API_BASE = '/api';
 
+type PGateMode = 'resonance' | 'refining' | 'virtual';
+
+const VALID_MODES = new Set<PGateMode>(['resonance', 'refining', 'virtual']);
+
 interface Result<T> {
   ok: boolean;
   data?: T;
@@ -98,6 +102,10 @@ function validatePGate(v: unknown): PGateResponse | null {
 }
 
 export async function engagePGate(mode: string, level: number): Promise<Result<PGateResponse>> {
+  if (!VALID_MODES.has(mode as PGateMode)) {
+    return err('Invalid mode: must be resonance, refining, or virtual');
+  }
+
   const threshold = getThresholdWithEntropy();
   const canEngage = level >= threshold;
 
@@ -121,7 +129,7 @@ export async function engagePGate(mode: string, level: number): Promise<Result<P
 
   if (result.canEngage) {
     store.dispatch(triggerPhysicalization({
-      id: `PGATE_${Date.now()}`,
+      id: crypto.randomUUID(),
       nodeId: 'GATE_KERNEL',
       eventType: 'P_GATE_TRIGGERED',
       resonanceScore: level,

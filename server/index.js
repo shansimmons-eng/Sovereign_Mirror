@@ -36,6 +36,8 @@ function validateNumber(value, name) {
   return null;
 }
 
+const VALID_MODES = new Set(['resonance', 'refining', 'virtual']);
+
 const server = createServer((req, res) => {
   const origin = getCorsOrigin(req);
   res.setHeader('Access-Control-Allow-Origin', origin);
@@ -75,9 +77,9 @@ const server = createServer((req, res) => {
       try {
         const { mode, level } = JSON.parse(body);
 
-        if (!mode || typeof mode !== 'string') {
+        if (!mode || typeof mode !== 'string' || !VALID_MODES.has(mode)) {
           res.writeHead(400, { 'Content-Type': 'application/json' });
-          res.end(JSON.stringify({ error: 'mode must be a non-empty string' }));
+          res.end(JSON.stringify({ error: 'mode must be a non-empty string matching: resonance, refining, virtual' }));
           return;
         }
 
