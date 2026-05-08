@@ -23,7 +23,7 @@ export function Dashboard() {
       <div className="col-span-6 glassmorphism p-4 flex flex-col">
         <div className="text-radiant-cream font-mono text-sm mb-4">RESONANCE TRAJECTORY</div>
         <div className="flex-1 relative" style={{ minHeight: '400px' }}>
-          <ResonanceTrajectory nodeId="NODE_001" />
+          <ResonanceTrajectory />
         </div>
       </div>
 
