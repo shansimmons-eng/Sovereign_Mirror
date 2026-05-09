@@ -1,0 +1,52 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.glassmorphism {
+  @apply bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl;
+}
+
+.glassmorphism-dark {
+  @apply bg-dawn-obsidian/70 backdrop-blur-xl border border-white/5 rounded-2xl;
+}
+
+.veracity-terminal {
+  @apply font-mono text-xs text-radiant-cream bg-dawn-obsidian/90 rounded-lg p-4 overflow-y-auto;
+}
+
+.p-gate-button {
+  @apply transition-all duration-500;
+}
+
+.p-gate-button.physical {
+  @apply bg-physical-rose shadow-lg shadow-physical-rose/50;
+}
+
+.p-gate-button.refining {
+  @apply bg-ultranetic-amber/50;
+}
+
+.p-gate-button.virtual {
+  @apply bg-dawn-obsidian border border-white/20;
+}
+
+.gradient-sunrise {
+  background: linear-gradient(
+    to top,
+    rgba(251, 146, 60, var(--sunrise-opacity, 0)),
+    rgba(244, 63, 94, var(--sunrise-opacity, 0)),
+    transparent
+  );
+}
+
+.spiral-thread {
+  filter: drop-shadow(0 0 8px rgba(251, 146, 60, 0.6));
+}
+
+.spiral-thread.physicalized {
+  filter: drop-shadow(0 0 12px rgba(244, 63, 94, 0.8));
+}
+
+.spiral-thread.fracturing {
+  filter: drop-shadow(0 0 20px rgba(220, 38, 38, 1));
+}
