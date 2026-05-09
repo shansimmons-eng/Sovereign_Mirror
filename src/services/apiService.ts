@@ -1,7 +1,6 @@
 import { store } from '../state/ledger/store';
 import { triggerPhysicalization } from '../state/ledger/slices/physicalizationSlice';
 import { useNodeStore } from '../state/stores/nodeStore';
-import { GOLDEN_RATIO, THRESHOLD_ENTROPY } from '../logic/types';
 
 const API_BASE = '/api';
 
@@ -74,10 +73,6 @@ async function post<T>(path: string, body: unknown, validate?: (v: unknown) => T
   return ok(parsed as T);
 }
 
-function getThresholdWithEntropy(): number {
-  return GOLDEN_RATIO * (1 + THRESHOLD_ENTROPY);
-}
-
 interface PGateResponse {
   mode: string;
   level: number;
@@ -106,24 +101,16 @@ export async function engagePGate(mode: string, level: number): Promise<Result<P
     return err('Invalid mode: must be resonance, refining, or virtual');
   }
 
-  const threshold = getThresholdWithEntropy();
-  const canEngage = level >= threshold;
+  const serverResult = await post<PGateResponse>('/pgate/engage', { mode, level }, validatePGate);
+  if (!serverResult.ok) {
+    return serverResult;
+  }
 
-  const result: PGateResponse = {
-    mode,
-    level,
-    threshold,
-    canEngage,
-    status: canEngage ? 'ENGAGED' : 'BLOCKED',
-    message: canEngage
-      ? `P-Gate engaged at resonance level ${level.toFixed(3)}`
-      : `Resonance level ${level.toFixed(3)} below threshold ${threshold.toFixed(3)}`,
-    timestamp: Date.now()
-  };
+  const result = serverResult.data!;
 
   console.log(`%c[PGATE] %c${result.status} %c${result.message}`,
     'color: #FB923C; font-weight: bold;',
-    canEngage ? 'color: #86EFAC;' : 'color: #F43F5E;',
+    result.canEngage ? 'color: #86EFAC;' : 'color: #F43F5E;',
     'color: #FFF7ED;'
   );
 
@@ -132,14 +119,14 @@ export async function engagePGate(mode: string, level: number): Promise<Result<P
       id: crypto.randomUUID(),
       nodeId: 'GATE_KERNEL',
       eventType: 'P_GATE_TRIGGERED',
-      resonanceScore: level,
+      resonanceScore: result.level,
       threshold: result.threshold,
       quorumSize: 3,
       affirmingNodes: 3,
-      timestamp: Date.now(),
+      timestamp: result.timestamp,
     }));
 
-    useNodeStore.getState().setFlux(Math.min(1, level));
+    useNodeStore.getState().setFlux(Math.min(1, result.level));
   }
 
   return ok(result);

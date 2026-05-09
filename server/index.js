@@ -8,6 +8,61 @@ const RATE_LIMIT_WINDOW_MS = 60000;
 const RATE_LIMIT_MAX = 100;
 const requestCounts = new Map();
 
+const PLASMA_URL = 'https://services.swpc.noaa.gov/products/solar-wind/plasma-7-day.json';
+const MAGNET_URL = 'https://services.swpc.noaa.gov/products/solar-wind/mag-7-day.json';
+const RTSW_CACHE_TTL_MS = 30000;
+let _rtswCache = null;
+let _rtswCacheTime = 0;
+
+function getSafe(val, fallback) {
+  const v = Number(val);
+  return (v !== null && v !== undefined && isFinite(v) && v > -900) ? v : fallback;
+}
+
+async function fetchRTSWFromNOAA() {
+  try {
+    const [plasmaRes, magRes] = await Promise.all([
+      fetch(PLASMA_URL, { headers: { 'User-Agent': 'SovereignMirror/1.0' }, signal: AbortSignal.timeout(8000) }),
+      fetch(MAGNET_URL, { headers: { 'User-Agent': 'SovereignMirror/1.0' }, signal: AbortSignal.timeout(8000) })
+    ]);
+    if (!plasmaRes.ok || !magRes.ok) throw new Error('NOAA fetch failed');
+    const [plasma, mag] = await Promise.all([plasmaRes.json(), magRes.json()]);
+    const lp = plasma[plasma.length - 1] || {};
+    const lm = mag[mag.length - 1] || {};
+    return {
+      speed: getSafe(lp.speed, 400),
+      density: getSafe(lp.density, 10),
+      temperature: getSafe(lp.temperature, 100000),
+      bx: getSafe(lm.bx, 0),
+      by: getSafe(lm.by, 0),
+      bz: getSafe(lm.bz, 0),
+      bt: getSafe(lm.bt, 0),
+      timestamp: Date.now(),
+      source: 'NOAA SWPC',
+    };
+  } catch (e) {
+    return null;
+  }
+}
+
+async function getRTSW() {
+  const now = Date.now();
+  if (_rtswCache && now - _rtswCacheTime < RTSW_CACHE_TTL_MS) {
+    return _rtswCache;
+  }
+  const data = await fetchRTSWFromNOAA();
+  if (data) {
+    _rtswCache = data;
+    _rtswCacheTime = now;
+  }
+  return _rtswCache;
+}
+const ALLOWED_ORIGINS = ['http://localhost:5173', 'http://localhost:4173'];
+const MAX_BODY_SIZE = 4096;
+const RATE_LIMIT_WINDOW_MS = 60000;
+const RATE_LIMIT_MAX = 100;
+const requestCounts = new Map();
+
 function getRateLimitKey(req) {
   return req.socket.remoteAddress || 'unknown';
 }
@@ -62,6 +117,18 @@ const server = createServer((req, res) => {
   if (url.pathname === '/api/health' && req.method === 'GET') {
     res.writeHead(200, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify({ status: 'TRUSTED_KERNEL_ONLINE', timestamp: Date.now() }));
+    return;
+  }
+
+  if (url.pathname === '/api/rtsw/latest' && req.method === 'GET') {
+    const rtsw = await getRTSW();
+    if (rtsw) {
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify(rtsw));
+    } else {
+      res.writeHead(503, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: 'NOAA unavailable' }));
+    }
     return;
   }
 
@@ -230,6 +297,7 @@ const server = createServer((req, res) => {
 server.listen(PORT, () => {
   console.log(`[TRUSTED_KERNEL] Server running on port ${PORT}`);
   console.log(`[TRUSTED_KERNEL] Using Node.js built-in HTTP (no express needed)`);
+  console.log(`  GET  /api/rtsw/latest`);
   console.log(`  GET  /api/health`);
   console.log(`  POST /api/pgate/engage`);
   console.log(`  POST /api/veracity/calculate`);
