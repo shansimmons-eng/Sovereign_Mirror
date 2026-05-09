@@ -57,6 +57,7 @@ async function getRTSW() {
   }
   return _rtswCache;
 }
+
 const ALLOWED_ORIGINS = ['http://localhost:5173', 'http://localhost:4173'];
 const MAX_BODY_SIZE = 4096;
 const RATE_LIMIT_WINDOW_MS = 60000;
@@ -93,7 +94,7 @@ function validateNumber(value, name) {
 
 const VALID_MODES = new Set(['resonance', 'refining', 'virtual']);
 
-const server = createServer((req, res) => {
+const server = createServer(async (req, res) => {
   const origin = getCorsOrigin(req);
   res.setHeader('Access-Control-Allow-Origin', origin);
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
