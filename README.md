@@ -1,43 +1,67 @@
-# Sovereign Mirror - V0.1 Alpha
+# Sovereign Mirror
 
-A distributed governance simulator built on **Radical Veracity** principles—where mathematical truth governs system state.
+Distributed governance simulator built on Radical Veracity principles.
 
-## Architecture
+## Overview
 
-- **Logic Kernel**: Pure functions enforcing 5 mandatory gates
-- **Hybrid State**: Jotai (nodes) + Zustand (HUD) + Redux (ledger)
-- **Radiant UI**: Three.js symbolic 3D visualization
-- **Trusted Backend**: Express server mirroring kernel logic
+Sovereign Mirror visualizes the interplay between veracity scores, p-gate confirmations, and node physicalization through a symbolic 3D environment. The visualization features golden threads and Sierpinski fractal morphing, driven by real-time NOAA solar wind data.
 
 ## Quick Start
 
 ```bash
+# Install dependencies
 npm install
+
+# Start development server
 npm run dev
+
+# Build for production
+npm run build
 ```
 
-## Environment Variables
+## Architecture
 
-```env
-VITE_OPENWEATHER_API_KEY=your_api_key_here
+```
+┌─────────────────────────────────────────────────┐
+│                    FRONTEND                     │
+│  React + TypeScript + Three.js (WebGL Canvas)   │
+└─────────────────────────────────────────────────┘
 ```
 
-## Core Logic Gates
+**State Layers:**
 
-1. **Veracity Gate**: V = max(0, V_active - V_control)
-2. **P-Gate**: Q = min(N, ⌈√N⌉ + 2) with 7-cycle confirmation
-3. **Inverion Divide**: Remediation layer (tombstoning, never deletion)
-4. **Abolition of Pain**: Friction = ∞ for pain-inducing paths
-5. **Atrophy Timer**: VR × 0.95^t per 24-hour cycle
+| Layer | Library | Purpose |
+|-------|---------|---------|
+| Atoms | Jotai | Per-node reactive state |
+| HUD | Zustand | Flux, noise, sunrise opacity |
+| Ledger | Redux | Audit trail, veracity log |
 
 ## Tech Stack
 
-React 18, Three.js (R3F), TailwindCSS, Jotai, Zustand, Redux Toolkit, Node.js/Express
+| Component | Technology |
+|-----------|-------------|
+| Frontend | React 18, TypeScript, Three.js, React Three Fiber |
+| State | Jotai, Zustand, Redux Toolkit |
+| Styling | Tailwind CSS |
+| Build | Vite |
 
-## Documentation
+## Key Features
 
-See [SYSTEM_LOGIC.md](./SYSTEM_LOGIC.md) for core mandates and [RECRUITMENT_READINESS.md](./RECRUITMENT_READINESS.md) for technical pitch.
+- **Veracity Gate**: Tracks V_active - V_control with audit logging
+- **P-Gate Confirmation**: 7-cycle protocol with quorum formula
+- **3D Particle Visualization**: 2000 particles with custom GLSL shaders
+- **NOAA Solar Wind Integration**: Real-time data driving animation
+- **Atrophy Timer**: 24-hour limit for node deprecation
 
-## License
+## Commands
 
-MIT
+```bash
+npm run dev        # Start Vite dev server
+npm run build      # TypeScript check + Vite build
+npm run preview    # Preview production build
+npm run server     # Run Express server
+```
+
+## Links
+
+- [KylosArc.com](https://kylosarc.com) — Learn more about the project and goals

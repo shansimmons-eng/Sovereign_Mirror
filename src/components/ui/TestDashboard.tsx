@@ -194,13 +194,13 @@ export function TestDashboard() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-dawn-obsidian">
+    <div className="min-h-screen bg-void-black">
       <TestNodeSimulator nodeCount={NODE_COUNT} />
       <div className="fixed bottom-4 right-4 glassmorphism-dark p-3 rounded-lg">
         <div className="text-radiant-cream font-mono text-xs">
-          <span className="text-healed-sage">●</span> SIMULATION ACTIVE
+          <span className="text-veracity-gate-active">●</span> SIMULATION ACTIVE
         </div>
-        <div className="text-white/40 font-mono text-xs mt-1">
+        <div className="text-on-surface-variant font-mono text-xs mt-1">
           {NODE_COUNT} nodes | Check console for audit
         </div>
       </div>

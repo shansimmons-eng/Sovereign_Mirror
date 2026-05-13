@@ -16,14 +16,13 @@ function VeracityEventRow({ event }: { event: VeracityEvent }) {
   };
 
   return (
-    <div className="py-1 border-b border-white/5">
-      <span className="text-deprecated-rust">[AUDIT]</span>
-      <span className="text-ultranetic-amber ml-2">{labels[event.eventType] || event.eventType}</span>
-      <span className="text-white/40 ml-2">NODE_{event.nodeId.slice(0, 6)}</span>
-      <span className="text-healed-sage ml-auto">
-        V={event.veracityScore.toFixed(4)} dV={event.velocity.toFixed(6)}
-      </span>
-      <span className="text-white/30 ml-4">{formatTimestamp(event.timestamp)}</span>
+    <div className="grid grid-cols-12 gap-2 text-on-surface-variant group hover:bg-white/5 p-1 transition-colors text-[11px]">
+      <div className="col-span-3 font-data-mono">{formatTimestamp(event.timestamp)}</div>
+      <div className="col-span-2 font-data-mono text-ignition-white">#0x{event.nodeId.slice(0, 4)}</div>
+      <div className="col-span-5 font-data-mono truncate">{labels[event.eventType] || event.eventType}</div>
+      <div className="col-span-2 text-right font-data-mono">
+        <span className="text-solar-amber">V={event.veracityScore.toFixed(2)}</span>
+      </div>
     </div>
   );
 }
@@ -38,14 +37,15 @@ function PhysicalizationEventRow({ event }: { event: PhysicalizationEvent }) {
   };
 
   return (
-    <div className="py-1 border-b border-white/5">
-      <span className="text-physical-rose">[AUDIT]</span>
-      <span className="text-physical-rose ml-2">{labels[event.eventType] || event.eventType}</span>
-      <span className="text-white/40 ml-2">NODE_{event.nodeId.slice(0, 6)}</span>
-      <span className="text-ultranetic-amber ml-auto">
-        R={event.resonanceScore.toFixed(4)} Q={event.affirmingNodes}/{event.quorumSize}
-      </span>
-      <span className="text-white/30 ml-4">{formatTimestamp(event.timestamp)}</span>
+    <div className="grid grid-cols-12 gap-2 text-on-surface-variant group hover:bg-white/5 p-1 transition-colors text-[11px]">
+      <div className="col-span-3 font-data-mono">{formatTimestamp(event.timestamp)}</div>
+      <div className="col-span-2 font-data-mono text-ignition-white">#0x{event.nodeId.slice(0, 4)}</div>
+      <div className="col-span-5 font-data-mono truncate">{labels[event.eventType] || event.eventType}</div>
+      <div className="col-span-2 text-right font-data-mono">
+        <span className={event.affirmingNodes >= event.quorumSize ? 'text-solar-amber' : 'text-veracity-gate-bypass'}>
+          Q={event.affirmingNodes}/{event.quorumSize}
+        </span>
+      </div>
     </div>
   );
 }
@@ -59,21 +59,32 @@ export function VeracityLog() {
     .slice(0, 50);
 
   return (
-    <div className="glassmorphism-dark p-4 h-full flex flex-col">
-      <div className="text-radiant-cream font-mono text-sm mb-3 flex items-center">
-        <span className="w-2 h-2 bg-healed-sage rounded-full mr-2 animate-pulse" />
-        VERACITY LEDGER
+    <div className="h-full flex flex-col">
+      <div className="flex justify-between items-center mb-2 shrink-0">
+        <div className="flex items-center gap-3">
+          <span className="material-symbols-outlined text-solar-amber">receipt_long</span>
+          <span className="font-data-mono text-data-mono text-ignition-white">VERACITY_LEDGER_STREAM</span>
+        </div>
+        <span className="font-status-label text-status-label text-on-surface-variant">LIVE_FEED_ENABLED</span>
       </div>
-      <div className="flex-1 overflow-y-auto veracity-terminal">
+      <div className="flex-1 overflow-y-auto scrollbar-thin">
         {allEvents.length === 0 ? (
-          <div className="text-white/30 italic">Awaiting veracity events...</div>
+          <div className="text-on-surface-variant/40 font-data-mono text-[11px] italic">Awaiting veracity events...</div>
         ) : (
-          allEvents.map((event, i) => {
-            if ('veracityScore' in event) {
-              return <VeracityEventRow key={event.id || i} event={event} />;
-            }
-            return <PhysicalizationEventRow key={event.id || i} event={event} />;
-          })
+          <>
+            <div className="grid grid-cols-12 gap-2 text-on-surface-variant/40 border-b border-ignition-white/5 pb-1 mb-2 text-[10px] font-data-mono shrink-0">
+              <div className="col-span-3">TIMESTAMP</div>
+              <div className="col-span-2">NODE_ID</div>
+              <div className="col-span-5">EVENT</div>
+              <div className="col-span-2 text-right">STATUS</div>
+            </div>
+            {allEvents.map((event, i) => {
+              if ('veracityScore' in event) {
+                return <VeracityEventRow key={event.id || i} event={event} />;
+              }
+              return <PhysicalizationEventRow key={event.id || i} event={event} />;
+            })}
+          </>
         )}
       </div>
     </div>

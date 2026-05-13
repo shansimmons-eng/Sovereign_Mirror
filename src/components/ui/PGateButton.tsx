@@ -32,21 +32,21 @@ export function PGateButton({ nodeId }: PGateButtonProps) {
         onClick={handleEngage}
       >
         <div className="flex flex-col items-center">
-          <span className="text-radiant-cream mb-1">P-GATE</span>
+          <span className="text-ignition-white mb-1">P-GATE</span>
           {flux > 0.661 ? (
-            <span className="text-radiant-cream">ACTIVE</span>
+            <span className="text-ignition-white">ACTIVE</span>
           ) : flux > 0.3 ? (
-            <span className="text-dawn-obsidian">
+            <span className="text-void-black">
               SYNCING {(flux / 0.661 * 7).toFixed(0)}/7
             </span>
           ) : (
-            <span className="text-white/40">STANDBY</span>
+            <span className="text-on-surface-variant">STANDBY</span>
           )}
         </div>
       </button>
 
       <button
-        className="mt-2 w-full py-2 rounded-lg font-mono text-xs bg-ultranetic-amber/20 border border-ultranetic-amber/30 text-ultranetic-amber hover:bg-ultranetic-amber/30 transition-colors"
+        className="mt-2 w-full py-2 rounded-lg font-mono text-xs bg-solar-amber/20 border border-solar-amber/30 text-solar-amber hover:bg-solar-amber/30 transition-colors"
         onClick={async () => {
           const result = await engagePGate('resonance', 0.75);
           console.log('[PGATE] Direct engagement:', result);
@@ -55,7 +55,7 @@ export function PGateButton({ nodeId }: PGateButtonProps) {
         Test API (0.75)
       </button>
 
-      <div className="mt-3 text-center text-white/30 font-mono text-xs">
+      <div className="mt-3 text-center text-on-surface-variant font-mono text-xs">
         Tick Rate: {effectiveTickRate.toFixed(0)}ms | Flux: {flux.toFixed(3)}
       </div>
     </div>

@@ -1,6 +1,7 @@
 import { useRef, useMemo, useEffect } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
+import { useNodeStore } from '../../state/stores/nodeStore';
 
 const PARTICLE_COUNT = 2000;
 
@@ -12,9 +13,35 @@ const getSafe = (val: number, fallback: number): number => {
   return (v !== null && v !== undefined && isFinite(v) && v > -900) ? v : fallback;
 };
 
-const BASE_GEOMETRY = new THREE.PlaneGeometry(1, 1);
-
 const DEFAULT_RTSW = { speed: 450, density: 15, temperature: 100000, bx: 0, by: 0, bz: -5, bt: 5 };
+
+const vertexShader = `
+  attribute vec3 customColor;
+  varying vec3 vColor;
+  varying float vAlpha;
+  
+  void main() {
+    vColor = customColor;
+    vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+    gl_PointSize = 8.0 * (300.0 / -mvPosition.z);
+    gl_Position = projectionMatrix * mvPosition;
+    vAlpha = 1.0;
+  }
+`;
+
+const fragmentShader = `
+  varying vec3 vColor;
+  varying float vAlpha;
+  
+  void main() {
+    float r = distance(gl_PointCoord, vec2(0.5));
+    if (r > 0.5) discard;
+    float glow = 1.0 - smoothstep(0.0, 0.5, r);
+    float core = 1.0 - smoothstep(0.0, 0.15, r);
+    vec3 finalColor = vColor * glow + vec3(1.0) * core * 0.5;
+    gl_FragColor = vec4(finalColor, glow * vAlpha);
+  }
+`;
 
 async function fetchNOAAData() {
   try {
@@ -37,16 +64,71 @@ async function fetchNOAAData() {
   }
 }
 
+function StarField() {
+  const points = useMemo(() => {
+    const positions = new Float32Array(500 * 3);
+    for (let i = 0; i < 500; i++) {
+      positions[i * 3] = (Math.random() - 0.5) * 100;
+      positions[i * 3 + 1] = (Math.random() - 0.5) * 100;
+      positions[i * 3 + 2] = (Math.random() - 0.5) * 100 - 30;
+    }
+    return positions;
+  }, []);
+
+  return (
+    <points>
+      <bufferGeometry>
+        <bufferAttribute
+          attach="attributes-position"
+          count={500}
+          array={points}
+          itemSize={3}
+        />
+      </bufferGeometry>
+      <pointsMaterial
+        size={0.3}
+        color="#4a5568"
+        transparent
+        opacity={0.4}
+        sizeAttenuation
+      />
+    </points>
+  );
+}
+
+function GlowRing() {
+  const ringRef = useRef<THREE.Mesh>(null!);
+  const flux = useNodeStore((s) => s.flux);
+
+  useFrame((state) => {
+    if (ringRef.current) {
+      ringRef.current.rotation.z = state.clock.getElapsedTime() * 0.1;
+      const scale = 1 + Math.sin(state.clock.getElapsedTime() * 2) * 0.05 + flux * 0.3;
+      ringRef.current.scale.setScalar(scale);
+    }
+  });
+
+  return (
+    <mesh ref={ringRef} rotation={[Math.PI / 2, 0, 0]}>
+      <ringGeometry args={[2.5, 2.8, 64]} />
+      <meshBasicMaterial
+        color="#FB923C"
+        transparent
+        opacity={0.15}
+        side={THREE.DoubleSide}
+      />
+    </mesh>
+  );
+}
+
 function SceneContent() {
-  const meshRef = useRef<THREE.InstancedMesh>(null!);
-  const dummy = useMemo(() => new THREE.Object3D(), []);
-  const tempColor = useMemo(() => new THREE.Color(), []);
+  const meshRef = useRef<THREE.Points>(null!);
+  const materialRef = useRef<THREE.ShaderMaterial>(null!);
 
   const rtswRef = useRef(DEFAULT_RTSW);
   const smoothedSpeedRef = useRef(400);
   const smoothedDensityRef = useRef(10);
   const bzDeltaRef = useRef(0);
-  const frameCountRef = useRef(0);
   const lastFetchRef = useRef(0);
 
   const particleSeeds = useMemo(() => {
@@ -60,20 +142,26 @@ function SceneContent() {
     return seeds;
   }, []);
 
+  const positions = useMemo(() => new Float32Array(PARTICLE_COUNT * 3), []);
+  const colors = useMemo(() => new Float32Array(PARTICLE_COUNT * 3), []);
+
   useEffect(() => {
     const mesh = meshRef.current;
     if (!mesh) return;
-    mesh.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(PARTICLE_COUNT * 3), 3);
-    const initColor = new THREE.Color(1, 0.5, 0.2);
+
+    const geometry = mesh.geometry;
+    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    geometry.setAttribute('customColor', new THREE.BufferAttribute(colors, 3));
+
     for (let i = 0; i < PARTICLE_COUNT; i++) {
-      mesh.setColorAt(i, initColor);
+      colors[i * 3] = 1.0;
+      colors[i * 3 + 1] = 0.4;
+      colors[i * 3 + 2] = 0.1;
     }
-    if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
-    console.log('[init] done, instanceColor=' + (mesh.instanceColor ? 'OK' : 'null'));
+    geometry.attributes.customColor.needsUpdate = true;
   }, []);
 
   useEffect(() => {
-    console.log('[fetch] starting interval');
     const interval = setInterval(async () => {
       const now = Date.now();
       if (now - lastFetchRef.current < 10000) return;
@@ -82,7 +170,6 @@ function SceneContent() {
       if (data) {
         bzDeltaRef.current = Math.abs(data.bz - rtswRef.current.bz);
         rtswRef.current = data;
-        console.log('[fetch] NOAA updated: speed=' + data.speed + ' density=' + data.density);
       }
     }, 6000);
     return () => clearInterval(interval);
@@ -95,16 +182,7 @@ function SceneContent() {
     const delta = state.clock.getDelta();
     if (delta > 0.15 || !isFinite(delta)) return;
 
-    if (!mesh.instanceColor) {
-      mesh.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(PARTICLE_COUNT * 3), 3);
-    }
-
     const time = state.clock.getElapsedTime();
-    frameCountRef.current++;
-    if (frameCountRef.current % 120 === 0) {
-      console.log('[useFrame] frame=' + frameCountRef.current + ' mesh.visible=' + mesh.visible + ' instanceColor=' + (mesh.instanceColor ? 'OK' : 'null'));
-    }
-
     const rtsw = rtswRef.current;
 
     const safeSpeed = getSafe(rtsw.speed, 400);
@@ -123,11 +201,11 @@ function SceneContent() {
     const breathPhase = Math.sin(time * Math.PI * 2 * breathFreq);
     const breathLerp = (breathPhase + 1) * 0.5;
 
-    const collapseForce = densityNorm * (0.3 + breathLerp * 0.7) * 0.8;
-    const exhaleForce = (1 - breathLerp) * (0.1 + speedNorm * 0.2);
-
     const baseOrbit = 0.15 + speedNorm * 0.1;
     const timeStep = (smoothedSpeedRef.current / 400) * 0.015;
+
+    const posAttr = mesh.geometry.attributes.position;
+    const colorAttr = mesh.geometry.attributes.customColor;
 
     for (let i = 0; i < PARTICLE_COUNT; i++) {
       const seed0 = particleSeeds[i * 4 + 0];
@@ -146,66 +224,83 @@ function SceneContent() {
       const gustY = Math.cos(time * 15.1 + seed1 * 9.3) * gustStrength * 0.4;
       const gustZ = Math.sin(time * 11.7 + seed0 * seed1 * 6.1) * gustStrength * 0.4;
 
-      dummy.position.set(x + gustX, y + gustY, z + gustZ);
+      posAttr.setXYZ(i, x + gustX, y + gustY, z + gustZ);
 
-      if (i === 0 && frameCountRef.current % 120 === 0) {
-        console.log('[pos] x=', x.toFixed(3), 'y=', y.toFixed(3), 'z=', z.toFixed(3), 'orbitRadius=', orbitRadius.toFixed(3));
-      }
-
-      const distFromCenter = dummy.position.length();
+      const distFromCenter = Math.sqrt((x + gustX) ** 2 + (y + gustY) ** 2 + (z + gustZ) ** 2);
       const proximityFactor = Math.max(0, 1.0 - distFromCenter / 3.0);
       const intensity = 0.5 + proximityFactor * 0.4;
-      tempColor.setRGB(intensity * 1.0, intensity * 0.4, intensity * 0.1);
 
-      if (i === 0 && frameCountRef.current % 120 === 0) {
-        console.log('[color] intensity=', intensity.toFixed(2), 'proximityFactor=', proximityFactor.toFixed(2));
-      }
+      const hue = 0.05 + speedNorm * 0.08 + densityNorm * 0.05;
+      const saturation = 0.8 + gustStrength * 0.2;
+      const lightness = 0.4 + intensity * 0.3;
 
-      if (mesh.setColorAt) mesh.setColorAt(i, tempColor);
-
-      dummy.quaternion.copy(state.camera.quaternion);
-      dummy.scale.setScalar(0.3 + speedNorm * 0.2);
-      dummy.updateMatrix();
-      if (!isFinite(dummy.matrix.elements[0])) continue;
-      mesh.setMatrixAt(i, dummy.matrix);
+      const color = new THREE.Color().setHSL(hue, saturation, lightness);
+      colorAttr.setXYZ(i, color.r, color.g, color.b);
     }
 
-    mesh.instanceMatrix.needsUpdate = true;
-    if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
-
-    frameCountRef.current++;
-    if (frameCountRef.current % 180 === 0) {
-      const firstMatrix = new THREE.Matrix4();
-      mesh.getMatrixAt(0, firstMatrix);
-      const pos = new THREE.Vector3();
-      const quat = new THREE.Quaternion();
-      const scale = new THREE.Vector3();
-      firstMatrix.decompose(pos, quat, scale);
-      console.log('[render] frame=' + frameCountRef.current + ' matrix0.pos=', pos.x.toFixed(2), pos.y.toFixed(2), pos.z.toFixed(2), 'scale=', scale.x.toFixed(2));
-    }
+    posAttr.needsUpdate = true;
+    colorAttr.needsUpdate = true;
   });
 
   return (
-    <instancedMesh ref={meshRef} args={[BASE_GEOMETRY, undefined, PARTICLE_COUNT]} frustumCulled={false}>
-      <meshBasicMaterial color="#ff6600" />
-    </instancedMesh>
+    <>
+      <points ref={meshRef} frustumCulled={false}>
+        <bufferGeometry />
+        <shaderMaterial
+          ref={materialRef}
+          vertexShader={vertexShader}
+          fragmentShader={fragmentShader}
+          transparent
+          depthWrite={false}
+          blending={THREE.AdditiveBlending}
+        />
+      </points>
+      <StarField />
+      <GlowRing />
+    </>
   );
+}
+
+function CameraRig() {
+  useFrame((state) => {
+    const time = state.clock.getElapsedTime();
+    const camera = state.camera;
+    camera.position.x = Math.sin(time * 0.1) * 2;
+    camera.position.y = Math.cos(time * 0.15) * 1.5;
+    camera.position.z = 20 + Math.sin(time * 0.05) * 3;
+    camera.lookAt(0, 0, 0);
+  });
+  return null;
 }
 
 export function ResonanceTrajectory() {
   return (
-    <div className="relative w-full h-full" style={{ background: '#0a0a0f', width: '100%', height: '100%', position: 'absolute', top: 0, left: 0 }}>
+    <div
+      className="relative w-full h-full"
+      style={{
+        background: 'radial-gradient(ellipse at center, #1a1a2e 0%, #0a0a0f 70%, #050508 100%)',
+        width: '100%',
+        height: '100%',
+        position: 'absolute',
+        top: 0,
+        left: 0,
+      }}
+    >
       <Canvas
         style={{ width: '100%', height: '100%' }}
         gl={{
-          toneMapping: THREE.NoToneMapping,
+          toneMapping: THREE.ACESFilmicToneMapping,
+          toneMappingExposure: 1.2,
           outputColorSpace: 'srgb',
           alpha: false,
         }}
         camera={{ position: [0, 0, 20], fov: 60, near: 0.1, far: 1000 }}
-        dpr={1}
+        dpr={Math.min(window.devicePixelRatio, 2)}
       >
+        <ambientLight intensity={0.2} />
+        <pointLight position={[0, 0, 10]} intensity={0.5} color="#FB923C" />
         <SceneContent />
+        <CameraRig />
       </Canvas>
     </div>
   );

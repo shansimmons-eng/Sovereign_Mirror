@@ -1,0 +1,6 @@
+skills/
+  {skill-name}/
+    SKILL.md
+    scripts/
+      {script-name}.sh
+  {skill-name}.zip
