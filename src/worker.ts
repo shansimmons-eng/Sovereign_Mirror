@@ -1,20 +1,16 @@
-export interface Env {
-  DB: D1Database;
-}
-
 export default {
-  async fetch(request: Request, env: Env): Promise<Response> {
+  async fetch(request: Request): Promise<Response> {
     const url = new URL(request.url);
 
     if (url.pathname.startsWith('/api/')) {
-      return handleAPI(request, env);
+      return handleAPI(request);
     }
 
     return handleAssets(request);
   },
 };
 
-async function handleAPI(request: Request, env: Env): Promise<Response> {
+async function handleAPI(request: Request): Promise<Response> {
   const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
