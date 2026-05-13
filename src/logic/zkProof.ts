@@ -46,7 +46,6 @@ export class ZKProofEngine {
       return {
         valid: isValid,
         proofId: proof.proofId,
-        verificationResult: isValid,
       };
     } catch (error) {
       return {

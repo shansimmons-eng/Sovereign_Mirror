@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { GOLDEN_RATIO, THRESHOLD_ENTROPY } from '../../logic/types';
+import { GOLDEN_RATIO } from '../../logic/types';
 
 interface HUDState {
   temperature: number;

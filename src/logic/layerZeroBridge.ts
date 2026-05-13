@@ -24,9 +24,9 @@ export interface TelemetryConfig {
 
 const DEFAULT_CONFIG: TelemetryConfig = {
   samplingIntervalMs: 30000,
-  apiKey: import.meta.env.VITE_OPENWEATHER_API_KEY || '',
+  apiKey: '',
   mockMode: true,
-  useOpenWeather: true,
+  useOpenWeather: false,
   latitude: 40.7128,
   longitude: -74.0060,
 };
@@ -44,7 +44,6 @@ class PlanetaryHealthBridge {
   private listeners: Set<(telemetry: PlanetaryTelemetry) => void> = new Set();
   private intervalId: ReturnType<typeof setInterval> | null = null;
   private telemetryHistory: PlanetaryTelemetry[] = [];
-  private lastApiFetch: number = 0;
 
   constructor(config: Partial<TelemetryConfig> = {}) {
     this.config = { ...DEFAULT_CONFIG, ...config };

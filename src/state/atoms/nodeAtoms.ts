@@ -29,10 +29,9 @@ export const nodeIdsAtom = atom<string[]>([]);
 
 export const meshSizeAtom = atom((get) => get(nodeIdsAtom).length);
 
-export const nodeVeracityVelocityFamily = atomFamily((nodeId: string) =>
+export const nodeVeracityVelocityFamily = atomFamily((_nodeId: string) =>
   atom((get) => {
-    const node = get(nodeAtomFamily(nodeId));
-    const prevVeracity = node.veracityScore;
+    const node = get(nodeAtomFamily(_nodeId));
     const prevTimestamp = node.lastPhysicalizationTs || Date.now();
     const now = Date.now();
     const dt = Math.max(1, now - prevTimestamp);
@@ -51,7 +50,7 @@ export const nodeResonanceVelocityFamily = atomFamily((nodeId: string) =>
   })
 );
 
-export const pGateConfirmationFamily = atomFamily((nodeId: string) =>
+export const pGateConfirmationFamily = atomFamily((_nodeId: string) =>
   atom({
     crossingFrame: 0,
     cyclesHeld: 0,

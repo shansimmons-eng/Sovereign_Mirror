@@ -21,7 +21,7 @@ export function getThresholdWithEntropy(): number {
   return GOLDEN_RATIO * (1 + THRESHOLD_ENTROPY);
 }
 
-export function isAtThreshold(resonance: number, activeNodes: number): boolean {
+export function isAtThreshold(resonance: number, _activeNodes: number): boolean {
   const threshold = getThresholdWithEntropy();
   return resonance >= threshold;
 }

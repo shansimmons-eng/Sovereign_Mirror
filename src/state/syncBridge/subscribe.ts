@@ -18,7 +18,7 @@ export function subscribeToNode(nodeId: string, callback: NodeCallback): () => v
   return () => nodeSubscriptions.delete(nodeId);
 }
 
-export function notifyPGateRejection(nodeId: string, reason: string): void {
+export function notifyPGateRejection(nodeId: string, _reason: string): void {
   const callback = nodeSubscriptions.get(nodeId);
   if (callback) {
     callback({
