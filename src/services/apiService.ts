@@ -93,7 +93,7 @@ function validatePGate(v: unknown): PGateResponse | null {
   if (typeof o.status !== 'string') return null;
   if (typeof o.message !== 'string') return null;
   if (typeof o.timestamp !== 'number') return null;
-  return o as PGateResponse;
+  return o as unknown as PGateResponse;
 }
 
 export async function engagePGate(mode: string, level: number): Promise<Result<PGateResponse>> {
@@ -142,13 +142,13 @@ function validateVeracity(v: unknown): VeracityResponse | null {
   const o = v as Record<string, unknown>;
   if (typeof o.veracity !== 'number' || !isFinite(o.veracity)) return null;
   if (typeof o.timestamp !== 'number') return null;
-  return o as VeracityResponse;
+  return o as unknown as VeracityResponse;
 }
 
 export async function calculateVeracity(active: number, control: number): Promise<Result<number>> {
   const result = await post<VeracityResponse>('/veracity/calculate', { active, control }, validateVeracity);
   if (result.ok) return ok(result.data!.veracity);
-  return err(result.error);
+  return err(result.error ?? 'Unknown error');
 }
 
 interface RTSWData {
@@ -206,7 +206,7 @@ function validateQuorum(v: unknown): QuorumResponse | null {
   if (typeof o.quorum !== 'number' || !isFinite(o.quorum)) return null;
   if (typeof o.reached !== 'boolean') return null;
   if (typeof o.timestamp !== 'number') return null;
-  return o as QuorumResponse;
+  return o as unknown as QuorumResponse;
 }
 
 export async function checkQuorum(activeNodes: number, affirmingNodes: number): Promise<Result<{ quorum: number; reached: boolean }>> {
