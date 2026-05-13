@@ -6,5 +6,10 @@ pages_build_output_dir = "dist"
 ENVIRONMENT = "production"
 
 [pages]
-binding = "CLOUDFLARE_PAGES"
 build_output_dir = "dist"
+
+[nodejs]
+node_version = "18"
+
+[install]
+quick = true
