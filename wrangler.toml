@@ -5,11 +5,6 @@ pages_build_output_dir = "dist"
 [vars]
 ENVIRONMENT = "production"
 
-[[routes]]
-pattern = "*"
-zone_name = ""
-
-[[d1_databases]]
-binding = "DB"
-database_name = "sovereign_mirror"
-database_id = ""
+[pages]
+binding = "CLOUDFLARE_PAGES"
+build_output_dir = "dist"
