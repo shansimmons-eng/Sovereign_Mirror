@@ -120,9 +120,18 @@ function KineticQuads() {
     return seeds;
   }, []);
 
-  const colorMorningGold = useMemo(() => new THREE.Color('#FFD54F'), []);
-  const colorVibrantAmber = useMemo(() => new THREE.Color('#FF8F00'), []);
-  const colorBurntOrange = useMemo(() => new THREE.Color('#E65100'), []);
+  const colorPalette = useMemo(() => [
+    new THREE.Color('#FFD54F'),
+    new THREE.Color('#FF8F00'),
+    new THREE.Color('#E65100'),
+    new THREE.Color('#FF6F00'),
+    new THREE.Color('#FFB300'),
+    new THREE.Color('#FFA000'),
+    new THREE.Color('#FF8F00'),
+    new THREE.Color('#FF6D00'),
+    new THREE.Color('#FFAB40'),
+    new THREE.Color('#FF9100'),
+  ], []);
 
   useEffect(() => {
     const mesh = meshRef.current;
@@ -131,11 +140,10 @@ function KineticQuads() {
     mesh.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(INSTANCE_COUNT * 3), 3);
 
     for (let i = 0; i < INSTANCE_COUNT; i++) {
+      const c1 = colorPalette[Math.floor(Math.random() * colorPalette.length)];
+      const c2 = colorPalette[Math.floor(Math.random() * colorPalette.length)];
       const mixFactor = Math.random();
-      const color = tempColor.clone().lerpColors(colorMorningGold, colorVibrantAmber, mixFactor);
-      if (Math.random() > 0.5) {
-        color.lerp(colorBurntOrange, 0.3);
-      }
+      const color = tempColor.clone().lerpColors(c1, c2, mixFactor);
       mesh.setColorAt(i, color);
     }
     if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
