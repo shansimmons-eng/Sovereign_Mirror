@@ -1,7 +1,6 @@
 import { useRef, useMemo, useEffect } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-import { EffectComposer, Bloom } from '@react-three/postprocessing';
 
 const INSTANCE_COUNT = 4000;
 const PLASMA_URL = 'https://services.swpc.noaa.gov/products/solar-wind/plasma-7-day.json';
@@ -13,44 +12,6 @@ const getSafe = (val: number, fallback: number): number => {
 };
 
 const DEFAULT_RTSW = { speed: 450, density: 15, temperature: 100000, bx: 0, by: 0, bz: -5, bt: 5 };
-
-const vertexShader = `
-  attribute vec3 instanceVelocity;
-  varying vec3 vColor;
-  varying float vIntensity;
-  varying vec2 vUv;
-  
-  void main() {
-    vUv = uv;
-    
-    vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
-    gl_Position = projectionMatrix * mvPosition;
-    
-    vColor = instanceColor;
-    vIntensity = 0.5 + length(instanceVelocity) * 0.3;
-  }
-`;
-
-const fragmentShader = `
-  varying vec3 vColor;
-  varying float vIntensity;
-  varying vec2 vUv;
-  
-  void main() {
-    vec2 center = vUv - 0.5;
-    float dist = length(center);
-    
-    if (dist > 0.5) discard;
-    
-    float glow = 1.0 - smoothstep(0.0, 0.5, dist);
-    float core = 1.0 - smoothstep(0.0, 0.15, dist);
-    
-    vec3 amberGlow = vColor * glow * vIntensity;
-    vec3 whiteCore = vec3(1.0) * core * 0.8;
-    
-    gl_FragColor = vec4(amberGlow + whiteCore, glow);
-  }
-`;
 
 async function fetchNOAAData() {
   try {
@@ -107,25 +68,32 @@ function StarField() {
 
 function IgnitionCore() {
   const coreRef = useRef<THREE.Mesh>(null!);
+  const glowRef = useRef<THREE.Mesh>(null!);
   const timeRef = useRef(0);
 
   useFrame((state) => {
     timeRef.current += state.clock.getDelta();
     if (coreRef.current) {
-      const pulse = Math.sin(timeRef.current * 3) * 0.1 + 0.9;
+      const pulse = Math.sin(timeRef.current * 3) * 0.15 + 1;
       coreRef.current.scale.setScalar(pulse);
+    }
+    if (glowRef.current) {
+      const glowPulse = Math.sin(timeRef.current * 2) * 0.2 + 1.2;
+      glowRef.current.scale.setScalar(glowPulse);
     }
   });
 
   return (
-    <mesh ref={coreRef}>
-      <sphereGeometry args={[0.15, 32, 32]} />
-      <meshBasicMaterial
-        color="#FFFFFF"
-        transparent
-        opacity={1}
-      />
-    </mesh>
+    <group>
+      <mesh ref={glowRef}>
+        <sphereGeometry args={[0.5, 32, 32]} />
+        <meshBasicMaterial color="#FF8F00" transparent opacity={0.3} />
+      </mesh>
+      <mesh ref={coreRef}>
+        <sphereGeometry args={[0.2, 32, 32]} />
+        <meshBasicMaterial color="#FFFFFF" />
+      </mesh>
+    </group>
   );
 }
 
@@ -133,7 +101,6 @@ function KineticQuads() {
   const meshRef = useRef<THREE.InstancedMesh>(null!);
   const dummy = useMemo(() => new THREE.Object3D(), []);
   const tempColor = useMemo(() => new THREE.Color(), []);
-  const instanceVelocities = useMemo(() => new Float32Array(INSTANCE_COUNT * 3), []);
 
   const rtswRef = useRef(DEFAULT_RTSW);
   const smoothedSpeedRef = useRef(400);
@@ -153,15 +120,15 @@ function KineticQuads() {
     return seeds;
   }, []);
 
+  const colorMorningGold = useMemo(() => new THREE.Color('#FFD54F'), []);
+  const colorVibrantAmber = useMemo(() => new THREE.Color('#FF8F00'), []);
+  const colorBurntOrange = useMemo(() => new THREE.Color('#E65100'), []);
+
   useEffect(() => {
     const mesh = meshRef.current;
     if (!mesh) return;
 
     mesh.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(INSTANCE_COUNT * 3), 3);
-
-    const colorMorningGold = new THREE.Color('#FFD54F');
-    const colorVibrantAmber = new THREE.Color('#FF8F00');
-    const colorBurntOrange = new THREE.Color('#E65100');
 
     for (let i = 0; i < INSTANCE_COUNT; i++) {
       const mixFactor = Math.random();
@@ -258,10 +225,6 @@ function KineticQuads() {
 
       if (isFinite(dummy.matrix.elements[0])) {
         mesh.setMatrixAt(i, dummy.matrix);
-
-        instanceVelocities[i * 3] = gustX * 10;
-        instanceVelocities[i * 3 + 1] = gustY * 10;
-        instanceVelocities[i * 3 + 2] = gustZ * 10;
       }
     }
 
@@ -276,16 +239,14 @@ function KineticQuads() {
       frustumCulled={false}
     >
       <planeGeometry args={[1, 1]} />
-      <shaderMaterial
-        vertexShader={vertexShader}
-        fragmentShader={fragmentShader}
+      <meshBasicMaterial
+        color="#FFFFFF"
         transparent
+        opacity={0.9}
         depthWrite={false}
         depthTest={false}
         blending={THREE.AdditiveBlending}
-        uniforms={{
-          instanceVelocity: { value: instanceVelocities }
-        }}
+        side={THREE.DoubleSide}
       />
     </instancedMesh>
   );
@@ -320,25 +281,19 @@ export function ResonanceTrajectory() {
         style={{ width: '100%', height: '100%' }}
         gl={{
           toneMapping: THREE.NoToneMapping,
+          toneMappingExposure: 2.0,
           outputColorSpace: 'srgb',
           alpha: false,
         }}
         camera={{ position: [0, 0, 18], fov: 55, near: 0.1, far: 1000 }}
         dpr={Math.min(window.devicePixelRatio, 2)}
       >
-        <ambientLight intensity={0.05} />
+        <ambientLight intensity={0.1} />
+        <pointLight position={[0, 0, 0]} intensity={2} color="#FFFFFF" distance={10} />
         <KineticQuads />
         <StarField />
         <IgnitionCore />
         <CameraRig />
-        <EffectComposer>
-          <Bloom
-            intensity={1.5}
-            luminanceThreshold={0.9}
-            luminanceSmoothing={0.4}
-            radius={0.4}
-          />
-        </EffectComposer>
       </Canvas>
     </div>
   );
