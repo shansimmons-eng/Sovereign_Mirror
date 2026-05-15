@@ -61,11 +61,14 @@ const particleVertexShader = `
     float instanceID = float(gl_InstanceID);
     float phase = hash(vec3(instanceID, instanceID * 1.3, instanceID * 2.7));
 
-    float radius = clamp(2.0 * (1.0 - u_inverion_alpha), 0.1, 2.0);
+    float baseRadius = 2.0;
+    float fissionWave = sin(theta * 2.0) * (u_boltzmann_noise * 0.35);
+    float calculatedRadius = baseRadius * (1.0 - u_inverion_alpha) + fissionWave;
+    float radius = clamp(calculatedRadius, 0.1, 2.0);
+
     float theta = u_time * (u_boltzmann_temp * 0.1) + (phase * 6.28318);
 
-    float splitFactor = sin(theta) * (u_boltzmann_noise * 0.4);
-    vec3 orbitPos = vec3(cos(theta) * (radius + splitFactor), sin(theta) * radius, sin(theta * phase) * 0.2);
+    vec3 orbitPos = vec3(cos(theta) * radius, sin(theta) * radius, sin(theta * phase) * 0.15);
 
     float noiseFactor = hash(orbitPos + vec3(u_time * 0.05));
     vec3 dispersalVector = vec3(cos(phase * 6.28), sin(phase * 6.28), phase * 0.1);
@@ -241,10 +244,6 @@ function KineticQuads() {
   const bzDeltaRef = useRef(0);
   const lastFetchRef = useRef(0);
 
-  const syncCycleRef = useRef(0);
-  const wasDecayedRef = useRef(false);
-  const matrixDirtyRef = useRef(false);
-
   const prevPositionsRef = useRef<Float32Array | null>(null);
   const velocitiesRef = useRef<Float32Array | null>(null);
 
@@ -362,25 +361,12 @@ function KineticQuads() {
 
     const isDecayed = inverionAlpha < DECAY_THRESHOLD;
 
-    if (wasDecayedRef.current && !isDecayed) {
-      syncCycleRef.current = 1;
-      matrixDirtyRef.current = true;
-      setSyncStatus('SYNCING', 1);
-    }
-    wasDecayedRef.current = isDecayed;
-
-    if (syncCycleRef.current > 0 && syncCycleRef.current < 7) {
-      syncCycleRef.current++;
-      setSyncStatus('SYNCING', syncCycleRef.current);
-    }
-    if (syncCycleRef.current >= 7) {
-      mesh.matrixWorldNeedsUpdate = true;
-      matrixDirtyRef.current = false;
-      setSyncStatus('ACTIVE', 7);
-    }
-
-    if (isDecayed && syncCycleRef.current === 0) {
+    if (inverionAlpha === 0) {
       setSyncStatus('STANDBY', 0);
+    } else if (inverionAlpha > 0 && inverionAlpha < 0.15) {
+      setSyncStatus('SYNCING', 4);
+    } else {
+      setSyncStatus('ACTIVE', 7);
     }
 
     const decayFactor = isDecayed ? 1.0 - (inverionAlpha / DECAY_THRESHOLD) : 0;
