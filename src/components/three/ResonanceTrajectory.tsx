@@ -3,6 +3,7 @@ import { Canvas, useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { EffectComposer, Bloom } from '@react-three/postprocessing';
 import { useHUDStore } from '../../state/stores/hudStore';
+import { useNodeStore } from '../../state/stores/nodeStore';
 
 const INSTANCE_COUNT = 5000;
 const PLASMA_URL = 'https://services.swpc.noaa.gov/products/solar-wind/plasma-7-day.json';
