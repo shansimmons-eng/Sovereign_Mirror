@@ -25,6 +25,8 @@ interface NodeState {
   pGateStates: Record<string, PGateState>;
   flux: number;
   rtsw: RTSWData | null;
+  syncStatus: 'STANDBY' | 'SYNCING' | 'ACTIVE';
+  syncProgress: number;
   setNodeIds: (ids: string[]) => void;
   updateNode: (nodeId: string, updates: Partial<NodeAtom>) => void;
   getNode: (nodeId: string) => NodeAtom | undefined;
@@ -32,6 +34,7 @@ interface NodeState {
   getPGateState: (nodeId: string) => PGateState;
   setFlux: (flux: number) => void;
   setRTSW: (data: RTSWData) => void;
+  setSyncStatus: (status: 'STANDBY' | 'SYNCING' | 'ACTIVE', progress?: number) => void;
 }
 
 export const useNodeStore = create<NodeState>((set, get) => ({
@@ -40,6 +43,8 @@ export const useNodeStore = create<NodeState>((set, get) => ({
   pGateStates: {},
   flux: 0.75,
   rtsw: null,
+  syncStatus: 'ACTIVE',
+  syncProgress: 7,
 
   setNodeIds: (ids) => set({ nodeIds: ids }),
 
@@ -73,6 +78,8 @@ export const useNodeStore = create<NodeState>((set, get) => ({
   setFlux: (newFlux) => set({ flux: newFlux }),
 
   setRTSW: (data) => set({ rtsw: data }),
+
+  setSyncStatus: (status, progress = 7) => set({ syncStatus: status, syncProgress: progress }),
 }));
 
 export const nodeIdsAtom = useNodeStore.getState().nodeIds;

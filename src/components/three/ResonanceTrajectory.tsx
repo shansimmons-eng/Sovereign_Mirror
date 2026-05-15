@@ -53,7 +53,7 @@ const particleVertexShader = `
 
   void main() {
     vec3 iPos = (modelMatrix * instanceMatrix * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
-    float alpha = max(0.001, u_inverion_alpha);
+    float alpha = max(0.005, u_inverion_alpha);
 
     float R_inner = 0.5 + alpha * 2.5;
 
@@ -228,12 +228,17 @@ function KineticQuads() {
   const bzDeltaRef = useRef(0);
   const lastFetchRef = useRef(0);
 
+  const syncCycleRef = useRef(0);
+  const wasDecayedRef = useRef(false);
+  const matrixDirtyRef = useRef(false);
+
   const prevPositionsRef = useRef<Float32Array | null>(null);
   const velocitiesRef = useRef<Float32Array | null>(null);
 
   const temperature = useHUDStore((s) => s.temperature);
   const noiseFilter = useHUDStore((s) => s.noiseFilter);
   const inverionAlpha = useNodeStore((s) => s.flux);
+  const setSyncStatus = useNodeStore((s) => s.setSyncStatus);
 
   const particleSeeds = useMemo(() => {
     const seeds = new Float32Array(INSTANCE_COUNT * 6);
@@ -337,11 +342,33 @@ function KineticQuads() {
     bzDeltaRef.current *= 0.92;
 
     material.uniforms.u_time.value = Math.max(0.001, time);
-    material.uniforms.u_inverion_alpha.value = Math.max(0.001, inverionAlpha);
+    material.uniforms.u_inverion_alpha.value = Math.max(0.005, inverionAlpha);
     material.uniforms.u_boltzmann_temp.value = Math.max(0.01, 0.3 + temperature * 2.0);
     material.uniforms.u_boltzmann_noise.value = Math.max(0.001, 0.05 + noiseFilter * 0.5);
 
     const isDecayed = inverionAlpha < DECAY_THRESHOLD;
+
+    if (wasDecayedRef.current && !isDecayed) {
+      syncCycleRef.current = 1;
+      matrixDirtyRef.current = true;
+      setSyncStatus('SYNCING', 1);
+    }
+    wasDecayedRef.current = isDecayed;
+
+    if (syncCycleRef.current > 0 && syncCycleRef.current < 7) {
+      syncCycleRef.current++;
+      setSyncStatus('SYNCING', syncCycleRef.current);
+    }
+    if (syncCycleRef.current >= 7) {
+      mesh.matrixWorldNeedsUpdate = true;
+      matrixDirtyRef.current = false;
+      setSyncStatus('ACTIVE', 7);
+    }
+
+    if (isDecayed && syncCycleRef.current === 0) {
+      setSyncStatus('STANDBY', 0);
+    }
+
     const decayFactor = isDecayed ? 1.0 - (inverionAlpha / DECAY_THRESHOLD) : 0;
     const escapeStrength = decayFactor * decayFactor * 1.5;
 
