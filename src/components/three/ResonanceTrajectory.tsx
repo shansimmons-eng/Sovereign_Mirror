@@ -72,28 +72,32 @@ function StarField() {
   );
 }
 
-function IgnitionCore() {
+function IgnitionCore({ inverionAlpha }: { inverionAlpha: number }) {
   const coreRef = useRef<THREE.Mesh>(null!);
   const haloRef = useRef<THREE.Mesh>(null!);
   const timeRef = useRef(0);
+
+  const coreAttenuation = inverionAlpha * inverionAlpha;
 
   useFrame((state) => {
     timeRef.current += state.clock.getDelta();
     const t = timeRef.current;
 
+    const pulse = 1 + Math.sin(t * 4) * 0.15 * coreAttenuation;
+    const breathe = 1 + Math.sin(t * 0.5) * 0.05;
+    const baseOpacity = 0.95 * coreAttenuation;
+
     if (coreRef.current) {
-      const pulse = 1 + Math.sin(t * 4) * 0.15;
-      const breathe = 1 + Math.sin(t * 0.5) * 0.05;
       coreRef.current.scale.setScalar(pulse * breathe);
       const material = coreRef.current.material as THREE.MeshBasicMaterial;
-      material.opacity = 0.9 + Math.sin(t * 3) * 0.1;
+      material.opacity = baseOpacity + Math.sin(t * 3) * 0.1 * coreAttenuation;
     }
 
     if (haloRef.current) {
-      const haloPulse = 1.2 + Math.sin(t * 2.5) * 0.3;
+      const haloPulse = 1.2 + Math.sin(t * 2.5) * 0.3 * coreAttenuation;
       haloRef.current.scale.setScalar(haloPulse);
       const material = haloRef.current.material as THREE.MeshBasicMaterial;
-      material.opacity = 0.25 + Math.sin(t * 2) * 0.1;
+      material.opacity = 0.25 * coreAttenuation + Math.sin(t * 2) * 0.1 * coreAttenuation;
     }
   });
 
@@ -122,6 +126,8 @@ function KineticQuads() {
   const smoothedDensityRef = useRef(10);
   const bzDeltaRef = useRef(0);
   const lastFetchRef = useRef(0);
+
+  const prevPositionsRef = useRef<Float32Array | null>(null);
 
   const temperature = useHUDStore((s) => s.temperature);
   const noiseFilter = useHUDStore((s) => s.noiseFilter);
@@ -170,6 +176,7 @@ function KineticQuads() {
       mesh.setColorAt(i, color);
     }
     if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
+    prevPositionsRef.current = new Float32Array(INSTANCE_COUNT * 3);
   }, []);
 
   useEffect(() => {
@@ -210,7 +217,9 @@ function KineticQuads() {
     const angularVelocity = 0.3 + temperature * 3.0;
     const noiseAmplitude = noiseFilter * 2.5;
     const confinementRadius = 0.15 + inverionAlpha * 3.5;
-    const bloomRelaxation = 1.0 - inverionAlpha * 0.85;
+
+    const decayFactor = 1.0 - inverionAlpha;
+    const escapeStrength = decayFactor * decayFactor * 0.8;
 
     const breathFreq = 0.2 + densityNorm * 0.3;
     const breathPhase = Math.sin(time * Math.PI * 2 * breathFreq);
@@ -219,6 +228,9 @@ function KineticQuads() {
     const baseTimeStep = (smoothedSpeedRef.current / 400) * 0.01;
 
     if (!mesh.instanceMatrix) return;
+
+    const prevPositions = prevPositionsRef.current;
+    const positions = new Float32Array(INSTANCE_COUNT * 3);
 
     for (let i = 0; i < INSTANCE_COUNT; i++) {
       const seed0 = particleSeeds[i * 6 + 0];
@@ -234,7 +246,7 @@ function KineticQuads() {
       const cosA = Math.cos(angle);
       const sinA = Math.sin(angle);
 
-      const radialDist = (radius * breathLerp * 0.5) * bloomRelaxation + 0.3;
+      const radialDist = radius * breathLerp * 0.5 + 0.3;
       const confinedRadial = Math.min(radialDist, confinementRadius);
 
       const baseX = sinA * confinedRadial * (1.1 + Math.sin(seed1 + t * 2.1) * 0.35);
@@ -254,9 +266,41 @@ function KineticQuads() {
       const gustY = Math.cos(time * 12.1 + seed1 * 8.3) * gustStrength * 0.25;
       const gustZ = Math.sin(time * 9.7 + seed0 * seed1 * 5.1) * gustStrength * 0.25;
 
-      const px = baseX + erraticX + gustX;
-      const py = baseY + erraticY + gustY;
-      const pz = baseZ + erraticZ + gustZ;
+      let px = baseX + erraticX + gustX;
+      let py = baseY + erraticY + gustY;
+      let pz = baseZ + erraticZ + gustZ;
+
+      if (prevPositions && escapeStrength > 0.01) {
+        const prevX = prevPositions[i * 3];
+        const prevY = prevPositions[i * 3 + 1];
+        const prevZ = prevPositions[i * 3 + 2];
+
+        if (isFinite(prevX) && isFinite(prevY) && isFinite(prevZ)) {
+          let vx = px - prevX;
+          let vy = py - prevY;
+          let vz = pz - prevZ;
+
+          const vMag = Math.sqrt(vx * vx + vy * vy + vz * vz);
+          if (vMag > 0.001) {
+            vx /= vMag;
+            vy /= vMag;
+            vz /= vMag;
+          } else {
+            vx = sinA;
+            vy = cosA;
+            vz = 0;
+          }
+
+          const escapeAmount = escapeStrength * (0.5 + Math.random() * 0.5);
+          px += vx * escapeAmount;
+          py += vy * escapeAmount;
+          pz += vz * escapeAmount;
+        }
+      }
+
+      positions[i * 3] = px;
+      positions[i * 3 + 1] = py;
+      positions[i * 3 + 2] = pz;
 
       dummy.position.set(px, py, pz);
 
@@ -280,6 +324,7 @@ function KineticQuads() {
       }
     }
 
+    prevPositionsRef.current = positions;
     mesh.instanceMatrix.needsUpdate = true;
     if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
   });
@@ -316,7 +361,26 @@ function CameraRig() {
   return null;
 }
 
+function DecayBloomEffect({ inverionAlpha }: { inverionAlpha: number }) {
+  const intensity = 0.5 + inverionAlpha * 2.5;
+  const threshold = 0.3 + (1.0 - inverionAlpha) * 0.5;
+
+  return (
+    <EffectComposer>
+      <Bloom
+        intensity={intensity}
+        luminanceThreshold={threshold}
+        luminanceSmoothing={0.65}
+        radius={0.65}
+        mipmapBlur
+      />
+    </EffectComposer>
+  );
+}
+
 export function ResonanceTrajectory() {
+  const inverionAlpha = useNodeStore((s) => s.flux);
+
   return (
     <div
       className="relative w-full h-full"
@@ -340,20 +404,12 @@ export function ResonanceTrajectory() {
         camera={{ position: [0, 0, 16], fov: 50, near: 0.1, far: 1000 }}
         dpr={Math.min(window.devicePixelRatio, 2)}
       >
-        <pointLight position={[0, 0, 0]} intensity={0.8} color="#FFFFFF" distance={6} />
+        <pointLight position={[0, 0, 0]} intensity={0.8 * inverionAlpha} color="#FFFFFF" distance={6} />
         <KineticQuads />
         <StarField />
-        <IgnitionCore />
+        <IgnitionCore inverionAlpha={inverionAlpha} />
         <CameraRig />
-        <EffectComposer>
-          <Bloom
-            intensity={2.5}
-            luminanceThreshold={0.82}
-            luminanceSmoothing={0.65}
-            radius={0.65}
-            mipmapBlur
-          />
-        </EffectComposer>
+        <DecayBloomEffect inverionAlpha={inverionAlpha} />
       </Canvas>
     </div>
   );
