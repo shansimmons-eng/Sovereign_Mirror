@@ -27,40 +27,26 @@ export function PGateButton({ nodeId }: PGateButtonProps) {
 
   return (
     <div className="mt-6">
-      <div className="pgate-center relative w-full">
-        <svg className="pgate-border" viewBox="0 0 100 40" preserveAspectRatio="none">
-          <rect
-            x="1"
-            y="1"
-            width="98"
-            height="38"
-            rx="12"
-            fill="none"
-            strokeWidth="2"
-            className="pgate-rect"
-          />
-        </svg>
-        <button
-          className={`p-gate-button w-full py-4 rounded-xl font-mono text-sm font-semibold ${statusClass}`}
-          onClick={handleEngage}
-        >
-          <div className="flex flex-col items-center">
-            <span className="text-ignition-white mb-1">P-GATE</span>
-            {flux > 0.661 ? (
-              <span className="text-ignition-white">ACTIVE</span>
-            ) : flux > 0.3 ? (
-              <span className="text-void-black">
-                SYNCING {(flux / 0.661 * 7).toFixed(0)}/7
-              </span>
-            ) : (
-              <span className="text-on-surface-variant">STANDBY</span>
-            )}
-          </div>
-        </button>
-      </div>
+      <button
+        className={`pgate-btn w-full py-4 font-mono text-sm font-semibold ${statusClass}`}
+        onClick={handleEngage}
+      >
+        <div className="flex flex-col items-center">
+          <span className="text-ignition-white mb-1">P-GATE</span>
+          {flux > 0.661 ? (
+            <span className="text-ignition-white">ACTIVE</span>
+          ) : flux > 0.3 ? (
+            <span className="text-void-black">
+              SYNCING {(flux / 0.661 * 7).toFixed(0)}/7
+            </span>
+          ) : (
+            <span className="text-on-surface-variant">STANDBY</span>
+          )}
+        </div>
+      </button>
 
       <button
-        className="pgate-test w-full py-2 rounded-lg font-mono text-xs mt-2"
+        className="pgate-test w-full py-2 font-mono text-xs mt-2"
         onClick={async () => {
           const result = await engagePGate('resonance', 0.75);
           console.log('[PGATE] Direct engagement:', result);

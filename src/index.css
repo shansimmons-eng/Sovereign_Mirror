@@ -26,24 +26,6 @@
   overflow-y: auto;
 }
 
-.p-gate-button {
-  transition: all 0.5s;
-}
-
-.p-gate-button.physical {
-  background-color: #F43F5E;
-  box-shadow: 0 0.5rem 1rem rgba(244, 63, 94, 0.5);
-}
-
-.p-gate-button.refining {
-  background-color: rgba(251, 146, 60, 0.5);
-}
-
-.p-gate-button.virtual {
-  background-color: #000000;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
 .gradient-sunrise {
   background: linear-gradient(
     to top,
@@ -122,64 +104,71 @@
   backdrop-filter: blur(16px);
 }
 
-.pgate-center {
-  width: 100%;
-  height: 80px;
+.pgate-btn {
   position: relative;
+  border-radius: 0.5rem;
+  background: transparent;
+  transition: background-color 0.8s ease, box-shadow 0.8s ease;
 }
 
-.pgate-border {
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-}
-
-.pgate-rect {
-  stroke: rgba(244, 63, 94, 0.4);
-  stroke-dasharray: 280 480;
-  stroke-dashoffset: 0;
-  transition: stroke-dashoffset 0.6s ease-in-out, stroke 0.4s ease;
-}
-
-.pgate-center:hover .pgate-rect {
-  stroke-dashoffset: -480;
-  stroke: rgba(244, 63, 94, 0.9);
-}
-
-.pgate-button {
+.pgate-btn::before {
+  content: '';
   position: absolute;
   inset: 0;
-  transition: background-color 0.4s ease, box-shadow 0.4s ease;
+  border-radius: 0.5rem;
+  padding: 2px;
+  background: linear-gradient(
+    135deg,
+    rgba(244, 63, 94, 0.6) 0%,
+    rgba(244, 63, 94, 0.1) 50%,
+    rgba(244, 63, 94, 0.6) 100%
+  );
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0.5;
+  transition: opacity 1.2s ease;
 }
 
-.p-gate-button.physical {
+.pgate-btn:hover::before {
+  opacity: 1;
+}
+
+.pgate-btn.physical {
   background-color: rgba(244, 63, 94, 0.7);
-  box-shadow: 0 0.5rem 1rem rgba(244, 63, 94, 0.3);
 }
 
-.p-gate-button.refining {
+.pgate-btn.physical:hover {
+  background-color: rgba(244, 63, 94, 0.85);
+  box-shadow: 0 0 20px rgba(244, 63, 94, 0.4);
+}
+
+.pgate-btn.refining {
   background-color: rgba(251, 146, 60, 0.5);
 }
 
-.p-gate-button.virtual {
-  background-color: rgba(0, 0, 0, 0.8);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+.pgate-btn.refining:hover {
+  background-color: rgba(251, 146, 60, 0.65);
+  box-shadow: 0 0 20px rgba(251, 146, 60, 0.3);
 }
 
-.p-gate-button.physical:hover {
-  background-color: rgba(244, 63, 94, 0.85);
-  box-shadow: 0 0.8rem 1.5rem rgba(244, 63, 94, 0.5);
+.pgate-btn.virtual {
+  background-color: rgba(0, 0, 0, 0.8);
+}
+
+.pgate-btn.virtual:hover {
+  background-color: rgba(20, 20, 20, 0.9);
+  box-shadow: 0 0 15px rgba(244, 63, 94, 0.2);
 }
 
 .pgate-test {
   background: transparent;
   border: 1px solid rgba(244, 63, 94, 0.4);
   color: rgba(244, 63, 94, 0.9);
-  transition: all 0.4s ease;
+  transition: all 0.8s ease;
   position: relative;
+  border-radius: 0.5rem;
 }
 
 .pgate-test::before {
@@ -189,7 +178,8 @@
   background: rgba(244, 63, 94, 0.15);
   transform: scaleX(0);
   transform-origin: left;
-  transition: transform 0.4s ease-in-out;
+  transition: transform 0.8s ease-in-out;
+  border-radius: 0.5rem;
 }
 
 .pgate-test:hover::before {
