@@ -9,7 +9,7 @@ const INSTANCE_COUNT = 5000;
 const PLASMA_URL = 'https://services.swpc.noaa.gov/products/solar-wind/plasma-7-day.json';
 const MAGNET_URL = 'https://services.swpc.noaa.gov/products/solar-wind/mag-7-day.json';
 
-const DECAY_THRESHOLD = 0.15;
+const DECAY_THRESHOLD = 0.20;
 
 const getSafe = (val: number, fallback: number): number => {
   const v = Number(val);
@@ -72,7 +72,7 @@ const particleVertexShader = `
     float noiseFactor = hash(orbitPos + vec3(u_time * 0.05));
     vec3 dispersalVector = vec3(cos(phase * 6.28), sin(phase * 6.28), phase * 0.1);
 
-    if (u_inverion_alpha < 0.15) {
+    if (u_inverion_alpha < 0.20) {
       float drift = (1.0 - u_inverion_alpha) * (u_boltzmann_noise * 0.5);
       transformed += orbitPos + (dispersalVector * noiseFactor * drift);
       vIntensity = u_inverion_alpha;
@@ -362,8 +362,8 @@ function KineticQuads() {
 
     if (inverionAlpha === 0) {
       setSyncStatus('STANDBY', 0);
-    } else if (inverionAlpha > 0 && inverionAlpha < 0.15) {
-      setSyncStatus('SYNCING', 4);
+    } else if (inverionAlpha > 0 && inverionAlpha < 0.20) {
+      setSyncStatus('SYNCING', 5);
     } else {
       setSyncStatus('ACTIVE', 7);
     }

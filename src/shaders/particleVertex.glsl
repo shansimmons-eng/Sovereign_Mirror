@@ -30,7 +30,7 @@ void main() {
     float noiseFactor = hash(orbitPos + vec3(u_time * 0.05));
     vec3 dispersalVector = vec3(cos(phase * 6.28), sin(phase * 6.28), phase * 0.1);
 
-    if (u_inverion_alpha < 0.15) {
+    if (u_inverion_alpha < 0.20) {
         float drift = (1.0 - u_inverion_alpha) * (u_boltzmann_noise * 0.5);
         transformed += orbitPos + (dispersalVector * noiseFactor * drift);
         vIntensity = u_inverion_alpha;
