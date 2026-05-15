@@ -101,7 +101,7 @@ export async function engagePGate(mode: string, level: number): Promise<Result<P
     return err('Invalid mode: must be resonance, refining, or virtual');
   }
 
-  const serverResult = await post<PGateResponse>('/pgate/engage', { mode, level }, validatePGate);
+  const serverResult = await post<PGateResponse>('/pgate', { mode, level }, validatePGate);
   if (!serverResult.ok) {
     return serverResult;
   }
@@ -146,7 +146,7 @@ function validateVeracity(v: unknown): VeracityResponse | null {
 }
 
 export async function calculateVeracity(active: number, control: number): Promise<Result<number>> {
-  const result = await post<VeracityResponse>('/veracity/calculate', { active, control }, validateVeracity);
+  const result = await post<VeracityResponse>('/veracity', { active, control }, validateVeracity);
   if (result.ok) return ok(result.data!.veracity);
   return err(result.error ?? 'Unknown error');
 }
@@ -210,7 +210,7 @@ function validateQuorum(v: unknown): QuorumResponse | null {
 }
 
 export async function checkQuorum(activeNodes: number, affirmingNodes: number): Promise<Result<{ quorum: number; reached: boolean }>> {
-  const result = await post<QuorumResponse>('/quorum/calculate', { activeNodes, affirmingNodes }, validateQuorum);
+  const result = await post<QuorumResponse>('/quorum', { activeNodes, affirmingNodes }, validateQuorum);
   if (result.ok && result.data) {
     return ok({ quorum: result.data.quorum, reached: result.data.reached });
   }
