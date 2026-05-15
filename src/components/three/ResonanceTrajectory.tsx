@@ -339,6 +339,7 @@ export function ResonanceTrajectory() {
             luminanceThreshold={0.85}
             luminanceSmoothing={0.5}
             radius={0.5}
+            mipmapBlur
           />
         </EffectComposer>
       </Canvas>
