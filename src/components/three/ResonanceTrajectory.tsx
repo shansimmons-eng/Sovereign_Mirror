@@ -48,49 +48,64 @@ const particleVertexShader = `
   attribute float instancePhase;
   attribute vec3 instanceVelocity;
 
-  varying float v_alpha;
-  varying vec3 v_color;
+  varying vec2 vUv;
+  varying float vIntensity;
+
+  float hash(vec3 p) {
+    p = fract(p * 0.3183099 + 0.1);
+    p *= 17.0;
+    return fract(p.x * p.y * p.z * (p.x + p.y + p.z));
+  }
 
   void main() {
-    vec3 iPos = (modelMatrix * instanceMatrix * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
-    float alpha = max(0.005, u_inverion_alpha);
+    vUv = uv;
+    vec3 transformed = position;
 
-    float R_inner = 0.5 + alpha * 2.5;
+    float instanceID = float(gl_InstanceID);
+    float phase = hash(vec3(instanceID, instanceID * 1.3, instanceID * 2.7));
 
-    if (alpha < ${DECAY_THRESHOLD.toFixed(2)}) {
-      float decayRatio = alpha / ${DECAY_THRESHOLD.toFixed(2)};
-      float drift = (1.0 - decayRatio) * u_time * (u_boltzmann_noise + 0.1);
-      vec3 escapeDir = normalize(instanceVelocity + vec3(instancePhase * 0.1, 0.0, 0.0));
-      iPos += escapeDir * drift;
-      v_alpha = 0.15 + decayRatio * 0.5;
-      v_color = mix(vec3(1.0, 0.2, 0.05), vec3(0.8, 0.4, 0.1), decayRatio);
+    float radius = 2.0 * (1.0 - u_inverion_alpha);
+    float theta = u_time * (u_boltzmann_temp * 0.1) + (phase * 6.28318);
+
+    vec3 orbitPos = vec3(cos(theta) * radius, sin(theta) * radius, sin(theta * phase) * 0.5);
+
+    float noiseFactor = hash(orbitPos + vec3(u_time * 0.05));
+    vec3 dispersalVector = vec3(cos(phase * 6.28), sin(phase * 6.28), phase);
+
+    if (u_inverion_alpha < 0.15) {
+      float drift = (1.0 - u_inverion_alpha) * (u_boltzmann_noise * 0.5);
+      transformed += orbitPos + (dispersalVector * noiseFactor * drift);
+      vIntensity = u_inverion_alpha;
     } else {
-      float theta = u_time * u_boltzmann_temp * (0.5 + instancePhase);
-      float r = R_inner + instanceVelocity.y * 0.3;
-      iPos.x += cos(theta) * r;
-      iPos.y += sin(theta) * r;
-      v_alpha = 0.4 + alpha * 0.6;
-      v_color = mix(vec3(1.0, 0.5, 0.1), vec3(1.0, 0.95, 0.8), (alpha - ${DECAY_THRESHOLD.toFixed(2)}) / ${(1 - DECAY_THRESHOLD).toFixed(2)});
+      transformed += orbitPos + (dispersalVector * noiseFactor * u_boltzmann_noise * 0.2);
+      vIntensity = 1.0;
     }
 
-    vec4 mvPosition = viewMatrix * modelMatrix * vec4(iPos, 1.0);
+    vec4 mvPosition = modelViewMatrix * vec4(transformed, 1.0);
     gl_Position = projectionMatrix * mvPosition;
   }
 `;
 
 const particleFragmentShader = `
-  varying float v_alpha;
-  varying vec3 v_color;
+  varying vec2 vUv;
+  varying float vIntensity;
 
   void main() {
-    vec2 center = gl_PointCoord - 0.5;
-    float dist = length(center);
+    float dist = length(vUv - vec2(0.5));
     if (dist > 0.5) discard;
 
-    float glow = 1.0 - smoothstep(0.1, 0.5, dist);
-    glow = pow(glow, 1.8);
+    float alphaMask = smoothstep(0.5, 0.2, dist);
 
-    gl_FragColor = vec4(v_color * glow, v_alpha * glow);
+    vec3 coreWhite = vec3(1.0, 1.0, 1.0);
+    vec3 amberGlow = vec3(1.0, 0.7, 0.1);
+    vec3 deepCopper = vec3(0.9, 0.3, 0.0);
+
+    vec3 finalColor = mix(deepCopper, amberGlow, vIntensity);
+    if (vIntensity > 0.8) {
+      finalColor = mix(finalColor, coreWhite, (vIntensity - 0.8) * 5.0);
+    }
+
+    gl_FragColor = vec4(finalColor * (vIntensity * 2.5), alphaMask);
   }
 `;
 
