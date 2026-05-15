@@ -228,9 +228,9 @@ function KineticQuads() {
 
       const t = time * timeStep + phaseOffset;
 
-      const turbulenceX = Math.sin(time * 8 + seed0 * 5) * tempJitter * 0.5;
-      const turbulenceY = Math.cos(time * 9 + seed1 * 6) * tempJitter * 0.5;
-      const turbulenceZ = Math.sin(time * 7 + seed0 * seed1 * 4) * tempJitter * 0.5;
+      const turbulenceX = (Math.sin(time * 8 + seed0 * 5) + Math.sin(time * 13 + seed1 * 7) * 0.5) * tempJitter;
+      const turbulenceY = (Math.cos(time * 9 + seed1 * 6) + Math.cos(time * 11 + seed0 * 9) * 0.5) * tempJitter;
+      const turbulenceZ = (Math.sin(time * 7 + seed0 * seed1 * 4) + Math.sin(time * 17 + seed1 * seed0 * 3) * 0.5) * tempJitter;
 
       const orbitRadius = (baseOrbit + radius * breathLerp * 0.6) * (0.4 + coherenceFactor * 0.6);
 
@@ -279,7 +279,7 @@ function KineticQuads() {
       args={[undefined, undefined, INSTANCE_COUNT]}
       frustumCulled={false}
     >
-      <planeGeometry args={[1, 1]} />
+      <planeGeometry args={[0.15, 1.8]} />
       <meshBasicMaterial
         color="#FFFFFF"
         transparent
