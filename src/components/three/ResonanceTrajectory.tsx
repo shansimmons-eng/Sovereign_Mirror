@@ -9,7 +9,7 @@ const INSTANCE_COUNT = 5000;
 const PLASMA_URL = 'https://services.swpc.noaa.gov/products/solar-wind/plasma-7-day.json';
 const MAGNET_URL = 'https://services.swpc.noaa.gov/products/solar-wind/mag-7-day.json';
 
-const DECAY_THRESHOLD = 0.20;
+const DECAY_THRESHOLD = 0.22;
 
 const getSafe = (val: number, fallback: number): number => {
   const v = Number(val);
@@ -62,17 +62,16 @@ const particleVertexShader = `
     float phase = hash(vec3(instanceID, instanceID * 1.3, instanceID * 2.7));
 
     float theta = u_time * (u_boltzmann_temp * 0.1) + (phase * 6.28318);
-    float baseRadius = 2.0 * (1.0 - u_inverion_alpha);
-    float fissionWave = sin(theta * 2.0) * (u_boltzmann_noise * 0.35);
-    float calculatedRadius = baseRadius + fissionWave;
-    float radius = clamp(calculatedRadius, 0.1, 2.0);
+    float fissionStretch = sin(theta * 2.0) * (u_boltzmann_noise * 0.38);
+    float activeRadius = (2.0 * (1.0 - u_inverion_alpha)) + fissionStretch;
+    float radius = clamp(activeRadius, 0.1, 2.0);
 
     vec3 orbitPos = vec3(cos(theta) * radius, sin(theta) * radius, sin(theta * phase) * 0.15);
 
     float noiseFactor = hash(orbitPos + vec3(u_time * 0.05));
     vec3 dispersalVector = vec3(cos(phase * 6.28), sin(phase * 6.28), phase * 0.1);
 
-    if (u_inverion_alpha < 0.20) {
+    if (u_inverion_alpha < 0.22) {
       float drift = (1.0 - u_inverion_alpha) * (u_boltzmann_noise * 0.5);
       transformed += orbitPos + (dispersalVector * noiseFactor * drift);
       vIntensity = u_inverion_alpha;
@@ -353,8 +352,8 @@ function KineticQuads() {
     bzDeltaRef.current *= 0.92;
 
     material.uniforms.u_time.value = Math.max(0.001, time);
-    const guardedAlpha = Math.max(0.002, inverionAlpha);
-    material.uniforms.u_inverion_alpha.value = guardedAlpha;
+    const defensiveAlpha = Math.max(0.002, inverionAlpha);
+    material.uniforms.u_inverion_alpha.value = defensiveAlpha;
     material.uniforms.u_boltzmann_temp.value = Math.max(0.01, 0.3 + temperature * 2.0);
     material.uniforms.u_boltzmann_noise.value = Math.max(0.001, 0.05 + noiseFilter * 0.5);
 
@@ -362,8 +361,8 @@ function KineticQuads() {
 
     if (inverionAlpha === 0) {
       setSyncStatus('STANDBY', 0);
-    } else if (inverionAlpha > 0 && inverionAlpha < 0.20) {
-      setSyncStatus('SYNCING', 5);
+    } else if (inverionAlpha > 0 && inverionAlpha < 0.22) {
+      setSyncStatus('SYNCING', 3);
     } else {
       setSyncStatus('ACTIVE', 7);
     }
