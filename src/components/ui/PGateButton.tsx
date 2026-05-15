@@ -32,15 +32,15 @@ export function PGateButton({ nodeId }: PGateButtonProps) {
         onClick={handleEngage}
       >
         <div className="flex flex-col items-center">
-          <span className="text-ignition-white mb-1">P-GATE</span>
+          <span className="pgate-text-primary mb-1">P-GATE</span>
           {flux > 0.661 ? (
-            <span className="text-ignition-white">ACTIVE</span>
+            <span className="pgate-text-primary">ACTIVE</span>
           ) : flux > 0.3 ? (
-            <span className="text-void-black">
+            <span className="pgate-text-primary opacity-80">
               SYNCING {(flux / 0.661 * 7).toFixed(0)}/7
             </span>
           ) : (
-            <span className="text-on-surface-variant">STANDBY</span>
+            <span className="pgate-text-muted">STANDBY</span>
           )}
         </div>
       </button>
@@ -52,7 +52,7 @@ export function PGateButton({ nodeId }: PGateButtonProps) {
           console.log('[PGATE] Direct engagement:', result);
         }}
       >
-        Test API (0.75)
+        <span className="pgate-text-primary">Test API (0.75)</span>
       </button>
 
       <div className="mt-3 text-center text-on-surface-variant font-mono text-xs">

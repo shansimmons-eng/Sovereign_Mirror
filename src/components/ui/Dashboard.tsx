@@ -26,7 +26,7 @@ export function Dashboard() {
       </header>
 
       <div className="flex flex-1 relative overflow-hidden">
-        <nav className="fixed left-0 top-16 h-[calc(100vh-128px)] z-40 flex flex-col backdrop-blur-2xl border-r w-64" style={{ backgroundColor: 'rgba(10, 10, 10, 0.9)', borderColor: 'rgba(255, 255, 255, 0.1)' }}>
+        <nav className="fixed left-0 top-16 h-[calc(100vh-128px)] z-40 flex flex-col backdrop-blur-2xl border-r w-64 shrink-0" style={{ backgroundColor: 'rgba(10, 10, 10, 0.9)', borderColor: 'rgba(255, 255, 255, 0.1)' }}>
           <div className="p-6 border-b" style={{ borderColor: 'rgba(255, 255, 255, 0.1)' }}>
             <div className="text-lg" style={{ color: '#ffffff' }}>CU_CONTROL</div>
             <div className="text-[10px] opacity-60" style={{ color: '#c4c7c8' }}>SYSTEMIC_PARAMETERS_v4.2</div>

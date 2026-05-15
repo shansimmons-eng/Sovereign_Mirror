@@ -191,3 +191,11 @@
   color: rgb(244, 63, 94);
   box-shadow: 0 0 12px rgba(244, 63, 94, 0.3);
 }
+
+.pgate-text-primary {
+  color: #FFF7ED;
+}
+
+.pgate-text-muted {
+  color: #a8a29e;
+}
