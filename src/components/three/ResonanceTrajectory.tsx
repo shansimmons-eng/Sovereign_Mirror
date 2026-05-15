@@ -220,7 +220,6 @@ function IgnitionCore({ inverionAlpha }: { inverionAlpha: number }) {
 
 function KineticQuads() {
   const meshRef = useRef<THREE.InstancedMesh>(null!);
-  const materialRef = useRef<any>(null);
   const dummy = useMemo(() => new THREE.Object3D(), []);
   const tempColor = useMemo(() => new THREE.Color(), []);
 
@@ -319,8 +318,10 @@ function KineticQuads() {
 
   useFrame((state) => {
     const mesh = meshRef.current;
-    const material = materialRef.current;
-    if (!mesh || !material) return;
+    if (!mesh) return;
+
+    const material = mesh.material as THREE.ShaderMaterial;
+    if (!material || !material.uniforms) return;
 
     const delta = state.clock.getDelta();
     if (delta > 0.15 || !isFinite(delta)) return;
@@ -468,7 +469,7 @@ function KineticQuads() {
       frustumCulled={false}
     >
       <planeGeometry args={[0.12, 1.6]} />
-      <particleShaderMaterial ref={materialRef} />
+      <particleShaderMaterial />
     </instancedMesh>
   );
 }

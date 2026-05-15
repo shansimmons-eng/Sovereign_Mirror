@@ -56,11 +56,11 @@ export function Dashboard() {
           </div>
         </nav>
 
-        <main className="ml-64 flex-1 relative flex flex-col overflow-hidden p-8" style={{ backgroundColor: '#000000' }}>
+        <main className="ml-64 flex-1 relative flex flex-col overflow-hidden p-4" style={{ backgroundColor: '#000000' }}>
           <div className="grid grid-cols-12 gap-4 flex-1 min-h-0">
-            <div className="col-span-12 lg:col-span-8 backdrop-blur-2xl rounded-lg p-6 flex flex-col relative overflow-hidden border" style={{ backgroundColor: 'rgba(10, 10, 10, 0.6)', borderColor: 'rgba(255, 255, 255, 0.1)', minHeight: '300px' }}>
+            <div className="col-span-12 lg:col-span-8 backdrop-blur-2xl rounded-lg p-4 flex flex-col relative overflow-hidden border" style={{ backgroundColor: 'rgba(10, 10, 10, 0.6)', borderColor: 'rgba(255, 255, 255, 0.1)', minHeight: '0' }}>
               <div className="scanline" />
-              <div className="flex justify-between items-start mb-4 relative z-10">
+              <div className="flex justify-between items-start mb-2 relative z-10">
                 <div>
                   <div className="flex items-center gap-2">
                     <div className="w-2 h-2 animate-pulse" style={{ backgroundColor: '#FFB300', boxShadow: '0 0 8px #FFB300' }}></div>
@@ -72,23 +72,23 @@ export function Dashboard() {
                   <span>FRAME: <span style={{ color: '#FFB300' }}>16.6ms</span></span>
                 </div>
               </div>
-              <div className="flex-1 relative min-h-0" style={{ minHeight: '200px' }}>
+              <div className="flex-1 relative min-h-0">
                 <ResonanceTrajectory />
               </div>
-              <div className="mt-4 flex justify-between text-[10px] font-mono border-t pt-4" style={{ color: '#c4c7c8', borderColor: 'rgba(255, 255, 255, 0.1)' }}>
+              <div className="mt-2 flex justify-between text-[10px] font-mono border-t pt-2" style={{ color: '#c4c7c8', borderColor: 'rgba(255, 255, 255, 0.1)' }}>
                 <span style={{ color: '#FFB300' }}>INVERION_DIVIDE: SHRED_ACTIVE</span>
                 <span>NODE_SYNC_ID: 0x4FF2A</span>
               </div>
             </div>
 
             <div className="col-span-12 lg:col-span-4 flex flex-col gap-4">
-              <div className="backdrop-blur-2xl border p-6 rounded-lg" style={{ backgroundColor: 'rgba(10, 10, 10, 0.6)', borderColor: 'rgba(255, 255, 255, 0.1)' }}>
-                <div className="text-[11px] mb-4 pb-2 border-b" style={{ color: '#FFB300', borderColor: 'rgba(255, 255, 255, 0.1)' }}>CU SYSTEMIC PARAMETERS</div>
+              <div className="backdrop-blur-2xl border p-4 rounded-lg" style={{ backgroundColor: 'rgba(10, 10, 10, 0.6)', borderColor: 'rgba(255, 255, 255, 0.1)' }}>
+                <div className="text-[11px] mb-3 pb-2 border-b" style={{ color: '#FFB300', borderColor: 'rgba(255, 255, 255, 0.1)' }}>CU SYSTEMIC PARAMETERS</div>
                 <SystemicSliders />
               </div>
 
-              <div className="backdrop-blur-2xl border p-6 rounded-lg flex flex-col" style={{ backgroundColor: 'rgba(10, 10, 10, 0.6)', borderColor: 'rgba(255, 255, 255, 0.1)' }}>
-                <div className="font-mono text-sm mb-4" style={{ color: '#FFF7ED' }}>NODE STATUS</div>
+              <div className="backdrop-blur-2xl border p-4 rounded-lg flex flex-col" style={{ backgroundColor: 'rgba(10, 10, 10, 0.6)', borderColor: 'rgba(255, 255, 255, 0.1)' }}>
+                <div className="font-mono text-sm mb-3" style={{ color: '#FFF7ED' }}>NODE STATUS</div>
                 <div className="flex-1">
                   <NodeStatusPanel />
                 </div>
@@ -96,7 +96,7 @@ export function Dashboard() {
               </div>
             </div>
 
-            <div className="col-span-12 backdrop-blur-2xl border p-4 rounded-lg" style={{ backgroundColor: 'rgba(10, 10, 10, 0.6)', borderColor: 'rgba(255, 255, 255, 0.1)', height: '200px' }}>
+            <div className="col-span-12 backdrop-blur-2xl border p-4 rounded-lg flex-1" style={{ backgroundColor: 'rgba(10, 10, 10, 0.6)', borderColor: 'rgba(255, 255, 255, 0.1)', minHeight: '0' }}>
               <VeracityLog />
             </div>
           </div>
