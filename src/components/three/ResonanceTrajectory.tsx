@@ -1,13 +1,15 @@
 import { useRef, useMemo, useEffect } from 'react';
-import { Canvas, useFrame } from '@react-three/fiber';
+import { Canvas, useFrame, extend } from '@react-three/fiber';
 import * as THREE from 'three';
 import { EffectComposer, Bloom } from '@react-three/postprocessing';
 import { useHUDStore } from '../../state/stores/hudStore';
 import { useNodeStore } from '../../state/stores/nodeStore';
 
-const INSTANCE_COUNT = 4000;
+const INSTANCE_COUNT = 5000;
 const PLASMA_URL = 'https://services.swpc.noaa.gov/products/solar-wind/plasma-7-day.json';
 const MAGNET_URL = 'https://services.swpc.noaa.gov/products/solar-wind/mag-7-day.json';
+
+const DECAY_THRESHOLD = 0.15;
 
 const getSafe = (val: number, fallback: number): number => {
   const v = Number(val);
@@ -34,6 +36,91 @@ async function fetchNOAAData() {
     };
   } catch (e) {
     return null;
+  }
+}
+
+const particleVertexShader = `
+  uniform float u_time;
+  uniform float u_inverion_alpha;
+  uniform float u_boltzmann_temp;
+  uniform float u_boltzmann_noise;
+
+  attribute float instancePhase;
+  attribute vec3 instanceVelocity;
+
+  varying float v_alpha;
+  varying vec3 v_color;
+
+  void main() {
+    vec3 iPos = (modelMatrix * instanceMatrix * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
+    float alpha = u_inverion_alpha;
+
+    float R_inner = 0.5 + alpha * 2.5;
+
+    if (alpha < ${DECAY_THRESHOLD.toFixed(2)}) {
+      float drift = (1.0 - alpha) * u_time * (u_boltzmann_noise + 0.1);
+      vec3 escapeDir = normalize(instanceVelocity + vec3(instancePhase * 0.1, 0.0, 0.0));
+      iPos += escapeDir * drift;
+      v_alpha = 0.15 + alpha * 0.5;
+      v_color = mix(vec3(1.0, 0.2, 0.05), vec3(0.8, 0.4, 0.1), alpha / ${DECAY_THRESHOLD.toFixed(2)});
+    } else {
+      float theta = u_time * u_boltzmann_temp * (0.5 + instancePhase);
+      float r = R_inner + instanceVelocity.y * 0.3;
+      iPos.x += cos(theta) * r;
+      iPos.y += sin(theta) * r;
+      v_alpha = 0.4 + alpha * 0.6;
+      v_color = mix(vec3(1.0, 0.5, 0.1), vec3(1.0, 0.95, 0.8), (alpha - ${DECAY_THRESHOLD.toFixed(2)}) / ${(1 - DECAY_THRESHOLD).toFixed(2)});
+    }
+
+    vec4 mvPosition = viewMatrix * modelMatrix * vec4(iPos, 1.0);
+    gl_Position = projectionMatrix * mvPosition;
+  }
+`;
+
+const particleFragmentShader = `
+  varying float v_alpha;
+  varying vec3 v_color;
+
+  void main() {
+    vec2 center = gl_PointCoord - 0.5;
+    float dist = length(center);
+    if (dist > 0.5) discard;
+
+    float glow = 1.0 - smoothstep(0.1, 0.5, dist);
+    glow = pow(glow, 1.8);
+
+    gl_FragColor = vec4(v_color * glow, v_alpha * glow);
+  }
+`;
+
+class ParticleShaderMaterial extends THREE.ShaderMaterial {
+  constructor() {
+    super({
+      uniforms: {
+        u_time: { value: 0 },
+        u_inverion_alpha: { value: 1.0 },
+        u_boltzmann_temp: { value: 0.5 },
+        u_boltzmann_noise: { value: 0.1 },
+      },
+      vertexShader: particleVertexShader,
+      fragmentShader: particleFragmentShader,
+      transparent: true,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+    });
+  }
+}
+
+extend({ ParticleShaderMaterial });
+
+declare global {
+  namespace JSX {
+    interface IntrinsicElements {
+      particleShaderMaterial: React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement> & {
+        ref?: React.Ref<ParticleShaderMaterial>;
+        attach?: string;
+      };
+    }
   }
 }
 
@@ -77,27 +164,41 @@ function IgnitionCore({ inverionAlpha }: { inverionAlpha: number }) {
   const haloRef = useRef<THREE.Mesh>(null!);
   const timeRef = useRef(0);
 
-  const coreAttenuation = inverionAlpha * inverionAlpha;
+  const isDecayed = inverionAlpha < DECAY_THRESHOLD;
+  const coreAttenuation = isDecayed
+    ? (inverionAlpha / DECAY_THRESHOLD) * (inverionAlpha / DECAY_THRESHOLD)
+    : 1.0;
 
   useFrame((state) => {
     timeRef.current += state.clock.getDelta();
     const t = timeRef.current;
 
-    const pulse = 1 + Math.sin(t * 4) * 0.15 * coreAttenuation;
+    const pulse = isDecayed
+      ? 1 + Math.sin(t * 2) * 0.05
+      : 1 + Math.sin(t * 4) * 0.15;
     const breathe = 1 + Math.sin(t * 0.5) * 0.05;
-    const baseOpacity = 0.95 * coreAttenuation;
+    const baseOpacity = isDecayed
+      ? 0.3 * coreAttenuation
+      : 0.95 * coreAttenuation;
 
     if (coreRef.current) {
       coreRef.current.scale.setScalar(pulse * breathe);
       const material = coreRef.current.material as THREE.MeshBasicMaterial;
-      material.opacity = baseOpacity + Math.sin(t * 3) * 0.1 * coreAttenuation;
+      material.opacity = baseOpacity + Math.sin(t * 3) * 0.05 * coreAttenuation;
+      if (isDecayed) {
+        material.color.setHex(0xFF6B35);
+      } else {
+        material.color.setHex(0xFFFFFF);
+      }
     }
 
     if (haloRef.current) {
-      const haloPulse = 1.2 + Math.sin(t * 2.5) * 0.3 * coreAttenuation;
+      const haloPulse = isDecayed
+        ? 1.0 + Math.sin(t * 1) * 0.1
+        : 1.2 + Math.sin(t * 2.5) * 0.3;
       haloRef.current.scale.setScalar(haloPulse);
       const material = haloRef.current.material as THREE.MeshBasicMaterial;
-      material.opacity = 0.25 * coreAttenuation + Math.sin(t * 2) * 0.1 * coreAttenuation;
+      material.opacity = 0.15 * coreAttenuation + Math.sin(t * 2) * 0.05 * coreAttenuation;
     }
   });
 
@@ -117,17 +218,17 @@ function IgnitionCore({ inverionAlpha }: { inverionAlpha: number }) {
 
 function KineticQuads() {
   const meshRef = useRef<THREE.InstancedMesh>(null!);
+  const materialRef = useRef<any>(null);
   const dummy = useMemo(() => new THREE.Object3D(), []);
   const tempColor = useMemo(() => new THREE.Color(), []);
-  const rotationMatrix = useMemo(() => new THREE.Matrix4(), []);
 
   const rtswRef = useRef(DEFAULT_RTSW);
   const smoothedSpeedRef = useRef(400);
-  const smoothedDensityRef = useRef(10);
   const bzDeltaRef = useRef(0);
   const lastFetchRef = useRef(0);
 
   const prevPositionsRef = useRef<Float32Array | null>(null);
+  const velocitiesRef = useRef<Float32Array | null>(null);
 
   const temperature = useHUDStore((s) => s.temperature);
   const noiseFilter = useHUDStore((s) => s.noiseFilter);
@@ -144,6 +245,26 @@ function KineticQuads() {
       seeds[i * 6 + 5] = Math.random() * Math.PI * 2;
     }
     return seeds;
+  }, []);
+
+  const instancePhases = useMemo(() => {
+    const phases = new Float32Array(INSTANCE_COUNT);
+    for (let i = 0; i < INSTANCE_COUNT; i++) {
+      phases[i] = Math.random();
+    }
+    return phases;
+  }, []);
+
+  const instanceVelocities = useMemo(() => {
+    const vels = new Float32Array(INSTANCE_COUNT * 3);
+    for (let i = 0; i < INSTANCE_COUNT; i++) {
+      const theta = Math.random() * Math.PI * 2;
+      const phi = Math.random() * Math.PI;
+      vels[i * 3 + 0] = Math.sin(phi) * Math.cos(theta);
+      vels[i * 3 + 1] = Math.sin(phi) * Math.sin(theta);
+      vels[i * 3 + 2] = Math.cos(phi);
+    }
+    return vels;
   }, []);
 
   const colorPalette = useMemo(() => [
@@ -177,6 +298,7 @@ function KineticQuads() {
     }
     if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
     prevPositionsRef.current = new Float32Array(INSTANCE_COUNT * 3);
+    velocitiesRef.current = new Float32Array(INSTANCE_COUNT * 3);
   }, []);
 
   useEffect(() => {
@@ -195,7 +317,8 @@ function KineticQuads() {
 
   useFrame((state) => {
     const mesh = meshRef.current;
-    if (!mesh) return;
+    const material = materialRef.current;
+    if (!mesh || !material) return;
 
     const delta = state.clock.getDelta();
     if (delta > 0.15 || !isFinite(delta)) return;
@@ -204,32 +327,27 @@ function KineticQuads() {
     const rtsw = rtswRef.current;
 
     const safeSpeed = getSafe(rtsw.speed, 400);
-    const safeDensity = getSafe(rtsw.density, 10);
-
     smoothedSpeedRef.current = THREE.MathUtils.lerp(smoothedSpeedRef.current, safeSpeed, 0.015);
-    smoothedDensityRef.current = THREE.MathUtils.lerp(smoothedDensityRef.current, safeDensity, 0.015);
 
     const speedNorm = Math.min(smoothedSpeedRef.current / 700, 1);
-    const densityNorm = Math.min(safeDensity / 20, 1);
     const gustStrength = Math.min(bzDeltaRef.current / 10, 1);
     bzDeltaRef.current *= 0.92;
 
-    const angularVelocity = 0.3 + temperature * 3.0;
-    const noiseAmplitude = noiseFilter * 2.5;
-    const confinementRadius = 0.15 + inverionAlpha * 3.5;
+    material.uniforms.u_time.value = time;
+    material.uniforms.u_inverion_alpha.value = inverionAlpha;
+    material.uniforms.u_boltzmann_temp.value = 0.3 + temperature * 2.0;
+    material.uniforms.u_boltzmann_noise.value = 0.05 + noiseFilter * 0.5;
 
-    const decayFactor = 1.0 - inverionAlpha;
-    const escapeStrength = decayFactor * decayFactor * 0.8;
-
-    const breathFreq = 0.2 + densityNorm * 0.3;
-    const breathPhase = Math.sin(time * Math.PI * 2 * breathFreq);
-    const breathLerp = (breathPhase + 1) * 0.5;
+    const isDecayed = inverionAlpha < DECAY_THRESHOLD;
+    const decayFactor = isDecayed ? 1.0 - (inverionAlpha / DECAY_THRESHOLD) : 0;
+    const escapeStrength = decayFactor * decayFactor * 1.5;
 
     const baseTimeStep = (smoothedSpeedRef.current / 400) * 0.01;
 
     if (!mesh.instanceMatrix) return;
 
     const prevPositions = prevPositionsRef.current;
+    const velocities = velocitiesRef.current;
     const positions = new Float32Array(INSTANCE_COUNT * 3);
 
     for (let i = 0; i < INSTANCE_COUNT; i++) {
@@ -241,36 +359,41 @@ function KineticQuads() {
       const tiltPhase = particleSeeds[i * 6 + 5];
 
       const t = time * baseTimeStep + phaseOffset;
+      const instancePhase = instancePhases[i];
+      const vel = new THREE.Vector3(
+        instanceVelocities[i * 3],
+        instanceVelocities[i * 3 + 1],
+        instanceVelocities[i * 3 + 2]
+      );
 
-      const angle = t * angularVelocity + seed0;
-      const cosA = Math.cos(angle);
-      const sinA = Math.sin(angle);
+      let px: number, py: number, pz: number;
 
-      const radialDist = radius * breathLerp * 0.5 + 0.3;
-      const confinedRadial = Math.min(radialDist, confinementRadius);
+      if (isDecayed) {
+        const drift = decayFactor * time * (noiseFilter + 0.1);
+        const escapeDir = vel.clone().normalize();
+        const r = radius * 0.5 + 0.5;
+        const angle = t * 0.5 + seed0;
+        px = Math.cos(angle) * r + escapeDir.x * drift;
+        py = Math.sin(angle) * r + escapeDir.y * drift;
+        pz = Math.sin(seed0 + seed1 + t * 0.3) * 0.5 + escapeDir.z * drift;
+      } else {
+        const R_inner = 0.5 + inverionAlpha * 2.5;
+        const theta = time * (0.3 + temperature * 2.0) * (0.5 + instancePhase);
+        const r = R_inner + vel.y * 0.3;
+        px = Math.cos(theta) * r;
+        py = Math.sin(theta) * r;
+        pz = Math.sin(seed0 + seed1 + t * 0.5) * 0.4;
+      }
 
-      const baseX = sinA * confinedRadial * (1.1 + Math.sin(seed1 + t * 2.1) * 0.35);
-      const baseY = cosA * confinedRadial * (0.9 + Math.cos(seed0 + t * 2.9) * 0.3);
-      const baseZ = Math.sin(seed0 + seed1 + t * 3.8) * confinedRadial * 0.4;
+      const gustX = Math.sin(time * 10.3 + seed0 * 6.7) * gustStrength * 0.15;
+      const gustY = Math.cos(time * 12.1 + seed1 * 8.3) * gustStrength * 0.15;
+      const gustZ = Math.sin(time * 9.7 + seed0 * seed1 * 5.1) * gustStrength * 0.15;
 
-      const noiseX = (Math.sin(time * 8 + seed0 * 5) + Math.sin(time * 13 + seed1 * 7) * 0.5);
-      const noiseY = (Math.cos(time * 9 + seed1 * 6) + Math.cos(time * 11 + seed0 * 9) * 0.5);
-      const noiseZ = (Math.sin(time * 7 + seed0 * seed1 * 4) + Math.sin(time * 17 + seed1 * seed0 * 3) * 0.5);
+      px += gustX;
+      py += gustY;
+      pz += gustZ;
 
-      const displacementMultiplier = 1.0 + noiseAmplitude * 3.0;
-      const erraticX = noiseX * noiseAmplitude * displacementMultiplier;
-      const erraticY = noiseY * noiseAmplitude * displacementMultiplier;
-      const erraticZ = noiseZ * noiseAmplitude * displacementMultiplier;
-
-      const gustX = Math.sin(time * 10.3 + seed0 * 6.7) * gustStrength * 0.25;
-      const gustY = Math.cos(time * 12.1 + seed1 * 8.3) * gustStrength * 0.25;
-      const gustZ = Math.sin(time * 9.7 + seed0 * seed1 * 5.1) * gustStrength * 0.25;
-
-      let px = baseX + erraticX + gustX;
-      let py = baseY + erraticY + gustY;
-      let pz = baseZ + erraticZ + gustZ;
-
-      if (prevPositions && escapeStrength > 0.01) {
+      if (prevPositions && escapeStrength > 0.01 && isDecayed) {
         const prevX = prevPositions[i * 3];
         const prevY = prevPositions[i * 3 + 1];
         const prevZ = prevPositions[i * 3 + 2];
@@ -286,9 +409,9 @@ function KineticQuads() {
             vy /= vMag;
             vz /= vMag;
           } else {
-            vx = sinA;
-            vy = cosA;
-            vz = 0;
+            vx = vel.x;
+            vy = vel.y;
+            vz = vel.z;
           }
 
           const escapeAmount = escapeStrength * (0.5 + Math.random() * 0.5);
@@ -302,19 +425,26 @@ function KineticQuads() {
       positions[i * 3 + 1] = py;
       positions[i * 3 + 2] = pz;
 
+      if (velocities) {
+        velocities[i * 3] = px - (prevPositions ? prevPositions[i * 3] : px);
+        velocities[i * 3 + 1] = py - (prevPositions ? prevPositions[i * 3 + 1] : py);
+        velocities[i * 3 + 2] = pz - (prevPositions ? prevPositions[i * 3 + 2] : pz);
+      }
+
       dummy.position.set(px, py, pz);
 
       const lookAtTarget = new THREE.Vector3(0, 0, 0);
       const position = dummy.position.clone();
       const up = new THREE.Vector3(0, 1, 0);
       const quaternion = new THREE.Quaternion();
+      const rotationMatrix = new THREE.Matrix4();
       rotationMatrix.lookAt(position, lookAtTarget, up);
       quaternion.setFromRotationMatrix(rotationMatrix);
 
-      const stretchBase = 0.4 + lengthFactor * 3.0 + speedNorm * 2.5;
-      const stretchNoise = noiseAmplitude * Math.sin(tiltPhase + time * 5) * 0.5;
+      const stretchBase = 0.3 + lengthFactor * 2.5 + speedNorm * 2.0;
+      const stretchNoise = (isDecayed ? noiseFilter : 0) * Math.sin(tiltPhase + time * 5) * 0.4;
       const stretchAmount = stretchBase + stretchNoise;
-      dummy.scale.set(0.05, 0.05 * stretchAmount, 0.05);
+      dummy.scale.set(0.04, 0.04 * stretchAmount, 0.04);
 
       dummy.quaternion.copy(quaternion);
       dummy.updateMatrix();
@@ -335,16 +465,8 @@ function KineticQuads() {
       args={[undefined, undefined, INSTANCE_COUNT]}
       frustumCulled={false}
     >
-      <planeGeometry args={[0.15, 1.8]} />
-      <meshBasicMaterial
-        color="#FFFFFF"
-        transparent
-        opacity={0.85}
-        depthWrite={false}
-        depthTest={false}
-        blending={THREE.AdditiveBlending}
-        side={THREE.DoubleSide}
-      />
+      <planeGeometry args={[0.12, 1.6]} />
+      <particleShaderMaterial ref={materialRef} />
     </instancedMesh>
   );
 }
@@ -362,16 +484,23 @@ function CameraRig() {
 }
 
 function DecayBloomEffect({ inverionAlpha }: { inverionAlpha: number }) {
-  const intensity = 0.5 + inverionAlpha * 2.5;
-  const threshold = 0.3 + (1.0 - inverionAlpha) * 0.5;
+  const isDecayed = inverionAlpha < DECAY_THRESHOLD;
+
+  const intensity = isDecayed
+    ? 0.3 + (inverionAlpha / DECAY_THRESHOLD) * 0.5
+    : 0.8 + inverionAlpha * 2.2;
+
+  const threshold = isDecayed
+    ? 0.6 + (1.0 - inverionAlpha / DECAY_THRESHOLD) * 0.3
+    : 0.25 + (1.0 - inverionAlpha) * 0.1;
 
   return (
     <EffectComposer>
       <Bloom
         intensity={intensity}
         luminanceThreshold={threshold}
-        luminanceSmoothing={0.65}
-        radius={0.65}
+        luminanceSmoothing={0.7}
+        radius={0.7}
         mipmapBlur
       />
     </EffectComposer>
@@ -380,6 +509,7 @@ function DecayBloomEffect({ inverionAlpha }: { inverionAlpha: number }) {
 
 export function ResonanceTrajectory() {
   const inverionAlpha = useNodeStore((s) => s.flux);
+  const isDecayed = inverionAlpha < DECAY_THRESHOLD;
 
   return (
     <div
@@ -397,14 +527,19 @@ export function ResonanceTrajectory() {
         style={{ width: '100%', height: '100%' }}
         gl={{
           toneMapping: THREE.NoToneMapping,
-          toneMappingExposure: 1.5,
+          toneMappingExposure: isDecayed ? 0.8 : 1.5,
           outputColorSpace: 'srgb',
           alpha: false,
         }}
         camera={{ position: [0, 0, 16], fov: 50, near: 0.1, far: 1000 }}
         dpr={Math.min(window.devicePixelRatio, 2)}
       >
-        <pointLight position={[0, 0, 0]} intensity={0.8 * inverionAlpha} color="#FFFFFF" distance={6} />
+        <pointLight
+          position={[0, 0, 0]}
+          intensity={isDecayed ? 0.2 * (inverionAlpha / DECAY_THRESHOLD) : 0.8}
+          color={isDecayed ? '#FF6B35' : '#FFFFFF'}
+          distance={isDecayed ? 3 : 6}
+        />
         <KineticQuads />
         <StarField />
         <IgnitionCore inverionAlpha={inverionAlpha} />
