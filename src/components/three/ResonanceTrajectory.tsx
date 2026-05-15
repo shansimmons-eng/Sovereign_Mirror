@@ -53,16 +53,17 @@ const particleVertexShader = `
 
   void main() {
     vec3 iPos = (modelMatrix * instanceMatrix * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
-    float alpha = u_inverion_alpha;
+    float alpha = max(0.001, u_inverion_alpha);
 
     float R_inner = 0.5 + alpha * 2.5;
 
     if (alpha < ${DECAY_THRESHOLD.toFixed(2)}) {
-      float drift = (1.0 - alpha) * u_time * (u_boltzmann_noise + 0.1);
+      float decayRatio = alpha / ${DECAY_THRESHOLD.toFixed(2)};
+      float drift = (1.0 - decayRatio) * u_time * (u_boltzmann_noise + 0.1);
       vec3 escapeDir = normalize(instanceVelocity + vec3(instancePhase * 0.1, 0.0, 0.0));
       iPos += escapeDir * drift;
-      v_alpha = 0.15 + alpha * 0.5;
-      v_color = mix(vec3(1.0, 0.2, 0.05), vec3(0.8, 0.4, 0.1), alpha / ${DECAY_THRESHOLD.toFixed(2)});
+      v_alpha = 0.15 + decayRatio * 0.5;
+      v_color = mix(vec3(1.0, 0.2, 0.05), vec3(0.8, 0.4, 0.1), decayRatio);
     } else {
       float theta = u_time * u_boltzmann_temp * (0.5 + instancePhase);
       float r = R_inner + instanceVelocity.y * 0.3;
@@ -165,8 +166,9 @@ function IgnitionCore({ inverionAlpha }: { inverionAlpha: number }) {
   const timeRef = useRef(0);
 
   const isDecayed = inverionAlpha < DECAY_THRESHOLD;
+  const safeAlpha = Math.max(0.001, inverionAlpha);
   const coreAttenuation = isDecayed
-    ? (inverionAlpha / DECAY_THRESHOLD) * (inverionAlpha / DECAY_THRESHOLD)
+    ? (safeAlpha / DECAY_THRESHOLD) * (safeAlpha / DECAY_THRESHOLD)
     : 1.0;
 
   useFrame((state) => {
@@ -333,10 +335,10 @@ function KineticQuads() {
     const gustStrength = Math.min(bzDeltaRef.current / 10, 1);
     bzDeltaRef.current *= 0.92;
 
-    material.uniforms.u_time.value = time;
-    material.uniforms.u_inverion_alpha.value = inverionAlpha;
-    material.uniforms.u_boltzmann_temp.value = 0.3 + temperature * 2.0;
-    material.uniforms.u_boltzmann_noise.value = 0.05 + noiseFilter * 0.5;
+    material.uniforms.u_time.value = Math.max(0.001, time);
+    material.uniforms.u_inverion_alpha.value = Math.max(0.001, inverionAlpha);
+    material.uniforms.u_boltzmann_temp.value = Math.max(0.01, 0.3 + temperature * 2.0);
+    material.uniforms.u_boltzmann_noise.value = Math.max(0.001, 0.05 + noiseFilter * 0.5);
 
     const isDecayed = inverionAlpha < DECAY_THRESHOLD;
     const decayFactor = isDecayed ? 1.0 - (inverionAlpha / DECAY_THRESHOLD) : 0;

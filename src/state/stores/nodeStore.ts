@@ -38,7 +38,7 @@ export const useNodeStore = create<NodeState>((set, get) => ({
   nodeIds: [],
   nodes: {},
   pGateStates: {},
-  flux: 0.130,
+  flux: 0.75,
   rtsw: null,
 
   setNodeIds: (ids) => set({ nodeIds: ids }),
