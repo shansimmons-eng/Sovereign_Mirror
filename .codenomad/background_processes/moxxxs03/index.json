@@ -1,0 +1,51 @@
+[
+  {
+    "id": "proc_2026-05-09T1021_103679",
+    "workspaceId": "moxxxs03",
+    "title": "npm install fresh",
+    "command": "wsl -d Ubuntu -e bash --norc --noprofile -c \"export PATH=\\\"/home/retroporter/.local/share/fnm/node-versions/v20.20.2/installation/bin:$PATH\\\" && cd /home/retroporter/cup && npm install 2>&1\"",
+    "cwd": "\\\\wsl.localhost\\Ubuntu\\home\\retroporter\\cup",
+    "status": "error",
+    "pid": 732872,
+    "startedAt": "2026-05-09T10:21:19.850Z",
+    "outputSizeBytes": 178,
+    "exitCode": 9,
+    "stoppedAt": "2026-05-09T10:26:00.851Z"
+  },
+  {
+    "id": "proc_2026-05-09T1026_e21c39",
+    "workspaceId": "moxxxs03",
+    "title": "yarn install",
+    "command": "wsl -d Ubuntu -e bash --norc --noprofile -c \"export PATH=\\\"/home/retroporter/.local/share/fnm/node-versions/v20.20.2/installation/bin:$PATH\\\" && cd /home/retroporter/cup && rm -rf node_modules && yarn install 2>&1\"",
+    "cwd": "\\\\wsl.localhost\\Ubuntu\\home\\retroporter\\cup",
+    "status": "stopped",
+    "pid": 622460,
+    "startedAt": "2026-05-09T10:26:23.287Z",
+    "outputSizeBytes": 512,
+    "exitCode": 0,
+    "stoppedAt": "2026-05-09T10:26:38.375Z"
+  },
+  {
+    "id": "proc_2026-05-09T1028_d3346a",
+    "workspaceId": "moxxxs03",
+    "title": "vite dev server",
+    "command": "wsl -d Ubuntu -e bash --norc --noprofile -c \"export PATH=\\\"/home/retroporter/.local/share/fnm/node-versions/v20.20.2/installation/bin:$PATH\\\" && cd /home/retroporter/cup && yarn dev 2>&1\"",
+    "cwd": "\\\\wsl.localhost\\Ubuntu\\home\\retroporter\\cup",
+    "status": "stopped",
+    "pid": 92316,
+    "startedAt": "2026-05-09T10:28:25.917Z",
+    "outputSizeBytes": 178,
+    "stoppedAt": "2026-05-09T11:42:36.580Z"
+  },
+  {
+    "id": "proc_2026-05-09T1142_28f995",
+    "workspaceId": "moxxxs03",
+    "title": "vite dev server (restarted)",
+    "command": "wsl -d Ubuntu -e bash --norc --noprofile -c \"export PATH=\\\"/home/retroporter/.local/share/fnm/node-versions/v20.20.2/installation/bin:$PATH\\\" && cd /home/retroporter/cup && yarn dev 2>&1\"",
+    "cwd": "\\\\wsl.localhost\\Ubuntu\\home\\retroporter\\cup",
+    "status": "running",
+    "pid": 253640,
+    "startedAt": "2026-05-09T11:42:49.101Z",
+    "outputSizeBytes": 178
+  }
+]

@@ -1,0 +1,139 @@
+'\\wsl.localhost\Ubuntu\home\retroporter\cup'
+CMD.EXE was started with the above path as the current directory.
+UNC paths are not supported.  Defaulting to Windows directory.
+yarn run v1.22.22
+$ vite
+
+  VITE v6.4.2  ready in 208 ms
+
+  ➜  Local:   http://localhost:3000/
+  ➜  Network: use --host to expose
+6:44:59 AM [vite] (client) hmr update /src/components/three/ResonanceTrajectory.tsx, /src/index.css
+6:45:36 AM [vite] (client) hmr update /src/components/three/ResonanceTrajectory.tsx, /src/index.css
+6:46:00 AM [vite] (client) hmr update /src/components/three/ResonanceTrajectory.tsx, /src/index.css
+6:46:28 AM [vite] (client) hmr update /src/components/three/ResonanceTrajectory.tsx, /src/index.css
+6:46:54 AM [vite] (client) hmr update /src/components/three/ResonanceTrajectory.tsx, /src/index.css
+6:47:10 AM [vite] (client) hmr update /src/components/three/ResonanceTrajectory.tsx, /src/index.css
+6:47:37 AM [vite] (client) hmr update /src/components/three/ResonanceTrajectory.tsx, /src/index.css
+6:48:51 AM [vite] (client) hmr update /src/components/three/ResonanceTrajectory.tsx, /src/index.css
+6:49:04 AM [vite] (client) hmr update /src/components/three/ResonanceTrajectory.tsx, /src/index.css
+6:49:19 AM [vite] (client) hmr update /src/components/three/ResonanceTrajectory.tsx, /src/index.css
+6:49:49 AM [vite] (client) hmr update /src/components/three/ResonanceTrajectory.tsx, /src/index.css
+6:50:04 AM [vite] (client) hmr update /src/components/three/ResonanceTrajectory.tsx, /src/index.css
+6:50:31 AM [vite] (client) hmr update /src/components/three/ResonanceTrajectory.tsx, /src/index.css
+6:53:21 AM [vite] (client) hmr update /src/components/three/ResonanceTrajectory.tsx, /src/index.css
+6:53:46 AM [vite] (client) hmr update /src/components/three/ResonanceTrajectory.tsx, /src/index.css
+6:53:59 AM [vite] (client) hmr update /src/components/three/ResonanceTrajectory.tsx, /src/index.css
+6:55:02 AM [vite] (client) hmr update /src/components/three/ResonanceTrajectory.tsx, /src/index.css
+6:55:22 AM [vite] (client) hmr update /src/components/three/ResonanceTrajectory.tsx, /src/index.css
+6:55:38 AM [vite] (client) hmr update /src/components/three/ResonanceTrajectory.tsx, /src/index.css
+7:03:16 AM [vite] (client) hmr update /src/components/three/ResonanceTrajectory.tsx, /src/index.css
+7:19:24 AM [vite] (client) hmr update /src/components/three/ResonanceTrajectory.tsx, /src/index.css
+7:20:59 AM [vite] (client) hmr update /src/components/three/ResonanceTrajectory.tsx, /src/index.css
+7:21:16 AM [vite] (client) hmr update /src/components/three/ResonanceTrajectory.tsx, /src/index.css
+7:21:35 AM [vite] (client) hmr update /src/components/three/ResonanceTrajectory.tsx, /src/index.css
+7:22:24 AM [vite] (client) hmr update /src/components/three/ResonanceTrajectory.tsx, /src/index.css
+7:22:47 AM [vite] (client) hmr update /src/components/three/ResonanceTrajectory.tsx, /src/index.css
+7:23:12 AM [vite] (client) hmr update /src/components/three/ResonanceTrajectory.tsx, /src/index.css
+7:24:03 AM [vite] (client) hmr update /src/components/three/ResonanceTrajectory.tsx, /src/index.css
+7:24:57 AM [vite] (client) hmr update /src/components/three/ResonanceTrajectory.tsx, /src/index.css
+7:25:36 AM [vite] (client) hmr update /src/components/three/ResonanceTrajectory.tsx, /src/index.css
+7:26:01 AM [vite] (client) hmr update /src/components/three/ResonanceTrajectory.tsx, /src/index.css
+7:27:03 AM [vite] (client) hmr update /src/components/three/ResonanceTrajectory.tsx, /src/index.css
+7:28:41 AM [vite] (client) hmr update /src/components/three/ResonanceTrajectory.tsx, /src/index.css
+7:29:48 AM [vite] (client) hmr update /src/components/three/ResonanceTrajectory.tsx, /src/index.css
+7:30:41 AM [vite] (client) hmr update /src/components/three/ResonanceTrajectory.tsx, /src/index.css
+7:31:01 AM [vite] (client) hmr update /src/components/three/ResonanceTrajectory.tsx, /src/index.css
+7:31:32 AM [vite] (client) hmr update /src/components/three/ResonanceTrajectory.tsx, /src/index.css
+7:32:39 AM [vite] (client) hmr update /src/components/three/ResonanceTrajectory.tsx, /src/index.css
+7:33:39 AM [vite] (client) hmr update /src/components/three/ResonanceTrajectory.tsx, /src/index.css
+7:34:40 AM [vite] (client) hmr update /src/components/three/ResonanceTrajectory.tsx, /src/index.css
+7:36:11 AM [vite] (client) hmr update /src/components/three/ResonanceTrajectory.tsx, /src/index.css
+7:37:12 AM [vite] (client) hmr update /src/components/three/ResonanceTrajectory.tsx, /src/index.css
+7:38:20 AM [vite] (client) hmr update /src/components/three/ResonanceTrajectory.tsx, /src/index.css
+7:38:38 AM [vite] (client) hmr update /src/components/three/ResonanceTrajectory.tsx, /src/index.css
+7:38:54 AM [vite] (client) hmr update /src/components/three/ResonanceTrajectory.tsx, /src/index.css
+7:39:49 AM [vite] (client) hmr update /src/components/three/ResonanceTrajectory.tsx, /src/index.css
+7:40:04 AM [vite] (client) hmr update /src/components/three/ResonanceTrajectory.tsx, /src/index.css
+7:40:46 AM [vite] (client) hmr update /src/components/three/ResonanceTrajectory.tsx, /src/index.css
+7:41:36 AM [vite] (client) hmr update /src/components/three/ResonanceTrajectory.tsx, /src/index.css
+7:42:42 AM [vite] (client) hmr update /src/components/three/ResonanceTrajectory.tsx, /src/index.css
+7:43:01 AM [vite] (client) hmr update /src/components/three/ResonanceTrajectory.tsx, /src/index.css
+7:43:01 AM [vite] Internal server error: /home/retroporter/cup/src/components/three/ResonanceTrajectory.tsx: Identifier 'distFromCenter' has already been declared. (181:12)
+
+  179 |       }
+  180 |
+> 181 |       const distFromCenter = dummy.position.length();
+      |             ^
+  182 |       const proximityFactor = Math.max(0, 1.0 - distFromCenter / 3.0);
+  183 |       const intensity = 0.5 + proximityFactor * 0.4;
+  184 |       tempColor.setRGB(intensity * 1.0, intensity * 0.4, intensity * 0.1);
+  Plugin: vite:react-babel
+  File: /home/retroporter/cup/src/components/three/ResonanceTrajectory.tsx:181:12
+  179|        }
+  180|  
+  181|        const distFromCenter = dummy.position.length();
+     |              ^
+  182|        const proximityFactor = Math.max(0, 1.0 - distFromCenter / 3.0);
+  183|        const intensity = 0.5 + proximityFactor * 0.4;
+      at constructor (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:365:19)
+      at TypeScriptParserMixin.raise (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:6616:19)
+      at TypeScriptScopeHandler.checkRedeclarationInScope (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:1619:19)
+      at TypeScriptScopeHandler.declareName (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:1585:12)
+      at TypeScriptScopeHandler.declareName (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:4892:11)
+      at TypeScriptParserMixin.declareNameFromIdentifier (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:7584:16)
+      at TypeScriptParserMixin.checkIdentifier (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:7580:12)
+      at TypeScriptParserMixin.checkLVal (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:7517:12)
+      at TypeScriptParserMixin.parseVarId (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:13429:10)
+      at TypeScriptParserMixin.parseVarId (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:9769:11)
+      at TypeScriptParserMixin.parseVar (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:13400:12)
+      at TypeScriptParserMixin.parseVarStatement (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:13247:10)
+      at TypeScriptParserMixin.parseVarStatement (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:9425:31)
+      at TypeScriptParserMixin.parseStatementContent (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:12868:23)
+      at TypeScriptParserMixin.parseStatementContent (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:9525:18)
+      at TypeScriptParserMixin.parseStatementLike (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:12784:17)
+      at TypeScriptParserMixin.parseStatementListItem (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:12764:17)
+      at TypeScriptParserMixin.parseBlockOrModuleBlockBody (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:13333:61)
+      at TypeScriptParserMixin.parseBlockBody (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:13326:10)
+      at TypeScriptParserMixin.parseBlock (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:13314:10)
+      at TypeScriptParserMixin.parseStatementContent (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:12875:21)
+      at TypeScriptParserMixin.parseStatementContent (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:9525:18)
+      at TypeScriptParserMixin.parseStatementLike (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:12784:17)
+      at TypeScriptParserMixin.parseStatement (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:12777:17)
+      at /home/retroporter/cup/node_modules/@babel/parser/lib/index.js:13362:68
+      at TypeScriptParserMixin.withSmartMixTopicForbiddingContext (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:12420:14)
+      at TypeScriptParserMixin.parseFor (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:13362:22)
+      at TypeScriptParserMixin.parseForStatement (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:13109:21)
+      at TypeScriptParserMixin.parseStatementContent (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:12802:21)
+      at TypeScriptParserMixin.parseStatementContent (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:9525:18)
+      at TypeScriptParserMixin.parseStatementLike (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:12784:17)
+      at TypeScriptParserMixin.parseStatementListItem (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:12764:17)
+      at TypeScriptParserMixin.parseBlockOrModuleBlockBody (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:13333:61)
+      at TypeScriptParserMixin.parseBlockBody (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:13326:10)
+      at TypeScriptParserMixin.parseBlock (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:13314:10)
+      at TypeScriptParserMixin.parseFunctionBody (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:12117:24)
+      at TypeScriptParserMixin.parseArrowExpression (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:12092:10)
+      at TypeScriptParserMixin.parseParenAndDistinguishExpression (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:11704:12)
+      at TypeScriptParserMixin.parseExprAtom (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:11348:23)
+      at TypeScriptParserMixin.parseExprAtom (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:4776:20)
+      at TypeScriptParserMixin.parseExprSubscripts (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:11098:23)
+      at TypeScriptParserMixin.parseUpdate (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:11083:21)
+      at TypeScriptParserMixin.parseMaybeUnary (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:11063:23)
+      at TypeScriptParserMixin.parseMaybeUnary (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:9854:18)
+      at TypeScriptParserMixin.parseMaybeUnaryOrPrivate (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:10916:61)
+      at TypeScriptParserMixin.parseExprOps (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:10921:23)
+      at TypeScriptParserMixin.parseMaybeConditional (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:10898:23)
+      at TypeScriptParserMixin.parseMaybeAssign (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:10848:21)
+      at TypeScriptParserMixin.parseMaybeAssign (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:9803:20)
+      at /home/retroporter/cup/node_modules/@babel/parser/lib/index.js:10817:39
+7:43:44 AM [vite] (client) hmr update /src/components/three/ResonanceTrajectory.tsx, /src/index.css
+7:44:41 AM [vite] (client) hmr update /src/components/three/ResonanceTrajectory.tsx, /src/index.css
+7:45:23 AM [vite] (client) hmr update /src/components/three/ResonanceTrajectory.tsx, /src/index.css
+7:45:53 AM [vite] (client) hmr update /src/components/three/ResonanceTrajectory.tsx, /src/index.css
+7:47:21 AM [vite] (client) hmr update /src/components/three/ResonanceTrajectory.tsx, /src/index.css
+7:49:26 AM [vite] (client) hmr update /src/components/three/ResonanceTrajectory.tsx, /src/index.css
+7:52:49 AM [vite] (client) hmr update /src/components/three/ResonanceTrajectory.tsx, /src/index.css
+7:53:35 AM [vite] (client) hmr update /src/components/three/ResonanceTrajectory.tsx, /src/index.css
+4:19:10 AM [vite] http proxy error: /api/pgate/engage
+Error: connect ECONNREFUSED 127.0.0.1:3001
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)

@@ -121,3 +121,83 @@
   border: 1px solid rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(16px);
 }
+
+.pgate-center {
+  width: 100%;
+  height: 80px;
+  position: relative;
+}
+
+.pgate-border {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.pgate-rect {
+  stroke: rgba(244, 63, 94, 0.4);
+  stroke-dasharray: 280 480;
+  stroke-dashoffset: 0;
+  transition: stroke-dashoffset 0.6s ease-in-out, stroke 0.4s ease;
+}
+
+.pgate-center:hover .pgate-rect {
+  stroke-dashoffset: -480;
+  stroke: rgba(244, 63, 94, 0.9);
+}
+
+.pgate-button {
+  position: absolute;
+  inset: 0;
+  transition: background-color 0.4s ease, box-shadow 0.4s ease;
+}
+
+.p-gate-button.physical {
+  background-color: rgba(244, 63, 94, 0.7);
+  box-shadow: 0 0.5rem 1rem rgba(244, 63, 94, 0.3);
+}
+
+.p-gate-button.refining {
+  background-color: rgba(251, 146, 60, 0.5);
+}
+
+.p-gate-button.virtual {
+  background-color: rgba(0, 0, 0, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.p-gate-button.physical:hover {
+  background-color: rgba(244, 63, 94, 0.85);
+  box-shadow: 0 0.8rem 1.5rem rgba(244, 63, 94, 0.5);
+}
+
+.pgate-test {
+  background: transparent;
+  border: 1px solid rgba(244, 63, 94, 0.4);
+  color: rgba(244, 63, 94, 0.9);
+  transition: all 0.4s ease;
+  position: relative;
+}
+
+.pgate-test::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(244, 63, 94, 0.15);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.4s ease-in-out;
+}
+
+.pgate-test:hover::before {
+  transform: scaleX(1);
+}
+
+.pgate-test:hover {
+  border-color: rgba(244, 63, 94, 0.8);
+  color: rgb(244, 63, 94);
+  box-shadow: 0 0 12px rgba(244, 63, 94, 0.3);
+}

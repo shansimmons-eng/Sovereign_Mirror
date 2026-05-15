@@ -1,0 +1,15 @@
+[
+  {
+    "id": "proc_2026-05-13T1423_14a76a",
+    "workspaceId": "mp453c86",
+    "title": "Vite dev server",
+    "command": "npm run dev",
+    "cwd": "\\\\wsl.localhost\\Ubuntu\\home\\retroporter\\cup",
+    "status": "error",
+    "pid": 408092,
+    "startedAt": "2026-05-13T14:23:49.937Z",
+    "outputSizeBytes": 627,
+    "exitCode": 4294963238,
+    "stoppedAt": "2026-05-13T14:23:51.526Z"
+  }
+]

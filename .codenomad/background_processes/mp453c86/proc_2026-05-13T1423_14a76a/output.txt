@@ -1,0 +1,11 @@
+'\\wsl.localhost\Ubuntu\home\retroporter\cup'
+CMD.EXE was started with the above path as the current directory.
+UNC paths are not supported.  Defaulting to Windows directory.
+npm error code ENOENT
+npm error syscall open
+npm error path C:\Windows\package.json
+npm error errno -4058
+npm error enoent Could not read package.json: Error: ENOENT: no such file or directory, open 'C:\Windows\package.json'
+npm error enoent This is related to npm not being able to find a file.
+npm error enoent
+npm error A complete log of this run can be found in: C:\Users\shans\AppData\Local\npm-cache\_logs\2026-05-13T14_23_50_183Z-debug-0.log

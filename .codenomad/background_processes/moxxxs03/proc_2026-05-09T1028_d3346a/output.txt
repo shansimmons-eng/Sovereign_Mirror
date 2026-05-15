@@ -1,0 +1,594 @@
+'\\wsl.localhost\Ubuntu\home\retroporter\cup'
+CMD.EXE was started with the above path as the current directory.
+UNC paths are not supported.  Defaulting to Windows directory.
+yarn run v1.22.22
+$ vite
+
+  VITE v6.4.2  ready in 162 ms
+
+  ➜  Local:   http://localhost:3000/
+  ➜  Network: use --host to expose
+5:49:08 AM [vite] (client) hmr update /src/components/three/ResonanceTrajectory.tsx, /src/index.css
+5:50:27 AM [vite] http proxy error: /api/pgate/engage
+Error: connect ECONNREFUSED 127.0.0.1:3001
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)
+5:52:07 AM [vite] (client) hmr update /src/components/three/ResonanceTrajectory.tsx, /src/index.css
+5:52:22 AM [vite] (client) hmr update /src/components/three/ResonanceTrajectory.tsx, /src/index.css
+5:52:50 AM [vite] (client) hmr update /src/components/three/ResonanceTrajectory.tsx, /src/index.css
+5:53:00 AM [vite] (client) hmr update /src/components/three/ResonanceTrajectory.tsx, /src/index.css
+5:53:21 AM [vite] http proxy error: /api/pgate/engage
+Error: connect ECONNREFUSED 127.0.0.1:3001
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)
+5:53:24 AM [vite] http proxy error: /api/pgate/engage
+Error: connect ECONNREFUSED 127.0.0.1:3001
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)
+5:55:05 AM [vite] (client) hmr update /src/components/three/ResonanceTrajectory.tsx, /src/index.css
+5:55:49 AM [vite] (client) hmr update /src/components/three/ResonanceTrajectory.tsx, /src/index.css
+5:57:05 AM [vite] http proxy error: /api/pgate/engage
+Error: connect ECONNREFUSED 127.0.0.1:3001
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)
+5:57:18 AM [vite] (client) hmr update /src/components/three/ResonanceTrajectory.tsx, /src/index.css
+5:58:26 AM [vite] (client) hmr update /src/components/three/ResonanceTrajectory.tsx, /src/index.css
+6:01:52 AM [vite] (client) hmr update /src/components/three/ResonanceTrajectory.tsx, /src/index.css
+6:03:31 AM [vite] (client) hmr update /src/components/three/ResonanceTrajectory.tsx, /src/index.css
+6:04:01 AM [vite] (client) hmr update /src/components/three/ResonanceTrajectory.tsx, /src/index.css
+6:04:46 AM [vite] (client) hmr update /src/components/three/ResonanceTrajectory.tsx, /src/index.css
+6:04:59 AM [vite] (client) hmr update /src/components/three/ResonanceTrajectory.tsx, /src/index.css
+6:07:13 AM [vite] (client) hmr update /src/components/three/ResonanceTrajectory.tsx, /src/index.css
+6:07:34 AM [vite] (client) hmr update /src/components/three/ResonanceTrajectory.tsx, /src/index.css
+6:14:54 AM [vite] (client) hmr update /src/components/three/ResonanceTrajectory.tsx, /src/index.css
+6:15:16 AM [vite] (client) hmr update /src/components/three/ResonanceTrajectory.tsx, /src/index.css
+6:15:35 AM [vite] (client) hmr update /src/components/three/ResonanceTrajectory.tsx, /src/index.css
+6:18:21 AM [vite] (client) hmr update /src/components/three/ResonanceTrajectory.tsx, /src/index.css
+6:19:27 AM [vite] (client) hmr update /src/components/three/ResonanceTrajectory.tsx, /src/index.css
+6:19:40 AM [vite] (client) hmr update /src/components/three/ResonanceTrajectory.tsx, /src/index.css
+6:20:59 AM [vite] (client) hmr update /src/components/three/ResonanceTrajectory.tsx, /src/index.css
+6:21:38 AM [vite] (client) hmr update /src/components/three/ResonanceTrajectory.tsx, /src/index.css
+6:22:09 AM [vite] (client) hmr update /src/components/three/ResonanceTrajectory.tsx, /src/index.css
+6:22:43 AM [vite] (client) hmr update /src/components/three/ResonanceTrajectory.tsx, /src/index.css
+6:24:20 AM [vite] (client) hmr update /src/components/three/ResonanceTrajectory.tsx, /src/index.css
+6:24:50 AM [vite] (client) hmr update /src/components/three/ResonanceTrajectory.tsx, /src/index.css
+6:25:21 AM [vite] (client) hmr update /src/components/three/ResonanceTrajectory.tsx, /src/index.css
+6:25:38 AM [vite] (client) hmr update /src/components/three/ResonanceTrajectory.tsx, /src/index.css
+6:26:36 AM [vite] (client) hmr update /src/components/three/ResonanceTrajectory.tsx, /src/index.css
+6:26:36 AM [vite] Internal server error: /home/retroporter/cup/src/components/three/ResonanceTrajectory.tsx: Unexpected token (202:4)
+
+  200 |
+  201 |   return (
+> 202 |     return (
+      |     ^
+  203 |     <>
+  204 |       <mesh position={[0, 0, 0]}>
+  205 |         <boxGeometry args={[1, 1, 1]} />
+  Plugin: vite:react-babel
+  File: /home/retroporter/cup/src/components/three/ResonanceTrajectory.tsx:202:4
+  200|  
+  201|    return (
+  202|      return (
+     |      ^
+  203|      <>
+  204|        <mesh position={[0, 0, 0]}>
+      at constructor (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:365:19)
+      at TypeScriptParserMixin.raise (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:6616:19)
+      at TypeScriptParserMixin.unexpected (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:6636:16)
+      at TypeScriptParserMixin.parseExprAtom (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:11459:22)
+      at TypeScriptParserMixin.parseExprAtom (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:4776:20)
+      at TypeScriptParserMixin.parseExprSubscripts (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:11098:23)
+      at TypeScriptParserMixin.parseUpdate (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:11083:21)
+      at TypeScriptParserMixin.parseMaybeUnary (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:11063:23)
+      at TypeScriptParserMixin.parseMaybeUnary (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:9854:18)
+      at TypeScriptParserMixin.parseMaybeUnaryOrPrivate (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:10916:61)
+      at TypeScriptParserMixin.parseExprOps (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:10921:23)
+      at TypeScriptParserMixin.parseMaybeConditional (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:10898:23)
+      at TypeScriptParserMixin.parseMaybeAssign (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:10848:21)
+      at TypeScriptParserMixin.parseMaybeAssign (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:9803:20)
+      at /home/retroporter/cup/node_modules/@babel/parser/lib/index.js:10817:39
+      at TypeScriptParserMixin.allowInAnd (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:12443:12)
+      at TypeScriptParserMixin.parseMaybeAssignAllowIn (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:10817:17)
+      at TypeScriptParserMixin.parseMaybeAssignAllowInOrVoidPattern (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:12510:17)
+      at TypeScriptParserMixin.parseParenAndDistinguishExpression (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:11692:28)
+      at TypeScriptParserMixin.parseExprAtom (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:11348:23)
+      at TypeScriptParserMixin.parseExprAtom (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:4776:20)
+      at TypeScriptParserMixin.parseExprSubscripts (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:11098:23)
+      at TypeScriptParserMixin.parseUpdate (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:11083:21)
+      at TypeScriptParserMixin.parseMaybeUnary (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:11063:23)
+      at TypeScriptParserMixin.parseMaybeUnary (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:9854:18)
+      at TypeScriptParserMixin.parseMaybeUnaryOrPrivate (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:10916:61)
+      at TypeScriptParserMixin.parseExprOps (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:10921:23)
+      at TypeScriptParserMixin.parseMaybeConditional (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:10898:23)
+      at TypeScriptParserMixin.parseMaybeAssign (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:10848:21)
+      at TypeScriptParserMixin.parseMaybeAssign (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:9803:20)
+      at TypeScriptParserMixin.parseExpressionBase (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:10801:23)
+      at /home/retroporter/cup/node_modules/@babel/parser/lib/index.js:10797:39
+      at TypeScriptParserMixin.allowInAnd (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:12438:16)
+      at TypeScriptParserMixin.parseExpression (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:10797:17)
+      at TypeScriptParserMixin.parseReturnStatement (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:13159:28)
+      at TypeScriptParserMixin.parseStatementContent (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:12815:21)
+      at TypeScriptParserMixin.parseStatementContent (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:9525:18)
+      at TypeScriptParserMixin.parseStatementLike (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:12784:17)
+      at TypeScriptParserMixin.parseStatementListItem (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:12764:17)
+      at TypeScriptParserMixin.parseBlockOrModuleBlockBody (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:13333:61)
+      at TypeScriptParserMixin.parseBlockBody (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:13326:10)
+      at TypeScriptParserMixin.parseBlock (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:13314:10)
+      at TypeScriptParserMixin.parseFunctionBody (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:12117:24)
+      at TypeScriptParserMixin.parseFunctionBodyAndFinish (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:12103:10)
+      at TypeScriptParserMixin.parseFunctionBodyAndFinish (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:9189:18)
+      at /home/retroporter/cup/node_modules/@babel/parser/lib/index.js:13462:12
+      at TypeScriptParserMixin.withSmartMixTopicForbiddingContext (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:12420:14)
+      at TypeScriptParserMixin.parseFunction (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:13461:10)
+      at TypeScriptParserMixin.parseFunctionStatement (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:13142:17)
+      at TypeScriptParserMixin.parseStatementContent (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:12808:21)
+6:26:50 AM [vite] (client) hmr update /src/components/three/ResonanceTrajectory.tsx, /src/index.css
+6:26:50 AM [vite] Internal server error: /home/retroporter/cup/src/components/three/ResonanceTrajectory.tsx: Unexpected token (202:4)
+
+  200 |
+  201 |   return (
+> 202 |     return (
+      |     ^
+  203 |     <group>
+  204 |       <mesh position={[0, 0, 0]}>
+  205 |         <boxGeometry args={[1, 1, 1]} />
+  Plugin: vite:react-babel
+  File: /home/retroporter/cup/src/components/three/ResonanceTrajectory.tsx:202:4
+  200|  
+  201|    return (
+  202|      return (
+     |      ^
+  203|      <group>
+  204|        <mesh position={[0, 0, 0]}>
+      at constructor (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:365:19)
+      at TypeScriptParserMixin.raise (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:6616:19)
+      at TypeScriptParserMixin.unexpected (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:6636:16)
+      at TypeScriptParserMixin.parseExprAtom (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:11459:22)
+      at TypeScriptParserMixin.parseExprAtom (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:4776:20)
+      at TypeScriptParserMixin.parseExprSubscripts (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:11098:23)
+      at TypeScriptParserMixin.parseUpdate (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:11083:21)
+      at TypeScriptParserMixin.parseMaybeUnary (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:11063:23)
+      at TypeScriptParserMixin.parseMaybeUnary (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:9854:18)
+      at TypeScriptParserMixin.parseMaybeUnaryOrPrivate (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:10916:61)
+      at TypeScriptParserMixin.parseExprOps (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:10921:23)
+      at TypeScriptParserMixin.parseMaybeConditional (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:10898:23)
+      at TypeScriptParserMixin.parseMaybeAssign (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:10848:21)
+      at TypeScriptParserMixin.parseMaybeAssign (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:9803:20)
+      at /home/retroporter/cup/node_modules/@babel/parser/lib/index.js:10817:39
+      at TypeScriptParserMixin.allowInAnd (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:12443:12)
+      at TypeScriptParserMixin.parseMaybeAssignAllowIn (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:10817:17)
+      at TypeScriptParserMixin.parseMaybeAssignAllowInOrVoidPattern (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:12510:17)
+      at TypeScriptParserMixin.parseParenAndDistinguishExpression (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:11692:28)
+      at TypeScriptParserMixin.parseExprAtom (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:11348:23)
+      at TypeScriptParserMixin.parseExprAtom (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:4776:20)
+      at TypeScriptParserMixin.parseExprSubscripts (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:11098:23)
+      at TypeScriptParserMixin.parseUpdate (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:11083:21)
+      at TypeScriptParserMixin.parseMaybeUnary (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:11063:23)
+      at TypeScriptParserMixin.parseMaybeUnary (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:9854:18)
+      at TypeScriptParserMixin.parseMaybeUnaryOrPrivate (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:10916:61)
+      at TypeScriptParserMixin.parseExprOps (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:10921:23)
+      at TypeScriptParserMixin.parseMaybeConditional (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:10898:23)
+      at TypeScriptParserMixin.parseMaybeAssign (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:10848:21)
+      at TypeScriptParserMixin.parseMaybeAssign (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:9803:20)
+      at TypeScriptParserMixin.parseExpressionBase (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:10801:23)
+      at /home/retroporter/cup/node_modules/@babel/parser/lib/index.js:10797:39
+      at TypeScriptParserMixin.allowInAnd (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:12438:16)
+      at TypeScriptParserMixin.parseExpression (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:10797:17)
+      at TypeScriptParserMixin.parseReturnStatement (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:13159:28)
+      at TypeScriptParserMixin.parseStatementContent (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:12815:21)
+      at TypeScriptParserMixin.parseStatementContent (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:9525:18)
+      at TypeScriptParserMixin.parseStatementLike (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:12784:17)
+      at TypeScriptParserMixin.parseStatementListItem (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:12764:17)
+      at TypeScriptParserMixin.parseBlockOrModuleBlockBody (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:13333:61)
+      at TypeScriptParserMixin.parseBlockBody (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:13326:10)
+      at TypeScriptParserMixin.parseBlock (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:13314:10)
+      at TypeScriptParserMixin.parseFunctionBody (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:12117:24)
+      at TypeScriptParserMixin.parseFunctionBodyAndFinish (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:12103:10)
+      at TypeScriptParserMixin.parseFunctionBodyAndFinish (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:9189:18)
+      at /home/retroporter/cup/node_modules/@babel/parser/lib/index.js:13462:12
+      at TypeScriptParserMixin.withSmartMixTopicForbiddingContext (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:12420:14)
+      at TypeScriptParserMixin.parseFunction (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:13461:10)
+      at TypeScriptParserMixin.parseFunctionStatement (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:13142:17)
+      at TypeScriptParserMixin.parseStatementContent (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:12808:21)
+6:27:17 AM [vite] (client) hmr update /src/components/three/ResonanceTrajectory.tsx, /src/index.css
+6:28:28 AM [vite] (client) hmr update /src/components/three/ResonanceTrajectory.tsx, /src/index.css
+6:28:44 AM [vite] (client) hmr update /src/components/three/ResonanceTrajectory.tsx, /src/index.css
+6:28:58 AM [vite] (client) hmr update /src/components/three/ResonanceTrajectory.tsx, /src/index.css
+6:29:49 AM [vite] (client) hmr update /src/components/three/ResonanceTrajectory.tsx, /src/index.css
+6:30:17 AM [vite] (client) hmr update /src/components/three/ResonanceTrajectory.tsx, /src/index.css
+6:30:28 AM [vite] (client) hmr update /src/components/three/ResonanceTrajectory.tsx, /src/index.css
+6:30:41 AM [vite] (client) hmr update /src/components/three/ResonanceTrajectory.tsx, /src/index.css
+6:32:04 AM [vite] http proxy error: /api/pgate/engage
+Error: connect ECONNREFUSED 127.0.0.1:3001
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16)
+6:32:11 AM [vite] (client) hmr update /src/components/three/ResonanceTrajectory.tsx, /src/index.css
+6:32:48 AM [vite] (client) hmr update /src/components/three/ResonanceTrajectory.tsx, /src/index.css
+6:33:16 AM [vite] (client) hmr update /src/components/three/ResonanceTrajectory.tsx, /src/index.css
+6:33:34 AM [vite] (client) hmr update /src/components/three/ResonanceTrajectory.tsx, /src/index.css
+6:33:51 AM [vite] (client) hmr update /src/components/three/ResonanceTrajectory.tsx, /src/index.css
+6:34:06 AM [vite] (client) hmr update /src/components/three/ResonanceTrajectory.tsx, /src/index.css
+6:34:54 AM [vite] (client) hmr update /src/components/three/ResonanceTrajectory.tsx, /src/index.css
+6:35:32 AM [vite] (client) hmr update /src/components/three/ResonanceTrajectory.tsx, /src/index.css
+6:36:27 AM [vite] (client) hmr update /src/components/three/ResonanceTrajectory.tsx, /src/index.css
+6:37:35 AM [vite] (client) hmr update /src/components/three/ResonanceTrajectory.tsx, /src/index.css
+6:37:35 AM [vite] Internal server error: /home/retroporter/cup/src/components/three/ResonanceTrajectory.tsx: 'import' and 'export' may only appear at the top level. (217:0)
+
+  215 |   );
+  216 |
+> 217 | export function ResonanceTrajectory() {
+      | ^
+  218 |   return (
+  219 |     <div className="relative w-full h-full" style={{ background: '#0a0a0f', width: '100%', height: '100%', position: 'absolute', top: 0, left: 0 }}>
+  220 |       <Canvas
+  Plugin: vite:react-babel
+  File: /home/retroporter/cup/src/components/three/ResonanceTrajectory.tsx:217:0
+  215|    );
+  216|  
+  217|  export function ResonanceTrajectory() {
+     |  ^
+  218|    return (
+  219|      <div className="relative w-full h-full" style={{ background: '#0a0a0f', width: '100%', height: '100%', position: 'absolute', top: 0, left: 0 }}>
+      at constructor (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:365:19)
+      at TypeScriptParserMixin.raise (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:6616:19)
+      at TypeScriptParserMixin.parseStatementContent (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:12888:18)
+      at TypeScriptParserMixin.parseStatementContent (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:9525:18)
+      at TypeScriptParserMixin.parseStatementLike (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:12784:17)
+      at TypeScriptParserMixin.parseStatementListItem (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:12764:17)
+      at TypeScriptParserMixin.parseBlockOrModuleBlockBody (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:13333:61)
+      at TypeScriptParserMixin.parseBlockBody (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:13326:10)
+      at TypeScriptParserMixin.parseBlock (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:13314:10)
+      at TypeScriptParserMixin.parseFunctionBody (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:12117:24)
+      at TypeScriptParserMixin.parseFunctionBodyAndFinish (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:12103:10)
+      at TypeScriptParserMixin.parseFunctionBodyAndFinish (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:9189:18)
+      at /home/retroporter/cup/node_modules/@babel/parser/lib/index.js:13462:12
+      at TypeScriptParserMixin.withSmartMixTopicForbiddingContext (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:12420:14)
+      at TypeScriptParserMixin.parseFunction (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:13461:10)
+      at TypeScriptParserMixin.parseFunctionStatement (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:13142:17)
+      at TypeScriptParserMixin.parseStatementContent (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:12808:21)
+      at TypeScriptParserMixin.parseStatementContent (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:9525:18)
+      at TypeScriptParserMixin.parseStatementLike (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:12784:17)
+      at TypeScriptParserMixin.parseModuleItem (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:12761:17)
+      at TypeScriptParserMixin.parseBlockOrModuleBlockBody (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:13333:36)
+      at TypeScriptParserMixin.parseBlockBody (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:13326:10)
+      at TypeScriptParserMixin.parseProgram (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:12639:10)
+      at TypeScriptParserMixin.parseTopLevel (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:12629:25)
+      at TypeScriptParserMixin.parse (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:14505:25)
+      at TypeScriptParserMixin.parse (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:10143:18)
+      at parse (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:14539:38)
+      at parser (/home/retroporter/cup/node_modules/@babel/core/lib/parser/index.js:41:34)
+      at parser.next (<anonymous>)
+      at normalizeFile (/home/retroporter/cup/node_modules/@babel/core/lib/transformation/normalize-file.js:64:37)
+      at normalizeFile.next (<anonymous>)
+      at run (/home/retroporter/cup/node_modules/@babel/core/lib/transformation/index.js:22:50)
+      at run.next (<anonymous>)
+      at transform (/home/retroporter/cup/node_modules/@babel/core/lib/transform.js:22:33)
+      at transform.next (<anonymous>)
+      at step (/home/retroporter/cup/node_modules/gensync/index.js:261:32)
+      at /home/retroporter/cup/node_modules/gensync/index.js:273:13
+      at async.call.result.err.err (/home/retroporter/cup/node_modules/gensync/index.js:223:11)
+      at /home/retroporter/cup/node_modules/gensync/index.js:189:28
+      at /home/retroporter/cup/node_modules/@babel/core/lib/gensync-utils/async.js:67:7
+      at /home/retroporter/cup/node_modules/gensync/index.js:113:33
+      at step (/home/retroporter/cup/node_modules/gensync/index.js:287:14)
+      at /home/retroporter/cup/node_modules/gensync/index.js:273:13
+      at async.call.result.err.err (/home/retroporter/cup/node_modules/gensync/index.js:223:11)
+6:38:35 AM [vite] (client) hmr update /src/components/three/ResonanceTrajectory.tsx, /src/index.css
+6:38:36 AM [vite] Internal server error: /home/retroporter/cup/src/components/three/ResonanceTrajectory.tsx: 'import' and 'export' may only appear at the top level. (217:0)
+
+  215 |   );
+  216 |
+> 217 | export function ResonanceTrajectory() {
+      | ^
+  218 |   return (
+  219 |     <div className="relative w-full h-full" style={{ background: '#0a0a0f', width: '100%', height: '100%', position: 'absolute', top: 0, left: 0 }}>
+  220 |       <Canvas
+  Plugin: vite:react-babel
+  File: /home/retroporter/cup/src/components/three/ResonanceTrajectory.tsx:217:0
+  215|    );
+  216|  
+  217|  export function ResonanceTrajectory() {
+     |  ^
+  218|    return (
+  219|      <div className="relative w-full h-full" style={{ background: '#0a0a0f', width: '100%', height: '100%', position: 'absolute', top: 0, left: 0 }}>
+      at constructor (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:365:19)
+      at TypeScriptParserMixin.raise (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:6616:19)
+      at TypeScriptParserMixin.parseStatementContent (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:12888:18)
+      at TypeScriptParserMixin.parseStatementContent (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:9525:18)
+      at TypeScriptParserMixin.parseStatementLike (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:12784:17)
+      at TypeScriptParserMixin.parseStatementListItem (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:12764:17)
+      at TypeScriptParserMixin.parseBlockOrModuleBlockBody (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:13333:61)
+      at TypeScriptParserMixin.parseBlockBody (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:13326:10)
+      at TypeScriptParserMixin.parseBlock (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:13314:10)
+      at TypeScriptParserMixin.parseFunctionBody (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:12117:24)
+      at TypeScriptParserMixin.parseFunctionBodyAndFinish (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:12103:10)
+      at TypeScriptParserMixin.parseFunctionBodyAndFinish (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:9189:18)
+      at /home/retroporter/cup/node_modules/@babel/parser/lib/index.js:13462:12
+      at TypeScriptParserMixin.withSmartMixTopicForbiddingContext (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:12420:14)
+      at TypeScriptParserMixin.parseFunction (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:13461:10)
+      at TypeScriptParserMixin.parseFunctionStatement (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:13142:17)
+      at TypeScriptParserMixin.parseStatementContent (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:12808:21)
+      at TypeScriptParserMixin.parseStatementContent (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:9525:18)
+      at TypeScriptParserMixin.parseStatementLike (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:12784:17)
+      at TypeScriptParserMixin.parseModuleItem (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:12761:17)
+      at TypeScriptParserMixin.parseBlockOrModuleBlockBody (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:13333:36)
+      at TypeScriptParserMixin.parseBlockBody (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:13326:10)
+      at TypeScriptParserMixin.parseProgram (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:12639:10)
+      at TypeScriptParserMixin.parseTopLevel (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:12629:25)
+      at TypeScriptParserMixin.parse (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:14505:25)
+      at TypeScriptParserMixin.parse (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:10143:18)
+      at parse (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:14539:38)
+      at parser (/home/retroporter/cup/node_modules/@babel/core/lib/parser/index.js:41:34)
+      at parser.next (<anonymous>)
+      at normalizeFile (/home/retroporter/cup/node_modules/@babel/core/lib/transformation/normalize-file.js:64:37)
+      at normalizeFile.next (<anonymous>)
+      at run (/home/retroporter/cup/node_modules/@babel/core/lib/transformation/index.js:22:50)
+      at run.next (<anonymous>)
+      at transform (/home/retroporter/cup/node_modules/@babel/core/lib/transform.js:22:33)
+      at transform.next (<anonymous>)
+      at step (/home/retroporter/cup/node_modules/gensync/index.js:261:32)
+      at /home/retroporter/cup/node_modules/gensync/index.js:273:13
+      at async.call.result.err.err (/home/retroporter/cup/node_modules/gensync/index.js:223:11)
+      at /home/retroporter/cup/node_modules/gensync/index.js:189:28
+      at /home/retroporter/cup/node_modules/@babel/core/lib/gensync-utils/async.js:67:7
+      at /home/retroporter/cup/node_modules/gensync/index.js:113:33
+      at step (/home/retroporter/cup/node_modules/gensync/index.js:287:14)
+      at /home/retroporter/cup/node_modules/gensync/index.js:273:13
+      at async.call.result.err.err (/home/retroporter/cup/node_modules/gensync/index.js:223:11)
+6:39:32 AM [vite] (client) Pre-transform error: /home/retroporter/cup/src/components/three/ResonanceTrajectory.tsx: 'import' and 'export' may only appear at the top level. (217:0)
+
+  215 |   );
+  216 |
+> 217 | export function ResonanceTrajectory() {
+      | ^
+  218 |   return (
+  219 |     <div className="relative w-full h-full" style={{ background: '#0a0a0f', width: '100%', height: '100%', position: 'absolute', top: 0, left: 0 }}>
+  220 |       <Canvas
+  Plugin: vite:react-babel
+  File: /home/retroporter/cup/src/components/three/ResonanceTrajectory.tsx:217:0
+  215|    );
+  216|  
+  217|  export function ResonanceTrajectory() {
+     |  ^
+  218|    return (
+  219|      <div className="relative w-full h-full" style={{ background: '#0a0a0f', width: '100%', height: '100%', position: 'absolute', top: 0, left: 0 }}>
+6:39:32 AM [vite] Internal server error: /home/retroporter/cup/src/components/three/ResonanceTrajectory.tsx: 'import' and 'export' may only appear at the top level. (217:0)
+
+  215 |   );
+  216 |
+> 217 | export function ResonanceTrajectory() {
+      | ^
+  218 |   return (
+  219 |     <div className="relative w-full h-full" style={{ background: '#0a0a0f', width: '100%', height: '100%', position: 'absolute', top: 0, left: 0 }}>
+  220 |       <Canvas
+  Plugin: vite:react-babel
+  File: /home/retroporter/cup/src/components/three/ResonanceTrajectory.tsx:217:0
+  215|    );
+  216|  
+  217|  export function ResonanceTrajectory() {
+     |  ^
+  218|    return (
+  219|      <div className="relative w-full h-full" style={{ background: '#0a0a0f', width: '100%', height: '100%', position: 'absolute', top: 0, left: 0 }}>
+      at constructor (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:365:19)
+      at TypeScriptParserMixin.raise (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:6616:19)
+      at TypeScriptParserMixin.parseStatementContent (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:12888:18)
+      at TypeScriptParserMixin.parseStatementContent (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:9525:18)
+      at TypeScriptParserMixin.parseStatementLike (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:12784:17)
+      at TypeScriptParserMixin.parseStatementListItem (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:12764:17)
+      at TypeScriptParserMixin.parseBlockOrModuleBlockBody (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:13333:61)
+      at TypeScriptParserMixin.parseBlockBody (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:13326:10)
+      at TypeScriptParserMixin.parseBlock (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:13314:10)
+      at TypeScriptParserMixin.parseFunctionBody (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:12117:24)
+      at TypeScriptParserMixin.parseFunctionBodyAndFinish (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:12103:10)
+      at TypeScriptParserMixin.parseFunctionBodyAndFinish (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:9189:18)
+      at /home/retroporter/cup/node_modules/@babel/parser/lib/index.js:13462:12
+      at TypeScriptParserMixin.withSmartMixTopicForbiddingContext (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:12420:14)
+      at TypeScriptParserMixin.parseFunction (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:13461:10)
+      at TypeScriptParserMixin.parseFunctionStatement (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:13142:17)
+      at TypeScriptParserMixin.parseStatementContent (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:12808:21)
+      at TypeScriptParserMixin.parseStatementContent (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:9525:18)
+      at TypeScriptParserMixin.parseStatementLike (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:12784:17)
+      at TypeScriptParserMixin.parseModuleItem (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:12761:17)
+      at TypeScriptParserMixin.parseBlockOrModuleBlockBody (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:13333:36)
+      at TypeScriptParserMixin.parseBlockBody (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:13326:10)
+      at TypeScriptParserMixin.parseProgram (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:12639:10)
+      at TypeScriptParserMixin.parseTopLevel (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:12629:25)
+      at TypeScriptParserMixin.parse (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:14505:25)
+      at TypeScriptParserMixin.parse (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:10143:18)
+      at parse (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:14539:38)
+      at parser (/home/retroporter/cup/node_modules/@babel/core/lib/parser/index.js:41:34)
+      at parser.next (<anonymous>)
+      at normalizeFile (/home/retroporter/cup/node_modules/@babel/core/lib/transformation/normalize-file.js:64:37)
+      at normalizeFile.next (<anonymous>)
+      at run (/home/retroporter/cup/node_modules/@babel/core/lib/transformation/index.js:22:50)
+      at run.next (<anonymous>)
+      at transform (/home/retroporter/cup/node_modules/@babel/core/lib/transform.js:22:33)
+      at transform.next (<anonymous>)
+      at step (/home/retroporter/cup/node_modules/gensync/index.js:261:32)
+      at /home/retroporter/cup/node_modules/gensync/index.js:273:13
+      at async.call.result.err.err (/home/retroporter/cup/node_modules/gensync/index.js:223:11)
+      at /home/retroporter/cup/node_modules/gensync/index.js:189:28
+      at /home/retroporter/cup/node_modules/@babel/core/lib/gensync-utils/async.js:67:7
+      at /home/retroporter/cup/node_modules/gensync/index.js:113:33
+      at step (/home/retroporter/cup/node_modules/gensync/index.js:287:14)
+      at /home/retroporter/cup/node_modules/gensync/index.js:273:13
+      at async.call.result.err.err (/home/retroporter/cup/node_modules/gensync/index.js:223:11)
+6:39:53 AM [vite] Internal server error: /home/retroporter/cup/src/components/three/ResonanceTrajectory.tsx: 'import' and 'export' may only appear at the top level. (217:0)
+
+  215 |   );
+  216 |
+> 217 | export function ResonanceTrajectory() {
+      | ^
+  218 |   return (
+  219 |     <div className="relative w-full h-full" style={{ background: '#0a0a0f', width: '100%', height: '100%', position: 'absolute', top: 0, left: 0 }}>
+  220 |       <Canvas
+  Plugin: vite:react-babel
+  File: /home/retroporter/cup/src/components/three/ResonanceTrajectory.tsx:217:0
+  215|    );
+  216|  
+  217|  export function ResonanceTrajectory() {
+     |  ^
+  218|    return (
+  219|      <div className="relative w-full h-full" style={{ background: '#0a0a0f', width: '100%', height: '100%', position: 'absolute', top: 0, left: 0 }}>
+      at constructor (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:365:19)
+      at TypeScriptParserMixin.raise (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:6616:19)
+      at TypeScriptParserMixin.parseStatementContent (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:12888:18)
+      at TypeScriptParserMixin.parseStatementContent (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:9525:18)
+      at TypeScriptParserMixin.parseStatementLike (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:12784:17)
+      at TypeScriptParserMixin.parseStatementListItem (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:12764:17)
+      at TypeScriptParserMixin.parseBlockOrModuleBlockBody (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:13333:61)
+      at TypeScriptParserMixin.parseBlockBody (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:13326:10)
+      at TypeScriptParserMixin.parseBlock (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:13314:10)
+      at TypeScriptParserMixin.parseFunctionBody (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:12117:24)
+      at TypeScriptParserMixin.parseFunctionBodyAndFinish (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:12103:10)
+      at TypeScriptParserMixin.parseFunctionBodyAndFinish (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:9189:18)
+      at /home/retroporter/cup/node_modules/@babel/parser/lib/index.js:13462:12
+      at TypeScriptParserMixin.withSmartMixTopicForbiddingContext (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:12420:14)
+      at TypeScriptParserMixin.parseFunction (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:13461:10)
+      at TypeScriptParserMixin.parseFunctionStatement (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:13142:17)
+      at TypeScriptParserMixin.parseStatementContent (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:12808:21)
+      at TypeScriptParserMixin.parseStatementContent (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:9525:18)
+      at TypeScriptParserMixin.parseStatementLike (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:12784:17)
+      at TypeScriptParserMixin.parseModuleItem (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:12761:17)
+      at TypeScriptParserMixin.parseBlockOrModuleBlockBody (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:13333:36)
+      at TypeScriptParserMixin.parseBlockBody (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:13326:10)
+      at TypeScriptParserMixin.parseProgram (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:12639:10)
+      at TypeScriptParserMixin.parseTopLevel (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:12629:25)
+      at TypeScriptParserMixin.parse (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:14505:25)
+      at TypeScriptParserMixin.parse (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:10143:18)
+      at parse (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:14539:38)
+      at parser (/home/retroporter/cup/node_modules/@babel/core/lib/parser/index.js:41:34)
+      at parser.next (<anonymous>)
+      at normalizeFile (/home/retroporter/cup/node_modules/@babel/core/lib/transformation/normalize-file.js:64:37)
+      at normalizeFile.next (<anonymous>)
+      at run (/home/retroporter/cup/node_modules/@babel/core/lib/transformation/index.js:22:50)
+      at run.next (<anonymous>)
+      at transform (/home/retroporter/cup/node_modules/@babel/core/lib/transform.js:22:33)
+      at transform.next (<anonymous>)
+      at step (/home/retroporter/cup/node_modules/gensync/index.js:261:32)
+      at /home/retroporter/cup/node_modules/gensync/index.js:273:13
+      at async.call.result.err.err (/home/retroporter/cup/node_modules/gensync/index.js:223:11)
+      at /home/retroporter/cup/node_modules/gensync/index.js:189:28
+      at /home/retroporter/cup/node_modules/@babel/core/lib/gensync-utils/async.js:67:7
+      at /home/retroporter/cup/node_modules/gensync/index.js:113:33
+      at step (/home/retroporter/cup/node_modules/gensync/index.js:287:14)
+      at /home/retroporter/cup/node_modules/gensync/index.js:273:13
+      at async.call.result.err.err (/home/retroporter/cup/node_modules/gensync/index.js:223:11)
+6:40:03 AM [vite] Internal server error: /home/retroporter/cup/src/components/three/ResonanceTrajectory.tsx: 'import' and 'export' may only appear at the top level. (217:0)
+
+  215 |   );
+  216 |
+> 217 | export function ResonanceTrajectory() {
+      | ^
+  218 |   return (
+  219 |     <div className="relative w-full h-full" style={{ background: '#0a0a0f', width: '100%', height: '100%', position: 'absolute', top: 0, left: 0 }}>
+  220 |       <Canvas
+  Plugin: vite:react-babel
+  File: /home/retroporter/cup/src/components/three/ResonanceTrajectory.tsx:217:0
+  215|    );
+  216|  
+  217|  export function ResonanceTrajectory() {
+     |  ^
+  218|    return (
+  219|      <div className="relative w-full h-full" style={{ background: '#0a0a0f', width: '100%', height: '100%', position: 'absolute', top: 0, left: 0 }}>
+      at constructor (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:365:19)
+      at TypeScriptParserMixin.raise (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:6616:19)
+      at TypeScriptParserMixin.parseStatementContent (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:12888:18)
+      at TypeScriptParserMixin.parseStatementContent (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:9525:18)
+      at TypeScriptParserMixin.parseStatementLike (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:12784:17)
+      at TypeScriptParserMixin.parseStatementListItem (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:12764:17)
+      at TypeScriptParserMixin.parseBlockOrModuleBlockBody (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:13333:61)
+      at TypeScriptParserMixin.parseBlockBody (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:13326:10)
+      at TypeScriptParserMixin.parseBlock (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:13314:10)
+      at TypeScriptParserMixin.parseFunctionBody (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:12117:24)
+      at TypeScriptParserMixin.parseFunctionBodyAndFinish (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:12103:10)
+      at TypeScriptParserMixin.parseFunctionBodyAndFinish (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:9189:18)
+      at /home/retroporter/cup/node_modules/@babel/parser/lib/index.js:13462:12
+      at TypeScriptParserMixin.withSmartMixTopicForbiddingContext (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:12420:14)
+      at TypeScriptParserMixin.parseFunction (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:13461:10)
+      at TypeScriptParserMixin.parseFunctionStatement (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:13142:17)
+      at TypeScriptParserMixin.parseStatementContent (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:12808:21)
+      at TypeScriptParserMixin.parseStatementContent (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:9525:18)
+      at TypeScriptParserMixin.parseStatementLike (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:12784:17)
+      at TypeScriptParserMixin.parseModuleItem (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:12761:17)
+      at TypeScriptParserMixin.parseBlockOrModuleBlockBody (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:13333:36)
+      at TypeScriptParserMixin.parseBlockBody (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:13326:10)
+      at TypeScriptParserMixin.parseProgram (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:12639:10)
+      at TypeScriptParserMixin.parseTopLevel (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:12629:25)
+      at TypeScriptParserMixin.parse (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:14505:25)
+      at TypeScriptParserMixin.parse (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:10143:18)
+      at parse (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:14539:38)
+      at parser (/home/retroporter/cup/node_modules/@babel/core/lib/parser/index.js:41:34)
+      at parser.next (<anonymous>)
+      at normalizeFile (/home/retroporter/cup/node_modules/@babel/core/lib/transformation/normalize-file.js:64:37)
+      at normalizeFile.next (<anonymous>)
+      at run (/home/retroporter/cup/node_modules/@babel/core/lib/transformation/index.js:22:50)
+      at run.next (<anonymous>)
+      at transform (/home/retroporter/cup/node_modules/@babel/core/lib/transform.js:22:33)
+      at transform.next (<anonymous>)
+      at step (/home/retroporter/cup/node_modules/gensync/index.js:261:32)
+      at /home/retroporter/cup/node_modules/gensync/index.js:273:13
+      at async.call.result.err.err (/home/retroporter/cup/node_modules/gensync/index.js:223:11)
+      at /home/retroporter/cup/node_modules/gensync/index.js:189:28
+      at /home/retroporter/cup/node_modules/@babel/core/lib/gensync-utils/async.js:67:7
+      at /home/retroporter/cup/node_modules/gensync/index.js:113:33
+      at step (/home/retroporter/cup/node_modules/gensync/index.js:287:14)
+      at /home/retroporter/cup/node_modules/gensync/index.js:273:13
+      at async.call.result.err.err (/home/retroporter/cup/node_modules/gensync/index.js:223:11)
+6:40:53 AM [vite] Internal server error: /home/retroporter/cup/src/components/three/ResonanceTrajectory.tsx: 'import' and 'export' may only appear at the top level. (217:0)
+
+  215 |   );
+  216 |
+> 217 | export function ResonanceTrajectory() {
+      | ^
+  218 |   return (
+  219 |     <div className="relative w-full h-full" style={{ background: '#0a0a0f', width: '100%', height: '100%', position: 'absolute', top: 0, left: 0 }}>
+  220 |       <Canvas
+  Plugin: vite:react-babel
+  File: /home/retroporter/cup/src/components/three/ResonanceTrajectory.tsx:217:0
+  215|    );
+  216|  
+  217|  export function ResonanceTrajectory() {
+     |  ^
+  218|    return (
+  219|      <div className="relative w-full h-full" style={{ background: '#0a0a0f', width: '100%', height: '100%', position: 'absolute', top: 0, left: 0 }}>
+      at constructor (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:365:19)
+      at TypeScriptParserMixin.raise (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:6616:19)
+      at TypeScriptParserMixin.parseStatementContent (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:12888:18)
+      at TypeScriptParserMixin.parseStatementContent (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:9525:18)
+      at TypeScriptParserMixin.parseStatementLike (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:12784:17)
+      at TypeScriptParserMixin.parseStatementListItem (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:12764:17)
+      at TypeScriptParserMixin.parseBlockOrModuleBlockBody (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:13333:61)
+      at TypeScriptParserMixin.parseBlockBody (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:13326:10)
+      at TypeScriptParserMixin.parseBlock (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:13314:10)
+      at TypeScriptParserMixin.parseFunctionBody (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:12117:24)
+      at TypeScriptParserMixin.parseFunctionBodyAndFinish (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:12103:10)
+      at TypeScriptParserMixin.parseFunctionBodyAndFinish (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:9189:18)
+      at /home/retroporter/cup/node_modules/@babel/parser/lib/index.js:13462:12
+      at TypeScriptParserMixin.withSmartMixTopicForbiddingContext (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:12420:14)
+      at TypeScriptParserMixin.parseFunction (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:13461:10)
+      at TypeScriptParserMixin.parseFunctionStatement (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:13142:17)
+      at TypeScriptParserMixin.parseStatementContent (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:12808:21)
+      at TypeScriptParserMixin.parseStatementContent (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:9525:18)
+      at TypeScriptParserMixin.parseStatementLike (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:12784:17)
+      at TypeScriptParserMixin.parseModuleItem (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:12761:17)
+      at TypeScriptParserMixin.parseBlockOrModuleBlockBody (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:13333:36)
+      at TypeScriptParserMixin.parseBlockBody (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:13326:10)
+      at TypeScriptParserMixin.parseProgram (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:12639:10)
+      at TypeScriptParserMixin.parseTopLevel (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:12629:25)
+      at TypeScriptParserMixin.parse (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:14505:25)
+      at TypeScriptParserMixin.parse (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:10143:18)
+      at parse (/home/retroporter/cup/node_modules/@babel/parser/lib/index.js:14539:38)
+      at parser (/home/retroporter/cup/node_modules/@babel/core/lib/parser/index.js:41:34)
+      at parser.next (<anonymous>)
+      at normalizeFile (/home/retroporter/cup/node_modules/@babel/core/lib/transformation/normalize-file.js:64:37)
+      at normalizeFile.next (<anonymous>)
+      at run (/home/retroporter/cup/node_modules/@babel/core/lib/transformation/index.js:22:50)
+      at run.next (<anonymous>)
+      at transform (/home/retroporter/cup/node_modules/@babel/core/lib/transform.js:22:33)
+      at transform.next (<anonymous>)
+      at step (/home/retroporter/cup/node_modules/gensync/index.js:261:32)
+      at /home/retroporter/cup/node_modules/gensync/index.js:273:13
+      at async.call.result.err.err (/home/retroporter/cup/node_modules/gensync/index.js:223:11)
+      at /home/retroporter/cup/node_modules/gensync/index.js:189:28
+      at /home/retroporter/cup/node_modules/@babel/core/lib/gensync-utils/async.js:67:7
+      at /home/retroporter/cup/node_modules/gensync/index.js:113:33
+      at step (/home/retroporter/cup/node_modules/gensync/index.js:287:14)
+      at /home/retroporter/cup/node_modules/gensync/index.js:273:13
+      at async.call.result.err.err (/home/retroporter/cup/node_modules/gensync/index.js:223:11)
+6:41:07 AM [vite] (client) hmr update /src/components/three/ResonanceTrajectory.tsx, /src/index.css
