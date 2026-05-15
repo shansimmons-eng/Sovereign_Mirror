@@ -123,6 +123,7 @@ function KineticQuads() {
 
   const temperature = useHUDStore((s) => s.temperature);
   const noiseFilter = useHUDStore((s) => s.noiseFilter);
+  const inverionAlpha = useNodeStore((s) => s.flux);
 
   const particleSeeds = useMemo(() => {
     const seeds = new Float32Array(INSTANCE_COUNT * 6);
@@ -206,6 +207,7 @@ function KineticQuads() {
 
     const tempJitter = temperature * 0.8;
     const noiseJitter = noiseFilter * 0.6;
+    const coherenceFactor = inverionAlpha;
 
     const breathFreq = 0.2 + densityNorm * 0.3;
     const breathPhase = Math.sin(time * Math.PI * 2 * breathFreq);
@@ -230,7 +232,7 @@ function KineticQuads() {
       const turbulenceY = Math.cos(time * 9 + seed1 * 6) * tempJitter * 0.5;
       const turbulenceZ = Math.sin(time * 7 + seed0 * seed1 * 4) * tempJitter * 0.5;
 
-      const orbitRadius = baseOrbit + radius * breathLerp * 0.6;
+      const orbitRadius = (baseOrbit + radius * breathLerp * 0.6) * (0.4 + coherenceFactor * 0.6);
 
       const baseX = Math.sin(seed0 + t * 3.5) * orbitRadius * (1.1 + Math.sin(seed1 + t * 2.1) * 0.35);
       const baseY = Math.cos(seed1 + t * 2.7) * orbitRadius * (0.9 + Math.cos(seed0 + t * 2.9) * 0.3);
@@ -327,18 +329,17 @@ export function ResonanceTrajectory() {
         camera={{ position: [0, 0, 16], fov: 50, near: 0.1, far: 1000 }}
         dpr={Math.min(window.devicePixelRatio, 2)}
       >
-        <ambientLight intensity={0.02} />
-        <pointLight position={[0, 0, 0]} intensity={1.5} color="#FFFFFF" distance={8} />
+        <pointLight position={[0, 0, 0]} intensity={0.8} color="#FFFFFF" distance={6} />
         <KineticQuads />
         <StarField />
         <IgnitionCore />
         <CameraRig />
         <EffectComposer>
           <Bloom
-            intensity={2.0}
-            luminanceThreshold={0.85}
-            luminanceSmoothing={0.5}
-            radius={0.5}
+            intensity={2.5}
+            luminanceThreshold={0.82}
+            luminanceSmoothing={0.65}
+            radius={0.65}
             mipmapBlur
           />
         </EffectComposer>
