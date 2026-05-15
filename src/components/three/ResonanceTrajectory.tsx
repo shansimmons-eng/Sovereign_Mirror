@@ -9,7 +9,7 @@ const INSTANCE_COUNT = 5000;
 const PLASMA_URL = 'https://services.swpc.noaa.gov/products/solar-wind/plasma-7-day.json';
 const MAGNET_URL = 'https://services.swpc.noaa.gov/products/solar-wind/mag-7-day.json';
 
-const DECAY_THRESHOLD = 0.15;
+const DECAY_THRESHOLD = 0.12;
 
 const getSafe = (val: number, fallback: number): number => {
   const v = Number(val);
@@ -64,7 +64,7 @@ const particleVertexShader = `
     float instanceID = float(gl_InstanceID);
     float phase = hash(vec3(instanceID, instanceID * 1.3, instanceID * 2.7));
 
-    float radius = 2.0 * (1.0 - u_inverion_alpha);
+    float radius = clamp(2.0 * (1.0 - u_inverion_alpha), 0.1, 2.0);
     float theta = u_time * (u_boltzmann_temp * 0.1) + (phase * 6.28318);
 
     vec3 orbitPos = vec3(cos(theta) * radius, sin(theta) * radius, sin(theta * phase) * 0.5);
@@ -72,7 +72,7 @@ const particleVertexShader = `
     float noiseFactor = hash(orbitPos + vec3(u_time * 0.05));
     vec3 dispersalVector = vec3(cos(phase * 6.28), sin(phase * 6.28), phase);
 
-    if (u_inverion_alpha < 0.15) {
+    if (u_inverion_alpha < 0.12) {
       float drift = (1.0 - u_inverion_alpha) * (u_boltzmann_noise * 0.5);
       transformed += orbitPos + (dispersalVector * noiseFactor * drift);
       vIntensity = u_inverion_alpha;
@@ -357,7 +357,8 @@ function KineticQuads() {
     bzDeltaRef.current *= 0.92;
 
     material.uniforms.u_time.value = Math.max(0.001, time);
-    material.uniforms.u_inverion_alpha.value = Math.max(0.005, inverionAlpha);
+    const guardedAlpha = Math.max(0.002, inverionAlpha);
+    material.uniforms.u_inverion_alpha.value = guardedAlpha;
     material.uniforms.u_boltzmann_temp.value = Math.max(0.01, 0.3 + temperature * 2.0);
     material.uniforms.u_boltzmann_noise.value = Math.max(0.001, 0.05 + noiseFilter * 0.5);
 
