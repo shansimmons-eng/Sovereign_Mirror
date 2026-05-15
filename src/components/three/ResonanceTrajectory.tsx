@@ -5,7 +5,7 @@ import { EffectComposer, Bloom } from '@react-three/postprocessing';
 import { useHUDStore } from '../../state/stores/hudStore';
 import { useNodeStore } from '../../state/stores/nodeStore';
 
-const INSTANCE_COUNT = 5000;
+const INSTANCE_COUNT = 4000;
 const PLASMA_URL = 'https://services.swpc.noaa.gov/products/solar-wind/plasma-7-day.json';
 const MAGNET_URL = 'https://services.swpc.noaa.gov/products/solar-wind/mag-7-day.json';
 
@@ -115,6 +115,7 @@ function KineticQuads() {
   const meshRef = useRef<THREE.InstancedMesh>(null!);
   const dummy = useMemo(() => new THREE.Object3D(), []);
   const tempColor = useMemo(() => new THREE.Color(), []);
+  const rotationMatrix = useMemo(() => new THREE.Matrix4(), []);
 
   const rtswRef = useRef(DEFAULT_RTSW);
   const smoothedSpeedRef = useRef(400);
@@ -206,16 +207,16 @@ function KineticQuads() {
     const gustStrength = Math.min(bzDeltaRef.current / 10, 1);
     bzDeltaRef.current *= 0.92;
 
-    const tempJitter = temperature * 0.8;
-    const noiseJitter = noiseFilter * 0.6;
-    const coherenceFactor = inverionAlpha;
+    const angularVelocity = 0.3 + temperature * 3.0;
+    const noiseAmplitude = noiseFilter * 2.5;
+    const confinementRadius = 0.15 + inverionAlpha * 3.5;
+    const bloomRelaxation = 1.0 - inverionAlpha * 0.85;
 
     const breathFreq = 0.2 + densityNorm * 0.3;
     const breathPhase = Math.sin(time * Math.PI * 2 * breathFreq);
     const breathLerp = (breathPhase + 1) * 0.5;
 
-    const baseOrbit = 0.1 + speedNorm * 0.2;
-    const timeStep = (smoothedSpeedRef.current / 400) * 0.01;
+    const baseTimeStep = (smoothedSpeedRef.current / 400) * 0.01;
 
     if (!mesh.instanceMatrix) return;
 
@@ -227,25 +228,35 @@ function KineticQuads() {
       const lengthFactor = particleSeeds[i * 6 + 4];
       const tiltPhase = particleSeeds[i * 6 + 5];
 
-      const t = time * timeStep + phaseOffset;
+      const t = time * baseTimeStep + phaseOffset;
 
-      const turbulenceX = (Math.sin(time * 8 + seed0 * 5) + Math.sin(time * 13 + seed1 * 7) * 0.5) * tempJitter;
-      const turbulenceY = (Math.cos(time * 9 + seed1 * 6) + Math.cos(time * 11 + seed0 * 9) * 0.5) * tempJitter;
-      const turbulenceZ = (Math.sin(time * 7 + seed0 * seed1 * 4) + Math.sin(time * 17 + seed1 * seed0 * 3) * 0.5) * tempJitter;
+      const angle = t * angularVelocity + seed0;
+      const cosA = Math.cos(angle);
+      const sinA = Math.sin(angle);
 
-      const orbitRadius = (baseOrbit + radius * breathLerp * 0.6) * (0.4 + coherenceFactor * 0.6);
+      const radialDist = (radius * breathLerp * 0.5) * bloomRelaxation + 0.3;
+      const confinedRadial = Math.min(radialDist, confinementRadius);
 
-      const baseX = Math.sin(seed0 + t * 3.5) * orbitRadius * (1.1 + Math.sin(seed1 + t * 2.1) * 0.35);
-      const baseY = Math.cos(seed1 + t * 2.7) * orbitRadius * (0.9 + Math.cos(seed0 + t * 2.9) * 0.3);
-      const baseZ = Math.sin(seed0 + seed1 + t * 3.8) * orbitRadius * 0.5;
+      const baseX = sinA * confinedRadial * (1.1 + Math.sin(seed1 + t * 2.1) * 0.35);
+      const baseY = cosA * confinedRadial * (0.9 + Math.cos(seed0 + t * 2.9) * 0.3);
+      const baseZ = Math.sin(seed0 + seed1 + t * 3.8) * confinedRadial * 0.4;
 
-      const gustX = Math.sin(time * 10.3 + seed0 * 6.7) * gustStrength * 0.35;
-      const gustY = Math.cos(time * 12.1 + seed1 * 8.3) * gustStrength * 0.35;
-      const gustZ = Math.sin(time * 9.7 + seed0 * seed1 * 5.1) * gustStrength * 0.35;
+      const noiseX = (Math.sin(time * 8 + seed0 * 5) + Math.sin(time * 13 + seed1 * 7) * 0.5);
+      const noiseY = (Math.cos(time * 9 + seed1 * 6) + Math.cos(time * 11 + seed0 * 9) * 0.5);
+      const noiseZ = (Math.sin(time * 7 + seed0 * seed1 * 4) + Math.sin(time * 17 + seed1 * seed0 * 3) * 0.5);
 
-      const px = baseX + gustX + turbulenceX;
-      const py = baseY + gustY + turbulenceY;
-      const pz = baseZ + gustZ + turbulenceZ;
+      const displacementMultiplier = 1.0 + noiseAmplitude * 3.0;
+      const erraticX = noiseX * noiseAmplitude * displacementMultiplier;
+      const erraticY = noiseY * noiseAmplitude * displacementMultiplier;
+      const erraticZ = noiseZ * noiseAmplitude * displacementMultiplier;
+
+      const gustX = Math.sin(time * 10.3 + seed0 * 6.7) * gustStrength * 0.25;
+      const gustY = Math.cos(time * 12.1 + seed1 * 8.3) * gustStrength * 0.25;
+      const gustZ = Math.sin(time * 9.7 + seed0 * seed1 * 5.1) * gustStrength * 0.25;
+
+      const px = baseX + erraticX + gustX;
+      const py = baseY + erraticY + gustY;
+      const pz = baseZ + erraticZ + gustZ;
 
       dummy.position.set(px, py, pz);
 
@@ -253,12 +264,11 @@ function KineticQuads() {
       const position = dummy.position.clone();
       const up = new THREE.Vector3(0, 1, 0);
       const quaternion = new THREE.Quaternion();
-      const matrix = new THREE.Matrix4();
-      matrix.lookAt(position, lookAtTarget, up);
-      quaternion.setFromRotationMatrix(matrix);
+      rotationMatrix.lookAt(position, lookAtTarget, up);
+      quaternion.setFromRotationMatrix(rotationMatrix);
 
       const stretchBase = 0.4 + lengthFactor * 3.0 + speedNorm * 2.5;
-      const stretchNoise = noiseJitter * Math.sin(tiltPhase + time * 5) * 0.3;
+      const stretchNoise = noiseAmplitude * Math.sin(tiltPhase + time * 5) * 0.5;
       const stretchAmount = stretchBase + stretchNoise;
       dummy.scale.set(0.05, 0.05 * stretchAmount, 0.05);
 
