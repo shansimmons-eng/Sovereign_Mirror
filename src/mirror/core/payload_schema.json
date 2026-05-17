@@ -1,0 +1,34 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "SovereignMirrorMultiProngPayload",
+  "type": "object",
+  "properties": {
+    "packet_metadata": {
+      "type": "object",
+      "properties": {
+        "timestamp": { "type": "string", "format": "date-time" },
+        "source_node_id": { "type": "string", "pattern": "^NODE-[0-9]{4}$" },
+        "stream_prong": { "type": "string", "enum": ["TELEMETRY", "AXIOM_PROOF", "LEDGER_TRANSITION"] }
+      },
+      "required": ["timestamp", "source_node_id", "stream_prong"]
+    },
+    "parametric_payload": {
+      "type": "object",
+      "properties": {
+        "boltzmann_temperature": { "type": "number", "minimum": 0.0, "maximum": 1.0 },
+        "boltzmann_noise": { "type": "number", "minimum": 0.0, "maximum": 1.0 },
+        "inverion_alpha": { "type": "number", "minimum": 0.0, "maximum": 1.0 }
+      },
+      "required": ["boltzmann_temperature", "boltzmann_noise", "inverion_alpha"]
+    },
+    "cryptographic_gate": {
+      "type": "object",
+      "properties": {
+        "zk_proof_token": { "type": "string", "pattern": "^0x[a-fA-F0-9]{64}$" },
+        "formal_logic_parity": { "type": "integer" }
+      },
+      "required": ["zk_proof_token", "formal_logic_parity"]
+    }
+  },
+  "required": ["packet_metadata", "parametric_payload", "cryptographic_gate"]
+}
