@@ -16,8 +16,8 @@ function VeracityEventRow({ event }: { event: VeracityEvent }) {
   };
 
   return (
-    <div className="grid grid-cols-12 gap-2 text-on-surface-variant group hover:bg-white/5 p-1 transition-colors text-[11px]">
-      <div className="col-span-3 font-data-mono">{formatTimestamp(event.timestamp)}</div>
+    <div className="grid grid-cols-12 gap-1 md:gap-2 text-on-surface-variant group hover:bg-white/5 p-0.5 md:p-1 transition-colors text-[9px] md:text-[11px]">
+      <div className="col-span-3 font-data-mono truncate">{formatTimestamp(event.timestamp)}</div>
       <div className="col-span-2 font-data-mono text-ignition-white">#0x{event.nodeId.slice(0, 4)}</div>
       <div className="col-span-5 font-data-mono truncate">{labels[event.eventType] || event.eventType}</div>
       <div className="col-span-2 text-right font-data-mono">
@@ -37,8 +37,8 @@ function PhysicalizationEventRow({ event }: { event: PhysicalizationEvent }) {
   };
 
   return (
-    <div className="grid grid-cols-12 gap-2 text-on-surface-variant group hover:bg-white/5 p-1 transition-colors text-[11px]">
-      <div className="col-span-3 font-data-mono">{formatTimestamp(event.timestamp)}</div>
+    <div className="grid grid-cols-12 gap-1 md:gap-2 text-on-surface-variant group hover:bg-white/5 p-0.5 md:p-1 transition-colors text-[9px] md:text-[11px]">
+      <div className="col-span-3 font-data-mono truncate">{formatTimestamp(event.timestamp)}</div>
       <div className="col-span-2 font-data-mono text-ignition-white">#0x{event.nodeId.slice(0, 4)}</div>
       <div className="col-span-5 font-data-mono truncate">{labels[event.eventType] || event.eventType}</div>
       <div className="col-span-2 text-right font-data-mono">
@@ -56,25 +56,25 @@ export function VeracityLog() {
 
   const allEvents = [...veracityEvents, ...physicalizationEvents]
     .sort((a, b) => b.timestamp - a.timestamp)
-    .slice(0, 50);
+    .slice(0, 30);
 
   return (
     <div className="h-full flex flex-col">
-      <div className="flex justify-between items-center mb-2 shrink-0">
-        <div className="flex items-center gap-3">
-          <span className="material-symbols-outlined text-solar-amber">receipt_long</span>
-          <span className="font-data-mono text-data-mono text-ignition-white">VERACITY_LEDGER_STREAM</span>
+      <div className="flex justify-between items-center mb-1 md:mb-2 shrink-0">
+        <div className="flex items-center gap-1 md:gap-3">
+          <span className="material-symbols-outlined text-solar-amber text-sm md:text-base">receipt_long</span>
+          <span className="font-data-mono text-[10px] md:text-sm text-ignition-white">VERACITY_LEDGER</span>
         </div>
-        <span className="font-status-label text-status-label text-on-surface-variant">LIVE_FEED_ENABLED</span>
+        <span className="font-status-label text-[8px] md:text-[10px] text-on-surface-variant">LIVE_FEED</span>
       </div>
       <div className="flex-1 overflow-y-auto scrollbar-thin">
         {allEvents.length === 0 ? (
-          <div className="text-on-surface-variant/40 font-data-mono text-[11px] italic">Awaiting veracity events...</div>
+          <div className="text-on-surface-variant/40 font-data-mono text-[9px] md:text-[11px] italic">Awaiting events...</div>
         ) : (
           <>
-            <div className="grid grid-cols-12 gap-2 text-on-surface-variant/40 border-b border-ignition-white/5 pb-1 mb-2 text-[10px] font-data-mono shrink-0">
-              <div className="col-span-3">TIMESTAMP</div>
-              <div className="col-span-2">NODE_ID</div>
+            <div className="grid grid-cols-12 gap-1 md:gap-2 text-on-surface-variant/40 border-b border-ignition-white/5 pb-1 mb-1 md:mb-2 text-[9px] md:text-[10px] font-data-mono shrink-0">
+              <div className="col-span-3">TIME</div>
+              <div className="col-span-2">NODE</div>
               <div className="col-span-5">EVENT</div>
               <div className="col-span-2 text-right">STATUS</div>
             </div>
