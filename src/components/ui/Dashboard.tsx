@@ -104,48 +104,48 @@ export function Dashboard() {
       </div>
 
       <footer className="h-16 md:h-24 z-50 flex-shrink-0 flex flex-col border-t overflow-hidden" style={{ backgroundColor: 'rgba(0, 0, 0, 0.95)', borderColor: 'rgba(255, 179, 0, 0.2)' }}>
-        <div className="flex-1 grid grid-cols-12 gap-2 md:gap-4 px-2 md:px-4 py-1 md:py-2 overflow-hidden">
-          <div className="col-span-12 md:col-span-8 flex flex-col h-full border-r pr-2 md:pr-4 overflow-hidden" style={{ borderColor: 'rgba(255, 255, 255, 0.05)' }}>
-            <div className="flex justify-between items-center mb-1">
-              <span className="text-[9px] md:text-[10px] font-mono" style={{ color: '#ffffff' }}>VERACITY_LEDGER</span>
-              <div className="flex gap-2 md:gap-4 text-[8px] md:text-[9px] font-mono hidden md:flex" style={{ color: '#636565' }}>
+        <div className="flex-1 grid grid-cols-12 gap-1 md:gap-4 px-1 md:px-4 py-1 md:py-2 overflow-hidden">
+          <div className="col-span-12 md:col-span-8 flex flex-col h-full border-r pr-1 md:pr-4 overflow-hidden" style={{ borderColor: 'rgba(255, 255, 255, 0.05)' }}>
+            <div className="flex justify-between items-center mb-0.5 md:mb-1">
+              <span className="text-[8px] md:text-[10px] font-mono" style={{ color: '#ffffff' }}>VERACITY_LEDGER</span>
+              <div className="flex gap-1 md:gap-4 text-[7px] md:text-[9px] font-mono hidden md:flex" style={{ color: '#636565' }}>
                 <span className="cursor-pointer transition-colors hover:text-white">LATEST</span>
                 <span className="cursor-pointer transition-colors hover:text-white">ERRORS</span>
                 <span className="cursor-pointer transition-colors hover:text-white">SYNC</span>
               </div>
             </div>
-            <div className="flex-1 font-mono text-[9px] md:text-[10px] space-y-0.5 md:space-y-1 overflow-y-auto pr-1 md:pr-2 scrollbar-thin" style={{ color: '#c4c7c8' }}>
-              <div className="flex gap-2 md:gap-4">
+            <div className="flex-1 font-mono text-[8px] md:text-[10px] space-y-0.5 md:space-y-1 overflow-y-auto pr-0.5 md:pr-2 scrollbar-thin" style={{ color: '#c4c7c8' }}>
+              <div className="flex gap-1 md:gap-4">
                 <span style={{ color: '#FFB300' }}>[AUDIT]</span>
                 <span style={{ color: '#ffffff' }}>[ZK]</span>
-                <span>dV: 0.880, N: 100</span>
+                <span>dV: 0.880</span>
                 <span className="ml-auto opacity-50">14:32</span>
               </div>
             </div>
           </div>
           <div className="col-span-12 md:col-span-4 flex flex-col h-full justify-between">
-            <div className="text-[9px] md:text-[10px] font-mono mb-1" style={{ color: '#c4c7c8' }}>SOVEREIGN ARCHIVE</div>
-            <div className="space-y-1">
-              <div className="text-[9px] md:text-[10px] font-mono flex justify-between" style={{ color: '#636565' }}>
+            <div className="text-[8px] md:text-[10px] font-mono mb-0.5 md:mb-1" style={{ color: '#c4c7c8' }}>SOVEREIGN ARCHIVE</div>
+            <div className="space-y-0.5 md:space-y-1">
+              <div className="text-[8px] md:text-[10px] font-mono flex justify-between" style={{ color: '#636565' }}>
                 <span>DB Lat:</span>
                 <span style={{ color: '#ffffff' }}>22ms</span>
               </div>
-              <div className="text-[9px] md:text-[10px] font-mono flex justify-between" style={{ color: '#636565' }}>
+              <div className="text-[8px] md:text-[10px] font-mono flex justify-between" style={{ color: '#636565' }}>
                 <span>Backlog:</span>
                 <span style={{ color: '#FFB300' }}>98%</span>
               </div>
-              <div className="h-1 mt-1" style={{ backgroundColor: 'rgba(255, 255, 255, 0.05)' }}>
+              <div className="h-0.5 md:h-1 mt-0.5" style={{ backgroundColor: 'rgba(255, 255, 255, 0.05)' }}>
                 <div className="h-full" style={{ width: '98%', background: 'linear-gradient(to right, rgba(255, 179, 0, 0.2), #FFB300, #ffffff)' }}></div>
               </div>
             </div>
           </div>
         </div>
-        <div className="h-6 md:h-8 flex justify-between items-center px-2 md:px-4 border-t" style={{ backgroundColor: '#000000', borderColor: 'rgba(255, 179, 0, 0.1)' }}>
-          <div className="flex items-center gap-2">
-            <span className="w-1.5 h-1.5 rounded-full animate-pulse hidden md:inline" style={{ backgroundColor: '#FFB300' }}></span>
-            <span className="text-[9px] md:text-[10px] font-mono" style={{ color: '#ffffff' }}>LEDGER_ACTIVE</span>
+        <div className="h-5 md:h-8 flex justify-between items-center px-1 md:px-4 border-t" style={{ backgroundColor: '#000000', borderColor: 'rgba(255, 179, 0, 0.1)' }}>
+          <div className="flex items-center gap-1 md:gap-2">
+            <span className="w-1 h-1 md:w-1.5 md:h-1.5 rounded-full animate-pulse hidden md:inline" style={{ backgroundColor: '#FFB300' }}></span>
+            <span className="text-[8px] md:text-[10px] font-mono" style={{ color: '#ffffff' }}>LEDGER</span>
           </div>
-          <div className="font-mono text-[8px] md:text-[9px] tracking-[0.1em] hidden md:inline" style={{ color: '#636565' }}>
+          <div className="font-mono text-[7px] md:text-[9px] tracking-[0.1em] hidden md:inline" style={{ color: '#636565' }}>
             KEY: 72A-D9K-X04
           </div>
         </div>
