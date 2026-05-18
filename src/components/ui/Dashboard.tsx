@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { ResonanceTrajectory } from '../three/ResonanceTrajectory';
 import { VeracityLog } from '../hud/VeracityLog';
 import { useHUDStore } from '../../state/stores/hudStore';
@@ -5,14 +6,17 @@ import { SystemicSliders } from './SystemicSliders';
 import { PGateButton } from './PGateButton';
 
 export function Dashboard() {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const handleNavClick = (section: string) => {
     console.log(`[NAV] ${section} clicked`);
+    setSidebarOpen(false);
   };
 
   return (
     <div className="relative min-h-screen h-screen bg-void-black overflow-hidden flex flex-col" style={{ backgroundColor: '#000000', color: '#e5e2e1' }}>
       <header className="backdrop-blur-xl border-b flex justify-between items-center w-full px-4 md:px-16 h-12 md:h-16 shrink-0" style={{ backgroundColor: 'rgba(10, 10, 10, 0.8)', borderColor: 'rgba(255, 255, 255, 0.1)' }}>
         <div className="flex items-center gap-2 md:gap-6">
+          <button onClick={() => setSidebarOpen(!sidebarOpen)} className="md:hidden material-symbols-outlined cursor-pointer transition-colors hover:text-amber-400 text-sm" style={{ color: '#ffffff', background: 'none', border: 'none' }}>menu</button>
           <h1 className="text-sm md:text-xl font-bold tracking-tighter" style={{ color: '#ffffff' }}>SOVEREIGN MIRROR</h1>
           <span className="text-xs px-2 py-1 hidden md:inline" style={{ color: '#FFB300', backgroundColor: 'rgba(255, 179, 0, 0.1)', border: '1px solid rgba(255, 179, 0, 0.2)' }}>RESONANCE_TRAJECTORY</span>
         </div>
@@ -26,27 +30,33 @@ export function Dashboard() {
       </header>
 
       <div className="flex flex-1 relative overflow-hidden">
-        <nav className="fixed left-0 top-12 md:top-16 h-[calc(100vh-96px)] md:h-[calc(100vh-128px)] z-40 flex flex-col backdrop-blur-2xl border-r w-48 md:w-64 shrink-0" style={{ backgroundColor: 'rgba(10, 10, 10, 0.9)', borderColor: 'rgba(255, 255, 255, 0.1)' }}>
-<div className="p-4 border-b" style={{ borderColor: 'rgba(255, 255, 255, 0.1)' }}>
-            <div className="text-sm md:text-lg" style={{ color: '#ffffff' }}>CU_CONTROL</div>
-            <div className="text-[8px] md:text-[10px] opacity-60" style={{ color: '#c4c7c8' }}>SYSTEMIC_PARAMETERS_v4.2</div>
+        {sidebarOpen && (
+          <div className="fixed inset-0 z-50 bg-black/50 md:hidden" onClick={() => setSidebarOpen(false)} />
+        )}
+        <nav className={`fixed left-0 top-12 md:top-16 h-[calc(100vh-96px)] md:h-[calc(100vh-128px)] z-50 md:z-40 flex flex-col backdrop-blur-2xl border-r w-48 md:w-64 shrink-0 transition-transform duration-200 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`} style={{ backgroundColor: 'rgba(10, 10, 10, 0.9)', borderColor: 'rgba(255, 255, 255, 0.1)' }}>
+          <div className="p-4 border-b flex justify-between items-center" style={{ borderColor: 'rgba(255, 255, 255, 0.1)' }}>
+            <div>
+              <div className="text-sm md:text-lg" style={{ color: '#ffffff' }}>CU_CONTROL</div>
+              <div className="text-[8px] md:text-[10px] opacity-60" style={{ color: '#c4c7c8' }}>SYSTEMIC_PARAMETERS_v4.2</div>
+            </div>
+            <button onClick={() => setSidebarOpen(false)} className="md:hidden material-symbols-outlined text-white">close</button>
           </div>
           <div className="flex-1 py-2 md:py-4 flex flex-col gap-0 md:gap-1 overflow-y-auto">
             <button onClick={() => handleNavClick('Systemic Parameters')} className="pl-3 md:pl-4 py-2 md:py-3 transition-all flex items-center gap-2 md:gap-3 border-l-2 text-left" style={{ backgroundColor: 'rgba(255, 255, 255, 0.05)', color: '#ffffff', border: 'none', borderLeft: '2px solid #FFB300' }}>
               <span className="material-symbols-outlined text-sm md:text-base">analytics</span>
-              <span className="text-[9px] md:text-[10px] font-mono hidden md:inline">Systemic Parameters</span>
+              <span className="text-[9px] md:text-[10px] font-mono">Systemic Parameters</span>
             </button>
             <button onClick={() => handleNavClick('Trajectory Matrix')} className="px-3 md:px-4 py-2 md:py-3 font-mono transition-all flex items-center gap-2 md:gap-3 hover:pl-5 md:hover:pl-6 text-left" style={{ color: '#c4c7c8', background: 'none', border: 'none' }}>
               <span className="material-symbols-outlined text-sm md:text-base">grain</span>
-              <span className="text-[9px] md:text-[10px] font-mono hidden md:inline">Trajectory Matrix</span>
+              <span className="text-[9px] md:text-[10px] font-mono">Trajectory Matrix</span>
             </button>
             <button onClick={() => handleNavClick('Flux Density')} className="px-3 md:px-4 py-2 md:py-3 font-mono transition-all flex items-center gap-2 md:gap-3 hover:pl-5 md:hover:pl-6 text-left" style={{ color: '#c4c7c8', background: 'none', border: 'none' }}>
               <span className="material-symbols-outlined text-sm md:text-base">bolt</span>
-              <span className="text-[9px] md:text-[10px] font-mono hidden md:inline">Flux Density</span>
+              <span className="text-[9px] md:text-[10px] font-mono">Flux Density</span>
             </button>
             <button onClick={() => handleNavClick('Quantum Alignment')} className="px-3 md:px-4 py-2 md:py-3 font-mono transition-all flex items-center gap-2 md:gap-3 hover:pl-5 md:hover:pl-6 text-left" style={{ color: '#c4c7c8', background: 'none', border: 'none' }}>
               <span className="material-symbols-outlined text-sm md:text-base">architecture</span>
-              <span className="text-[9px] md:text-[10px] font-mono hidden md:inline">Quantum Alignment</span>
+              <span className="text-[9px] md:text-[10px] font-mono">Quantum Alignment</span>
             </button>
           </div>
           <div className="p-2 md:p-4 mt-auto">
@@ -56,7 +66,7 @@ export function Dashboard() {
           </div>
         </nav>
 
-        <main className="ml-48 md:ml-64 flex-1 relative flex flex-col overflow-hidden p-2 md:p-4" style={{ backgroundColor: '#000000' }}>
+        <main className="flex-1 relative flex flex-col overflow-hidden p-2 md:p-4 md:ml-64" style={{ backgroundColor: '#000000' }}>
           <div className="grid grid-cols-12 gap-2 md:gap-4 flex-1 min-h-0">
             <div className="col-span-12 lg:col-span-8 backdrop-blur-2xl rounded-lg p-2 md:p-4 flex flex-col relative overflow-hidden border" style={{ backgroundColor: 'rgba(10, 10, 10, 0.6)', borderColor: 'rgba(255, 255, 255, 0.1)', minHeight: '0' }}>
               <div className="scanline" />
