@@ -13,7 +13,7 @@ export function Dashboard() {
   };
 
   return (
-    <div className="relative min-h-screen h-screen bg-void-black overflow-hidden flex flex-col" style={{ backgroundColor: '#000000', color: '#e5e2e1' }}>
+    <div className="relative bg-void-black overflow-hidden flex flex-col" style={{ backgroundColor: '#000000', color: '#e5e2e1', height: '100vh', minHeight: '-webkit-fill-available' }}>
       <header className="backdrop-blur-xl border-b flex justify-between items-center w-full px-4 md:px-16 h-12 md:h-16 shrink-0" style={{ backgroundColor: 'rgba(10, 10, 10, 0.8)', borderColor: 'rgba(255, 255, 255, 0.1)' }}>
         <div className="flex items-center gap-2 md:gap-6">
           <button onClick={() => setSidebarOpen(!sidebarOpen)} className="md:hidden material-symbols-outlined cursor-pointer transition-colors hover:text-amber-400 text-sm" style={{ color: '#ffffff', background: 'none', border: 'none' }}>menu</button>
@@ -67,8 +67,8 @@ export function Dashboard() {
         </nav>
 
         <main className="flex-1 relative flex flex-col overflow-hidden p-2 md:p-4 md:ml-64" style={{ backgroundColor: '#000000' }}>
-          <div className="grid grid-cols-12 gap-2 md:gap-4 flex-1 min-h-0">
-            <div className="col-span-12 lg:col-span-8 backdrop-blur-2xl rounded-lg p-2 md:p-4 flex flex-col relative overflow-hidden border" style={{ backgroundColor: 'rgba(10, 10, 10, 0.6)', borderColor: 'rgba(255, 255, 255, 0.1)', minHeight: '0' }}>
+          <div className="grid grid-cols-12 gap-2 md:gap-4 flex-1">
+            <div className="col-span-12 lg:col-span-8 backdrop-blur-2xl rounded-lg p-2 md:p-4 flex flex-col relative overflow-hidden border" style={{ backgroundColor: 'rgba(10, 10, 10, 0.6)', borderColor: 'rgba(255, 255, 255, 0.1)', height: '50vh' }}>
               <div className="scanline" />
               <div className="flex justify-between items-start mb-1 md:mb-2 relative z-10">
                 <div>
@@ -82,7 +82,7 @@ export function Dashboard() {
                   <span className="hidden md:inline">FRAME: <span style={{ color: '#FFB300' }}>16.6ms</span></span>
                 </div>
               </div>
-              <div className="flex-1 relative min-h-0">
+              <div className="flex-1 relative" style={{ minHeight: '250px', height: '250px' }}>
                 <ResonanceTrajectory />
               </div>
               <div className="mt-1 md:mt-2 flex justify-between text-[9px] md:text-[10px] font-mono border-t pt-2" style={{ color: '#c4c7c8', borderColor: 'rgba(255, 255, 255, 0.1)' }}>

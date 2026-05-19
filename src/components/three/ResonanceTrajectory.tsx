@@ -541,23 +541,19 @@ export function ResonanceTrajectory() {
 
   return (
     <div
-      className="relative w-full h-full"
+      className="relative w-full"
       style={{
         background: '#000000',
-        width: '100%',
         height: '100%',
-        position: 'absolute',
-        top: 0,
-        left: 0,
+        minHeight: '200px',
       }}
     >
       <Canvas
-        style={{ width: '100%', height: '100%' }}
+        style={{ width: '100%', height: '100%', display: 'block' }}
         gl={{
           toneMapping: THREE.NoToneMapping,
           toneMappingExposure: isDecayed ? 0.8 : 1.5,
           outputColorSpace: 'srgb',
-          alpha: false,
         }}
         camera={{ position: [0, 0, 16], fov: 50, near: 0.1, far: 1000 }}
         dpr={Math.min(window.devicePixelRatio, 2)}
