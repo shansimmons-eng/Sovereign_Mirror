@@ -16,7 +16,11 @@ export function Dashboard() {
     <div className="relative bg-void-black overflow-hidden flex flex-col" style={{ backgroundColor: '#000000', color: '#e5e2e1', height: '100vh', minHeight: '-webkit-fill-available' }}>
       <header className="backdrop-blur-xl border-b flex justify-between items-center w-full px-4 md:px-16 h-12 md:h-16 shrink-0" style={{ backgroundColor: 'rgba(10, 10, 10, 0.8)', borderColor: 'rgba(255, 255, 255, 0.1)' }}>
         <div className="flex items-center gap-2 md:gap-6">
-          <button onClick={() => setSidebarOpen(!sidebarOpen)} className="md:hidden material-symbols-outlined cursor-pointer transition-colors hover:text-amber-400 text-sm" style={{ color: '#ffffff', background: 'none', border: 'none' }}>menu</button>
+          <button onClick={() => setSidebarOpen(!sidebarOpen)} className="md:hidden w-8 h-8 flex flex-col justify-center items-center cursor-pointer" style={{ background: 'none', border: 'none' }}>
+                <span className={`w-5 h-0.5 mb-1 transition-all ${sidebarOpen ? 'rotate-45 translate-y-2' : ''}`} style={{ backgroundColor: '#ffffff' }}></span>
+                <span className={`w-5 h-0.5 mb-1 transition-all ${sidebarOpen ? 'opacity-0' : ''}`} style={{ backgroundColor: '#ffffff' }}></span>
+                <span className={`w-5 h-0.5 transition-all ${sidebarOpen ? '-rotate-45 -translate-y-2' : ''}`} style={{ backgroundColor: '#ffffff' }}></span>
+              </button>
           <h1 className="text-sm md:text-xl font-bold tracking-tighter" style={{ color: '#ffffff' }}>SOVEREIGN MIRROR</h1>
           <span className="text-xs px-2 py-1 hidden md:inline" style={{ color: '#FFB300', backgroundColor: 'rgba(255, 179, 0, 0.1)', border: '1px solid rgba(255, 179, 0, 0.2)' }}>RESONANCE_TRAJECTORY</span>
         </div>
@@ -39,7 +43,10 @@ export function Dashboard() {
               <div className="text-sm md:text-lg" style={{ color: '#ffffff' }}>CU_CONTROL</div>
               <div className="text-[8px] md:text-[10px] opacity-60" style={{ color: '#c4c7c8' }}>SYSTEMIC_PARAMETERS_v4.2</div>
             </div>
-            <button onClick={() => setSidebarOpen(false)} className="md:hidden material-symbols-outlined text-white">close</button>
+            <button onClick={() => setSidebarOpen(false)} className="md:hidden w-8 h-8 flex flex-col justify-center items-center">
+                <span className="w-5 h-0.5 rotate-45 translate-y-1" style={{ backgroundColor: '#ffffff' }}></span>
+                <span className="w-5 h-0.5 -rotate-45 -translate-y-1" style={{ backgroundColor: '#ffffff' }}></span>
+              </button>
           </div>
           <div className="flex-1 py-2 md:py-4 flex flex-col gap-0 md:gap-1 overflow-y-auto">
             <button onClick={() => handleNavClick('Systemic Parameters')} className="pl-3 md:pl-4 py-2 md:py-3 transition-all flex items-center gap-2 md:gap-3 border-l-2 text-left" style={{ backgroundColor: 'rgba(255, 255, 255, 0.05)', color: '#ffffff', border: 'none', borderLeft: '2px solid #FFB300' }}>
