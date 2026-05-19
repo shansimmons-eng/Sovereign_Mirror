@@ -538,14 +538,35 @@ function DecayBloomEffect({ inverionAlpha }: { inverionAlpha: number }) {
 export function ResonanceTrajectory() {
   const inverionAlpha = useNodeStore((s) => s.flux);
   const isDecayed = inverionAlpha < DECAY_THRESHOLD;
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+    
+    const resizeObserver = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const { width, height } = entry.contentRect;
+        const canvas = container.querySelector('canvas');
+        if (canvas) {
+          canvas.style.width = `${width}px`;
+          canvas.style.height = `${height}px`;
+        }
+      }
+    });
+    
+    resizeObserver.observe(container);
+    return () => resizeObserver.disconnect();
+  }, []);
 
   return (
     <div
+      ref={containerRef}
       className="relative w-full"
       style={{
         background: '#000000',
         height: '100%',
-        minHeight: '200px',
+        minHeight: '250px',
       }}
     >
       <Canvas
