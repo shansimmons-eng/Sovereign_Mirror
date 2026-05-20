@@ -1,3 +1,5 @@
+import { secureRandomAlphanumeric } from '../crypto/secureRandom';
+
 export interface ZKProof {
   proofId: string;
   nodeId: string;
@@ -22,7 +24,8 @@ export interface VerificationResult {
 
 export class ZKProofEngine {
   async generateProof(claim: VeracityClaim): Promise<ZKProof> {
-    const proofId = `ZKP_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    // Use cryptographically secure random instead of Math.random()
+    const proofId = `ZKP_${Date.now()}_${secureRandomAlphanumeric(9)}`;
 
     const commitments = this.commitToVeracity(claim.claimedVeracity, claim.nodeId);
 
@@ -57,7 +60,8 @@ export class ZKProofEngine {
   }
 
   private commitToVeracity(veracity: number, nodeId: string): string[] {
-    const blinding = Math.random().toString(36).substr(2, 16);
+    // Use cryptographically secure random instead of Math.random()
+    const blinding = secureRandomAlphanumeric(16);
     const commitment = this.hashValues(`${nodeId}:${veracity}:${blinding}`);
     return [commitment, blinding];
   }

@@ -5,6 +5,7 @@ import { veracityGate } from '../../logic/veracityGate';
 import { GOLDEN_RATIO, THRESHOLD_ENTROPY } from '../../logic/types';
 import { useHUDStore } from '../stores/hudStore';
 import { subscribeToNode, notifyPGateRejection } from './subscribe';
+import { secureRandomAlphanumeric } from '../../crypto/secureRandom';
 
 const CONFIRMATION_CYCLES = 7;
 
@@ -16,9 +17,12 @@ interface GateState {
 
 const gateStateCache = new Map<string, GateState>();
 const pendingConfirmations = new Map<string, Promise<boolean>>();
+// Track unsubscribe functions to prevent memory leaks
+const nodeUnsubscribes = new Map<string, () => void>();
 
 function generateEventId(): string {
-  return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  // Use cryptographically secure random instead of Math.random()
+  return `${Date.now()}-${secureRandomAlphanumeric(9)}`;
 }
 
 export function syncVeracityToLedger(
@@ -72,11 +76,19 @@ export function initiatePhysicalization(
     optimisticStatus: 'physical',
   });
 
-  subscribeToNode(nodeId, (node) => {
+  // Clean up any existing subscription before creating new one
+  const existingUnsub = nodeUnsubscribes.get(nodeId);
+  if (existingUnsub) {
+    existingUnsub();
+  }
+
+  // Store the unsubscribe function to prevent memory leaks
+  const unsub = subscribeToNode(nodeId, (node) => {
     if (node.status === 'corrective') {
       gateStateCache.delete(nodeId);
     }
   });
+  nodeUnsubscribes.set(nodeId, unsub);
 
   const confirmationPromise = new Promise<boolean>((resolve) => {
     setTimeout(() => {
@@ -89,11 +101,19 @@ export function initiatePhysicalization(
 
   return confirmationPromise.then((success) => {
     pendingConfirmations.delete(nodeId);
+    
+    // Clean up subscription when confirmation resolves
+    const unsub = nodeUnsubscribes.get(nodeId);
+    if (unsub) {
+      unsub();
+      nodeUnsubscribes.delete(nodeId);
+    }
+    
     if (!success) {
       notifyPGateRejection(nodeId, 'Quorum verification failed on ledger');
       store.dispatch(triggerPhysicalization({
         ...event,
-        eventType: 'P_GATE_TRIGGERED',
+        eventType: 'PHYSICALIZATION_REJECTED' as PhysicalizationEventType,
       }));
     }
     return { success, cyclesHeld: CONFIRMATION_CYCLES };

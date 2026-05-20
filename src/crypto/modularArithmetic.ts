@@ -74,9 +74,16 @@ export class ModularArithmetic {
   }
 
   static generatePrime(bits: number = 256): number {
+    // Note: For bits > 32, this will overflow. Use BigInt for larger primes.
+    if (bits > 32) {
+      throw new Error('generatePrime only supports up to 32-bit primes. Use BigInt for larger.');
+    }
     const min = Math.pow(2, bits - 1);
     const max = Math.pow(2, bits) - 1;
-    let candidate = min + Math.floor(Math.random() * (max - min));
+    // Use crypto.getRandomValues for secure prime generation
+    const array = new Uint32Array(1);
+    crypto.getRandomValues(array);
+    let candidate = min + (array[0] % (max - min));
     while (!this.isPrime(candidate)) {
       candidate++;
       if (candidate > max) candidate = min;

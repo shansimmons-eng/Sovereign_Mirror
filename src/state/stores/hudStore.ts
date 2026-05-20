@@ -26,12 +26,18 @@ export const useHUDStore = create<HUDState>((set, get) => ({
   globalStabilityScore: 0,
   lowestNodeResonance: 0,
   setTemperature: (t) => {
-    set({ temperature: t });
+    // Validate and clamp input to prevent NaN/Infinity propagation
+    if (!isFinite(t)) return;
+    const clamped = Math.max(0, Math.min(1, t));
+    set({ temperature: clamped });
     get().updateSunriseOpacity();
     get().updateTickRate();
   },
   setNoiseFilter: (n) => {
-    set({ noiseFilter: n });
+    // Validate and clamp input to prevent NaN/Infinity propagation
+    if (!isFinite(n)) return;
+    const clamped = Math.max(0, Math.min(1, n));
+    set({ noiseFilter: clamped });
     get().updateTickRate();
   },
   updateSunriseOpacity: () => {

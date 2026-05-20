@@ -237,6 +237,14 @@ function KineticQuads() {
   const dummy = useMemo(() => new THREE.Object3D(), []);
   const tempColor = useMemo(() => new THREE.Color(), []);
 
+  // Pre-allocated reusable objects to avoid GC pressure in useFrame
+  const tempVec = useMemo(() => new THREE.Vector3(), []);
+  const lookAtTarget = useMemo(() => new THREE.Vector3(0, 0, 0), []);
+  const tempUp = useMemo(() => new THREE.Vector3(0, 1, 0), []);
+  const tempQuat = useMemo(() => new THREE.Quaternion(), []);
+  const tempRotMatrix = useMemo(() => new THREE.Matrix4(), []);
+  const positionsBuffer = useRef(new Float32Array(INSTANCE_COUNT * 3));
+
   const rtswRef = useRef(DEFAULT_RTSW);
   const smoothedSpeedRef = useRef(400);
   const bzDeltaRef = useRef(0);
@@ -244,6 +252,7 @@ function KineticQuads() {
 
   const prevPositionsRef = useRef<Float32Array | null>(null);
   const velocitiesRef = useRef<Float32Array | null>(null);
+  const lastSyncStatusRef = useRef<string>('');
 
   const temperature = useHUDStore((s) => s.temperature);
   const noiseFilter = useHUDStore((s) => s.noiseFilter);
@@ -308,13 +317,27 @@ function KineticQuads() {
 
       const dist = particleSeeds[i * 6 + 2];
       const distFactor = Math.max(0, 1 - dist / 5);
-      color.lerp(new THREE.Color('#FFFFFF'), distFactor * 0.7);
+      // Reuse tempColor for white lerp target instead of allocating new Color
+      tempColor.set('#FFFFFF');
+      color.lerp(tempColor, distFactor * 0.7);
 
       mesh.setColorAt(i, color);
     }
     if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
     prevPositionsRef.current = new Float32Array(INSTANCE_COUNT * 3);
     velocitiesRef.current = new Float32Array(INSTANCE_COUNT * 3);
+
+    // Cleanup: dispose geometry and material on unmount to prevent GPU memory leaks
+    return () => {
+      if (mesh.geometry) mesh.geometry.dispose();
+      if (mesh.material) {
+        if (Array.isArray(mesh.material)) {
+          mesh.material.forEach(m => m.dispose());
+        } else {
+          mesh.material.dispose();
+        }
+      }
+    };
   }, []);
 
   useEffect(() => {
@@ -359,12 +382,11 @@ function KineticQuads() {
 
     const isDecayed = inverionAlpha < DECAY_THRESHOLD;
 
-    if (inverionAlpha === 0) {
-      setSyncStatus('STANDBY', 0);
-    } else if (inverionAlpha > 0 && inverionAlpha < 0.22) {
-      setSyncStatus('SYNCING', 3);
-    } else {
-      setSyncStatus('ACTIVE', 7);
+    // Only call setSyncStatus when status actually changes to avoid re-renders
+    const newStatus = inverionAlpha === 0 ? 'STANDBY' : inverionAlpha < 0.22 ? 'SYNCING' : 'ACTIVE';
+    if (newStatus !== lastSyncStatusRef.current) {
+      lastSyncStatusRef.current = newStatus;
+      setSyncStatus(newStatus, newStatus === 'STANDBY' ? 0 : newStatus === 'SYNCING' ? 3 : 7);
     }
 
     const decayFactor = isDecayed ? 1.0 - (inverionAlpha / DECAY_THRESHOLD) : 0;
@@ -376,7 +398,8 @@ function KineticQuads() {
 
     const prevPositions = prevPositionsRef.current;
     const velocities = velocitiesRef.current;
-    const positions = new Float32Array(INSTANCE_COUNT * 3);
+    // Reuse pre-allocated buffer instead of creating new Float32Array every frame
+    const positions = positionsBuffer.current;
 
     for (let i = 0; i < INSTANCE_COUNT; i++) {
       const seed0 = particleSeeds[i * 6 + 0];
@@ -388,11 +411,13 @@ function KineticQuads() {
 
       const t = time * baseTimeStep + phaseOffset;
       const instancePhase = instancePhases[i];
-      const vel = new THREE.Vector3(
+      // Reuse pre-allocated vector instead of creating new one each iteration
+      tempVec.set(
         instanceVelocities[i * 3],
         instanceVelocities[i * 3 + 1],
         instanceVelocities[i * 3 + 2]
       );
+      const vel = tempVec;
 
       let px: number, py: number, pz: number;
 
@@ -459,22 +484,23 @@ function KineticQuads() {
         velocities[i * 3 + 2] = pz - (prevPositions ? prevPositions[i * 3 + 2] : pz);
       }
 
+      // Guard against NaN positions before setting
+      if (!isFinite(px) || !isFinite(py) || !isFinite(pz)) continue;
+      
       dummy.position.set(px, py, pz);
 
-      const lookAtTarget = new THREE.Vector3(0, 0, 0);
-      const position = dummy.position.clone();
-      const up = new THREE.Vector3(0, 1, 0);
-      const quaternion = new THREE.Quaternion();
-      const rotationMatrix = new THREE.Matrix4();
-      rotationMatrix.lookAt(position, lookAtTarget, up);
-      quaternion.setFromRotationMatrix(rotationMatrix);
+      // Reuse pre-allocated objects instead of creating new ones each iteration
+      lookAtTarget.set(0, 0, 0);
+      tempUp.set(0, 1, 0);
+      tempRotMatrix.lookAt(dummy.position, lookAtTarget, tempUp);
+      tempQuat.setFromRotationMatrix(tempRotMatrix);
 
       const stretchBase = 0.3 + lengthFactor * 2.5 + speedNorm * 2.0;
       const stretchNoise = (isDecayed ? noiseFilter : 0) * Math.sin(tiltPhase + time * 5) * 0.4;
       const stretchAmount = stretchBase + stretchNoise;
       dummy.scale.set(0.04, 0.04 * stretchAmount, 0.04);
 
-      dummy.quaternion.copy(quaternion);
+      dummy.quaternion.copy(tempQuat);
       dummy.updateMatrix();
 
       if (isFinite(dummy.matrix.elements[0])) {
@@ -482,9 +508,14 @@ function KineticQuads() {
       }
     }
 
-    prevPositionsRef.current = positions;
+    // Copy positions to prevPositions for next frame velocity calculation
+    if (prevPositionsRef.current) {
+      prevPositionsRef.current.set(positions);
+    } else {
+      prevPositionsRef.current = new Float32Array(positions);
+    }
     mesh.instanceMatrix.needsUpdate = true;
-    if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
+    // Note: instanceColor.needsUpdate removed - colors are set once in useEffect, not every frame
   });
 
   return (

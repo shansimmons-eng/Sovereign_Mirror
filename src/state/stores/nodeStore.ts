@@ -52,10 +52,10 @@ export const useNodeStore = create<NodeState>((set, get) => ({
     const { nodes } = get();
     const existing = nodes[nodeId];
     const updated = existing
-      ? Object.assign({}, existing, updates, { nodeId })
+      ? { ...existing, ...updates, nodeId }
       : { ...updates, nodeId } as NodeAtom;
-    nodes[nodeId] = updated;
-    set({ nodes });
+    // Immutable update - avoid direct mutation before set()
+    set({ nodes: { ...nodes, [nodeId]: updated } });
   },
 
   getNode: (nodeId) => get().nodes[nodeId],
@@ -75,11 +75,18 @@ export const useNodeStore = create<NodeState>((set, get) => ({
     return get().pGateStates[nodeId] || { crossingFrame: 0, cyclesHeld: 0, canTrigger: false };
   },
 
-  setFlux: (newFlux) => set({ flux: newFlux }),
+  setFlux: (newFlux) => {
+    // Validate and clamp flux to prevent NaN/Infinity and lerp collapse
+    if (!isFinite(newFlux)) return;
+    // Clamp at 0.95 max to prevent lerp collapse per AGENTS.md
+    const clamped = Math.max(0, Math.min(0.95, newFlux));
+    set({ flux: clamped });
+  },
 
   setRTSW: (data) => set({ rtsw: data }),
 
   setSyncStatus: (status, progress = 7) => set({ syncStatus: status, syncProgress: progress }),
 }));
 
-export const nodeIdsAtom = useNodeStore.getState().nodeIds;
+// Selector function - use this instead of static export which captured initial []
+export const getNodeIds = () => useNodeStore.getState().nodeIds;

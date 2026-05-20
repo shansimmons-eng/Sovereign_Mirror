@@ -29,26 +29,72 @@ export const nodeIdsAtom = atom<string[]>([]);
 
 export const meshSizeAtom = atom((get) => get(nodeIdsAtom).length);
 
-export const nodeVeracityVelocityFamily = atomFamily((_nodeId: string) =>
+/**
+ * Cache for tracking previous values to calculate proper velocity (delta/time).
+ * Without this, we cannot compute velocity since atoms only have current state.
+ */
+const veracityHistoryCache = new Map<string, { value: number; timestamp: number }>();
+const resonanceHistoryCache = new Map<string, { value: number; timestamp: number }>();
+
+/**
+ * Calculates veracity velocity as (currentValue - previousValue) / deltaTime.
+ * Updates cache on each read for next calculation.
+ */
+export const nodeVeracityVelocityFamily = atomFamily((nodeId: string) =>
   atom((get) => {
-    const node = get(nodeAtomFamily(_nodeId));
-    const prevTimestamp = node.lastPhysicalizationTs || Date.now();
+    const node = get(nodeAtomFamily(nodeId));
     const now = Date.now();
-    const dt = Math.max(1, now - prevTimestamp);
-    return node.veracityScore / dt;
+    const prev = veracityHistoryCache.get(nodeId);
+    
+    if (!prev) {
+      // First read - cache current value, return 0 velocity
+      veracityHistoryCache.set(nodeId, { value: node.veracityScore, timestamp: now });
+      return 0;
+    }
+    
+    const dt = Math.max(1, now - prev.timestamp);
+    const velocity = (node.veracityScore - prev.value) / dt;
+    
+    // Update cache for next calculation
+    veracityHistoryCache.set(nodeId, { value: node.veracityScore, timestamp: now });
+    
+    return velocity;
   })
 );
 
+/**
+ * Calculates resonance velocity as (currentValue - previousValue) / deltaTime.
+ * Updates cache on each read for next calculation.
+ */
 export const nodeResonanceVelocityFamily = atomFamily((nodeId: string) =>
   atom((get) => {
     const node = get(nodeAtomFamily(nodeId));
-    const prevResonance = node.resonanceScore;
-    const prevTimestamp = node.lastPhysicalizationTs || Date.now();
     const now = Date.now();
-    const dt = Math.max(1, now - prevTimestamp);
-    return (node.resonanceScore - prevResonance) / dt;
+    const prev = resonanceHistoryCache.get(nodeId);
+    
+    if (!prev) {
+      // First read - cache current value, return 0 velocity
+      resonanceHistoryCache.set(nodeId, { value: node.resonanceScore, timestamp: now });
+      return 0;
+    }
+    
+    const dt = Math.max(1, now - prev.timestamp);
+    const velocity = (node.resonanceScore - prev.value) / dt;
+    
+    // Update cache for next calculation
+    resonanceHistoryCache.set(nodeId, { value: node.resonanceScore, timestamp: now });
+    
+    return velocity;
   })
 );
+
+/**
+ * Clear velocity caches for a node (call when node is removed).
+ */
+export function clearVelocityCaches(nodeId: string): void {
+  veracityHistoryCache.delete(nodeId);
+  resonanceHistoryCache.delete(nodeId);
+}
 
 export const pGateConfirmationFamily = atomFamily((_nodeId: string) =>
   atom({

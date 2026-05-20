@@ -1,4 +1,5 @@
 import { ModularArithmetic } from './modularArithmetic';
+import { secureRandomInt, secureRandomFloat } from './secureRandom';
 
 export class LatticeParameters {
   readonly n: number;
@@ -14,15 +15,17 @@ export class LatticeParameters {
   }
 
   createPolynomial(): number[] {
+    // Use cryptographically secure random instead of Math.random()
     return new Array(this.n).fill(0).map(() => 
-      Math.floor(Math.random() * this.q)
+      secureRandomInt(this.q)
     );
   }
 
   createErrorPolynomial(): number[] {
+    // Use cryptographically secure random instead of Math.random()
     const poly: number[] = [];
     for (let i = 0; i < this.n; i++) {
-      const r = Math.random();
+      const r = secureRandomFloat();
       if (r < 0.25) poly.push(-1);
       else if (r < 0.50) poly.push(0);
       else if (r < 0.75) poly.push(1);
@@ -70,12 +73,13 @@ export class LatticeKeyGenerator {
     const publicKey: number[][] = [];
     const secretKey: number[][] = [];
 
+    // Use cryptographically secure random instead of Math.random()
     for (let i = 0; i < this.params.k; i++) {
       const pkRow: number[] = [];
       const skRow: number[] = [];
       for (let j = 0; j < this.params.k; j++) {
-        pkRow.push(Math.floor(Math.random() * this.params.q));
-        skRow.push(Math.floor(Math.random() * this.params.q));
+        pkRow.push(secureRandomInt(this.params.q));
+        skRow.push(secureRandomInt(this.params.q));
       }
       publicKey.push(pkRow);
       secretKey.push(skRow);

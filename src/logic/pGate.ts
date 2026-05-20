@@ -1,6 +1,9 @@
 import { GOLDEN_RATIO, THRESHOLD_ENTROPY } from './types';
 
 export function calculateQuorum(activeNodes: number): number {
+  // Guard against invalid inputs
+  if (!isFinite(activeNodes) || activeNodes < 0) return 0;
+  if (activeNodes === 0) return 0;
   const sqrtPlusTwo = Math.ceil(Math.sqrt(activeNodes)) + 2;
   return Math.min(activeNodes, sqrtPlusTwo);
 }
@@ -26,45 +29,57 @@ export function isAtThreshold(resonance: number, _activeNodes: number): boolean 
   return resonance >= threshold;
 }
 
-const CONFIRMATION_CYCLES = 7;
-const CONFIRMATION_WINDOW_MS = 1000;
+export const CONFIRMATION_CYCLES = 7;
+export const CONFIRMATION_WINDOW_MS = 1000;
 
-interface PGateState {
+export interface PGateState {
   crossingFrame: number;
   confirmed: boolean;
 }
 
-const pGateStateCache = new Map<string, PGateState>();
-
+/**
+ * Pure function for P-Gate confirmation check.
+ * All dependencies (time, state cache) are injected for testability.
+ * 
+ * @param nodeId - Node identifier
+ * @param resonanceScore - Current resonance score
+ * @param currentTimeMs - Current timestamp (inject Date.now() from caller)
+ * @param stateCache - Mutable state cache (managed by caller, e.g., Zustand store)
+ * @returns Confirmation status and cycles held
+ */
 export function checkPGateConfirmation(
   nodeId: string,
-  resonanceScore: number
-): { canTrigger: boolean; cyclesHeld: number } {
+  resonanceScore: number,
+  currentTimeMs: number,
+  stateCache: Map<string, PGateState>
+): { canTrigger: boolean; cyclesHeld: number; newState: PGateState | null } {
   const threshold = getThresholdWithEntropy();
-  const currentFrame = Math.floor(Date.now() / CONFIRMATION_WINDOW_MS);
+  const currentFrame = Math.floor(currentTimeMs / CONFIRMATION_WINDOW_MS);
 
   if (resonanceScore >= threshold) {
-    let state = pGateStateCache.get(nodeId);
+    let state = stateCache.get(nodeId);
 
     if (!state || state.crossingFrame < currentFrame) {
       state = { crossingFrame: currentFrame, confirmed: false };
-      pGateStateCache.set(nodeId, state);
     }
 
     const cyclesHeld = currentFrame - state.crossingFrame;
     if (cyclesHeld >= CONFIRMATION_CYCLES) {
-      state.confirmed = true;
+      state = { ...state, confirmed: true };
     }
 
-    return { canTrigger: state.confirmed, cyclesHeld };
+    return { canTrigger: state.confirmed, cyclesHeld, newState: state };
   } else {
-    pGateStateCache.delete(nodeId);
-    return { canTrigger: false, cyclesHeld: 0 };
+    return { canTrigger: false, cyclesHeld: 0, newState: null };
   }
 }
 
-export function resetPGateState(nodeId: string): void {
-  pGateStateCache.delete(nodeId);
+/**
+ * Creates a new P-Gate state cache.
+ * Use this in your state management layer (Zustand/Redux).
+ */
+export function createPGateStateCache(): Map<string, PGateState> {
+  return new Map<string, PGateState>();
 }
 
 export function getConfirmationCycles(): number {

@@ -58,12 +58,6 @@ async function getRTSW() {
   return _rtswCache;
 }
 
-const ALLOWED_ORIGINS = ['http://localhost:5173', 'http://localhost:4173'];
-const MAX_BODY_SIZE = 4096;
-const RATE_LIMIT_WINDOW_MS = 60000;
-const RATE_LIMIT_MAX = 100;
-const requestCounts = new Map();
-
 function getRateLimitKey(req) {
   return req.socket.remoteAddress || 'unknown';
 }
@@ -78,6 +72,16 @@ function isRateLimited(key) {
   entry.count++;
   return entry.count > RATE_LIMIT_MAX;
 }
+
+// Periodically clean up expired rate limit entries to prevent memory leak
+setInterval(() => {
+  const now = Date.now();
+  for (const [key, entry] of requestCounts.entries()) {
+    if (now - entry.windowStart > RATE_LIMIT_WINDOW_MS * 2) {
+      requestCounts.delete(key);
+    }
+  }
+}, RATE_LIMIT_WINDOW_MS);
 
 function getCorsOrigin(req) {
   const origin = req.headers.origin;
