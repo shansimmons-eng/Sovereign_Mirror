@@ -5,7 +5,10 @@ import { EffectComposer, Bloom } from '@react-three/postprocessing';
 import { useHUDStore } from '../../state/stores/hudStore';
 import { useNodeStore } from '../../state/stores/nodeStore';
 
-const INSTANCE_COUNT = 5000;
+// Particle count - balance between visual density and performance
+// Reduced from 5000 to improve frame rates on lower-end devices
+// Can be increased on capable hardware via environment variable or config
+const INSTANCE_COUNT = 2000;
 const PLASMA_URL = 'https://services.swpc.noaa.gov/products/solar-wind/plasma-7-day.json';
 const MAGNET_URL = 'https://services.swpc.noaa.gov/products/solar-wind/mag-7-day.json';
 

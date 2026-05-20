@@ -2,11 +2,26 @@ import { createServer } from 'node:http';
 import { veracityGate, calculateQuorum, calculateAtrophyDecay, getThresholdWithEntropy } from './logic/kernel.js';
 
 const PORT = 3001;
-const ALLOWED_ORIGINS = ['http://localhost:5173', 'http://localhost:4173'];
+const ALLOWED_ORIGINS = [
+  'http://localhost:5173',
+  'http://localhost:4173',
+  'https://kylosarc.org',
+  'https://www.kylosarc.org',
+];
 const MAX_BODY_SIZE = 4096;
 const RATE_LIMIT_WINDOW_MS = 60000;
 const RATE_LIMIT_MAX = 100;
+const REQUEST_TIMEOUT_MS = 30000; // 30 second timeout for slow loris protection
 const requestCounts = new Map();
+
+// Security headers for all responses
+const SECURITY_HEADERS = {
+  'X-Content-Type-Options': 'nosniff',
+  'X-Frame-Options': 'DENY',
+  'X-XSS-Protection': '1; mode=block',
+  'Referrer-Policy': 'strict-origin-when-cross-origin',
+  'Content-Security-Policy': "default-src 'none'; frame-ancestors 'none'",
+};
 
 const PLASMA_URL = 'https://services.swpc.noaa.gov/products/solar-wind/plasma-7-day.json';
 const MAGNET_URL = 'https://services.swpc.noaa.gov/products/solar-wind/mag-7-day.json';
@@ -85,8 +100,9 @@ setInterval(() => {
 
 function getCorsOrigin(req) {
   const origin = req.headers.origin;
+  // Only return origin if it's in the allowed list; return null for unknown origins
   if (origin && ALLOWED_ORIGINS.includes(origin)) return origin;
-  return ALLOWED_ORIGINS[0];
+  return null; // Reject unknown origins instead of defaulting
 }
 
 function validateNumber(value, name) {
@@ -99,12 +115,34 @@ function validateNumber(value, name) {
 const VALID_MODES = new Set(['resonance', 'refining', 'virtual']);
 
 const server = createServer(async (req, res) => {
+  // Set request timeout to prevent slow loris attacks
+  req.setTimeout(REQUEST_TIMEOUT_MS, () => {
+    res.writeHead(408, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ error: 'Request timeout' }));
+    req.destroy();
+  });
+
+  // Apply security headers to all responses
+  for (const [header, value] of Object.entries(SECURITY_HEADERS)) {
+    res.setHeader(header, value);
+  }
+
   const origin = getCorsOrigin(req);
-  res.setHeader('Access-Control-Allow-Origin', origin);
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  
+  // Only set CORS headers if origin is allowed
+  if (origin) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  }
 
   if (req.method === 'OPTIONS') {
+    if (!origin) {
+      // Reject preflight from unknown origins
+      res.writeHead(403, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: 'Origin not allowed' }));
+      return;
+    }
     res.writeHead(204);
     res.end();
     return;
