@@ -4,6 +4,8 @@
  * No external crypto dependencies - frozen for UI compilation
  */
 
+import { STATE_LOADER } from './stateFileLoader';
+
 export interface VerifiedOutput {
   alpha: number;
   noise: number;
@@ -70,12 +72,17 @@ export function calculateOrbitalVelocity(temp: number, alpha: number): number {
 export class CoreCryptoGateway {
   private proofNonce: number = 0;
 
-  processPayloadToUniforms(payload: any): {
+  /**
+   * Process raw telemetry payload to verified uniforms for rendering
+   * This is the main entry point for all state machine updates
+   */
+  processPayloadToUniforms(payload: TelemetryPayload): {
     alpha: number;
     noise: number;
     temp: number;
     fissionStretch: number;
     orbitalVelocity: number;
+    toroidalRadius: number;
   } {
     const verified = verifyPayloadVeracity(payload);
 
@@ -84,8 +91,25 @@ export class CoreCryptoGateway {
       noise: verified.noise,
       temp: verified.temp,
       fissionStretch: computeFissionStretch(verified.noise, verified.temp),
-      orbitalVelocity: calculateOrbitalVelocity(verified.temp, verified.alpha)
+      orbitalVelocity: calculateOrbitalVelocity(verified.temp, verified.alpha),
+      toroidalRadius: normalizeToroidalRadius(verified.alpha)
     };
+  }
+
+  /**
+   * Get current state from simulation file loader
+   * Integrates with Python stream output
+   */
+  getCurrentSimulationState(): {
+    alpha: number;
+    noise: number;
+    temp: number;
+    fissionStretch: number;
+    orbitalVelocity: number;
+    toroidalRadius: number;
+  } {
+    const payload = STATE_LOADER.getTelemetryPayload();
+    return this.processPayloadToUniforms(payload);
   }
 
   generateProofSeed(nodeId: string, sequence: number): string {

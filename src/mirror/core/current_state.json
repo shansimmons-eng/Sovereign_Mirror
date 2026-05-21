@@ -1,0 +1,26 @@
+{
+  "metadata": {
+    "simulation_timestamp": 1716163200000,
+    "cycle_count": 0,
+    "current_milestone_id": "profile_standard_001",
+    "profile_type": "STANDARD_OPERATIONAL",
+    "uptime_seconds": 0
+  },
+  "telemetry": {
+    "alpha": 0.82,
+    "inverion_alpha": 0.82,
+    "noise": 0.12,
+    "boltzmann_noise": 0.12,
+    "temp": 0.55,
+    "boltzmann_temperature": 0.55,
+    "velocity": 0.38,
+    "state": "ACTIVE"
+  },
+  "system": {
+    "resonance": 0.71,
+    "nodes_count": 47,
+    "particle_count": 4700,
+    "fission_stretch": 0.0
+  },
+  "description": "Standard operational state - balanced veracity flow"
+}
