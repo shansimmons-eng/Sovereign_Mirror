@@ -5,7 +5,6 @@ import { veracityGate } from '../../logic/veracityGate';
 import { GOLDEN_RATIO, THRESHOLD_ENTROPY } from '../../logic/types';
 import { useHUDStore } from '../stores/hudStore';
 import { subscribeToNode, notifyPGateRejection } from './subscribe';
-import { secureRandomAlphanumeric } from '../../crypto/secureRandom';
 
 const CONFIRMATION_CYCLES = 7;
 
@@ -21,8 +20,8 @@ const pendingConfirmations = new Map<string, Promise<boolean>>();
 const nodeUnsubscribes = new Map<string, () => void>();
 
 function generateEventId(): string {
-  // Use cryptographically secure random instead of Math.random()
-  return `${Date.now()}-${secureRandomAlphanumeric(9)}`;
+  // Local mock: Simple timestamp-based ID for zero-cost simulation
+  return `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
 }
 
 export function syncVeracityToLedger(

@@ -1,4 +1,8 @@
-import { ModularArithmetic } from '../../crypto/modularArithmetic';
+/**
+ * CryptoWrapper - Sole validation interface for incoming telemetry
+ * Routes all data pipelines through zero-cost local simulation
+ * No external crypto dependencies - frozen for UI compilation
+ */
 
 export interface VerifiedOutput {
   alpha: number;
@@ -6,7 +10,18 @@ export interface VerifiedOutput {
   temp: number;
 }
 
-function runSimulationCheck(payload: any): { alpha: number; noise: number; temp: number } {
+export interface TelemetryPayload {
+  inverion_alpha?: number;
+  alpha?: number;
+  boltzmann_noise?: number;
+  noise?: number;
+  boltzmann_temperature?: number;
+  temp?: number;
+  velocity?: number;
+  state?: 'ACTIVE' | 'SYNCING' | 'STANDBY';
+}
+
+function runSimulationCheck(payload: TelemetryPayload): { alpha: number; noise: number; temp: number } {
   const rawAlpha = payload?.inverion_alpha ?? payload?.alpha ?? 0.75;
   const rawNoise = payload?.boltzmann_noise ?? payload?.noise ?? 0.15;
   const rawTemp = payload?.boltzmann_temperature ?? payload?.temp ?? 0.45;
@@ -18,7 +33,7 @@ function runSimulationCheck(payload: any): { alpha: number; noise: number; temp:
   return { alpha, noise, temp };
 }
 
-export function verifyPayloadVeracity(payload: any): VerifiedOutput {
+export function verifyPayloadVeracity(payload: TelemetryPayload): VerifiedOutput {
   const baseMetrics = runSimulationCheck(payload);
 
   return {
@@ -29,10 +44,11 @@ export function verifyPayloadVeracity(payload: any): VerifiedOutput {
 }
 
 export function computeVeracityHash(data: string): number {
-  let hash = 0;
+  // Local mock hash - simple FNV-1a variant without crypto dependencies
+  let hash = 2166136261;
   for (let i = 0; i < data.length; i++) {
-    const char = data.charCodeAt(i);
-    hash = ModularArithmetic.add(hash, char * 31, 0xFFFFFFFF);
+    hash ^= data.charCodeAt(i);
+    hash = (hash * 16777619) & 0xFFFFFFFF;
   }
   return Math.abs(hash);
 }
