@@ -281,12 +281,14 @@ function KineticQuads() {
   const velocitiesRef = useRef<Float32Array | null>(null);
   const lastSyncStatusRef = useRef<string>('');
 
-  const [visualPayload, setVisualPayload] = useState<VisualPayload>({ alpha: 0.75, noise: 0.15, temp: 0.5, bolt: 0, grain: 0 });
-  
-  const temperature = useHUDStore((s) => s.temperature);
-  const noiseFilter = useHUDStore((s) => s.noiseFilter);
-  const inverionAlpha = useNodeStore((s) => s.flux);
-  const setSyncStatus = useNodeStore((s) => s.setSyncStatus);
+   const [visualPayload, setVisualPayload] = useState<VisualPayload>({ alpha: 0.75, noise: 0.15, temp: 0.5, bolt: 0, grain: 0 });
+   const [boltControl, setBoltControl] = useState(0.0);
+   const [grainControl, setGrainControl] = useState(0.0);
+   
+   const temperature = useHUDStore((s) => s.temperature);
+   const noiseFilter = useHUDStore((s) => s.noiseFilter);
+   const inverionAlpha = useNodeStore((s) => s.flux);
+   const setSyncStatus = useNodeStore((s) => s.setSyncStatus);
 
   // Fetch active_state.json every 500ms
   useEffect(() => {
@@ -419,8 +421,12 @@ function KineticQuads() {
     material.uniforms.u_inverion_alpha.value = defensiveAlpha;
     material.uniforms.u_boltzmann_temp.value = Math.max(0.01, visualPayload.temp || (0.3 + temperature * 2.0));
     material.uniforms.u_boltzmann_noise.value = Math.max(0.001, visualPayload.noise || (0.05 + noiseFilter * 0.5));
-    material.uniforms.u_bolt_impulse.value = Math.max(0.0, Math.min(1.0, visualPayload.bolt));
-    material.uniforms.u_grain_density.value = Math.max(0.0, Math.min(1.0, visualPayload.grain));
+    // Apply interactive controls to bolt/grain values
+    const finalBolt = Math.max(0.0, Math.min(1.0, (visualPayload.bolt ?? 0.0) + boltControl));
+    const finalGrain = Math.max(0.0, Math.min(2.0, (visualPayload.grain ?? 0.0) + grainControl));
+    
+    material.uniforms.u_bolt_impulse.value = finalBolt;
+    material.uniforms.u_grain_density.value = finalGrain;
 
     const isDecayed = inverionAlpha < DECAY_THRESHOLD;
 
@@ -633,39 +639,39 @@ export function ResonanceTrajectory() {
     return () => resizeObserver.disconnect();
   }, []);
 
-  return (
-    <div
-      ref={containerRef}
-      className="relative w-full"
-      style={{
-        background: '#000000',
-        height: '100%',
-        minHeight: '250px',
-      }}
-    >
-      <Canvas
-        style={{ width: '100%', height: '100%', display: 'block' }}
-        gl={{
-          toneMapping: THREE.NoToneMapping,
-          toneMappingExposure: isDecayed ? 0.8 : 1.5,
-          outputColorSpace: 'srgb',
-        }}
-        camera={{ position: [0, 0, 16], fov: 50, near: 0.1, far: 1000 }}
-        dpr={Math.min(window.devicePixelRatio, 2)}
-      >
-        <pointLight
-          position={[0, 0, 0]}
-          intensity={isDecayed ? 0.2 * (inverionAlpha / DECAY_THRESHOLD) : 0.8}
-          color={isDecayed ? '#FF6B35' : '#FFFFFF'}
-          distance={isDecayed ? 3 : 6}
-        />
-        <KineticQuads />
-        <ConcentricRings inverionAlpha={inverionAlpha} temperature={temperature} />
-        <StarField />
-        <IgnitionCore inverionAlpha={inverionAlpha} />
-        <CameraRig />
-        <DecayBloomEffect inverionAlpha={inverionAlpha} />
-      </Canvas>
-    </div>
-  );
-}
+   return (
+     <div
+       ref={containerRef}
+       className="relative w-full"
+       style={{
+         background: '#000000',
+         height: '100%',
+         minHeight: '250px',
+       }}
+     >
+       <Canvas
+         style={{ width: '100%', height: '100%', display: 'block' }}
+         gl={{
+           toneMapping: THREE.NoToneMapping,
+           toneMappingExposure: isDecayed ? 0.8 : 1.5,
+           outputColorSpace: 'srgb',
+         }}
+         camera={{ position: [0, 0, 16], fov: 50, near: 0.1, far: 1000 }}
+         dpr={Math.min(window.devicePixelRatio, 2)}
+       >
+         <pointLight
+           position={[0, 0, 0]}
+           intensity={isDecayed ? 0.2 * (inverionAlpha / DECAY_THRESHOLD) : 0.8}
+           color={isDecayed ? '#FF6B35' : '#FFFFFF'}
+           distance={isDecayed ? 3 : 6}
+         />
+         <KineticQuads />
+         <ConcentricRings inverionAlpha={inverionAlpha} temperature={temperature} />
+         <StarField />
+         <IgnitionCore inverionAlpha={inverionAlpha} />
+         <CameraRig />
+         <DecayBloomEffect inverionAlpha={inverionAlpha} />
+       </Canvas>
+     </div>
+   );
+ }
