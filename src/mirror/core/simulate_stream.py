@@ -16,12 +16,14 @@ CYCLE_INTERVAL_SECONDS = 15
 SCRIPT_DIR = Path(__file__).parent
 MOCK_LEDGER_PATH = SCRIPT_DIR / "mock_ledger.json"
 OUTPUT_STATE_PATH = SCRIPT_DIR / "current_state.json"
+ACTIVE_STATE_PATH = SCRIPT_DIR / "active_state.json"
 
 
 class SimulationEngine:
-    def __init__(self, ledger_path: Path, output_path: Path):
+    def __init__(self, ledger_path: Path, output_path: Path, active_state_path: Path):
         self.ledger_path = ledger_path
         self.output_path = output_path
+        self.active_state_path = active_state_path
         self.milestones = []
         self.current_index = 0
         self.start_time = time.time()
@@ -90,6 +92,8 @@ class SimulationEngine:
         try:
             with open(self.output_path, "w") as f:
                 json.dump(payload, f, indent=2)
+            with open(self.active_state_path, "w") as f:
+                json.dump(payload, f, indent=2)
         except IOError as e:
             print(f"✗ ERROR writing state file: {e}")
 
@@ -146,7 +150,7 @@ class SimulationEngine:
 
 
 def main():
-    engine = SimulationEngine(MOCK_LEDGER_PATH, OUTPUT_STATE_PATH)
+    engine = SimulationEngine(MOCK_LEDGER_PATH, OUTPUT_STATE_PATH, ACTIVE_STATE_PATH)
     engine.run()
 
 

@@ -1,10 +1,11 @@
-import { useRef, useMemo, useEffect } from 'react';
+import { useRef, useMemo, useEffect, useState } from 'react';
 import { Canvas, useFrame, extend } from '@react-three/fiber';
 import * as THREE from 'three';
 import { EffectComposer, Bloom } from '@react-three/postprocessing';
 import { useHUDStore } from '../../state/stores/hudStore';
 import { useNodeStore } from '../../state/stores/nodeStore';
 import { ConcentricRings } from './OrbitalRings';
+import { getVisualPayload, type VisualPayload } from '../../mirror/core/CryptoWrapper';
 
 // Particle count - balance between visual density and performance
 // Reduced from 5000 to improve frame rates on lower-end devices
@@ -48,6 +49,8 @@ const particleVertexShader = `
   uniform float u_inverion_alpha;
   uniform float u_boltzmann_temp;
   uniform float u_boltzmann_noise;
+  uniform float u_bolt_impulse;
+  uniform float u_grain_density;
 
   varying vec2 vUv;
   varying float vIntensity;
@@ -75,14 +78,19 @@ const particleVertexShader = `
     float noiseFactor = hash(orbitPos + vec3(u_time * 0.05));
     vec3 dispersalVector = vec3(cos(phase * 6.28), sin(phase * 6.28), phase * 0.1);
 
+    float boltMod = 1.0 + (u_bolt_impulse * 0.15 * sin(phase * 12.566));
+    float grainMod = 1.0 + (u_grain_density * 0.08 * hash(orbitPos * 17.0));
+
     if (u_inverion_alpha < 0.22) {
       float drift = (1.0 - u_inverion_alpha) * (u_boltzmann_noise * 0.5);
       transformed += orbitPos + (dispersalVector * noiseFactor * drift);
-      vIntensity = u_inverion_alpha;
+      vIntensity = u_inverion_alpha * boltMod;
     } else {
       transformed += orbitPos + (dispersalVector * noiseFactor * u_boltzmann_noise * 0.2);
-      vIntensity = 1.0;
+      vIntensity = boltMod;
     }
+
+    transformed *= grainMod;
 
     vec4 mvPosition = modelViewMatrix * vec4(transformed, 1.0);
     gl_Position = projectionMatrix * mvPosition;
@@ -90,8 +98,15 @@ const particleVertexShader = `
 `;
 
 const particleFragmentShader = `
+  uniform float u_bolt_impulse;
+  uniform float u_grain_density;
+
   varying vec2 vUv;
   varying float vIntensity;
+
+  float hash(vec2 p) {
+    return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
+  }
 
   void main() {
     float dist = length(vUv - vec2(0.5));
@@ -108,6 +123,12 @@ const particleFragmentShader = `
       finalColor = mix(finalColor, coreWhite, (vIntensity - 0.8) * 5.0);
     }
 
+    float boltBoost = 1.0 + (u_bolt_impulse * 0.5);
+    finalColor *= boltBoost;
+
+    float grainEffect = hash(vUv * 100.0 + u_bolt_impulse);
+    finalColor += vec3(grainEffect * u_grain_density * 0.15);
+
     gl_FragColor = vec4(finalColor * (vIntensity * 2.5), alphaMask);
   }
 `;
@@ -120,6 +141,8 @@ class ParticleShaderMaterial extends THREE.ShaderMaterial {
         u_inverion_alpha: { value: 1.0 },
         u_boltzmann_temp: { value: 0.5 },
         u_boltzmann_noise: { value: 0.1 },
+        u_bolt_impulse: { value: 0.0 },
+        u_grain_density: { value: 0.0 },
       },
       vertexShader: particleVertexShader,
       fragmentShader: particleFragmentShader,
@@ -258,10 +281,23 @@ function KineticQuads() {
   const velocitiesRef = useRef<Float32Array | null>(null);
   const lastSyncStatusRef = useRef<string>('');
 
+  const [visualPayload, setVisualPayload] = useState<VisualPayload>({ alpha: 0.75, noise: 0.15, temp: 0.5, bolt: 0, grain: 0 });
+  
   const temperature = useHUDStore((s) => s.temperature);
   const noiseFilter = useHUDStore((s) => s.noiseFilter);
   const inverionAlpha = useNodeStore((s) => s.flux);
   const setSyncStatus = useNodeStore((s) => s.setSyncStatus);
+
+  // Fetch active_state.json every 500ms
+  useEffect(() => {
+    const fetchState = async () => {
+      const payload = await getVisualPayload();
+      setVisualPayload(payload);
+    };
+    fetchState();
+    const interval = setInterval(fetchState, 500);
+    return () => clearInterval(interval);
+  }, []);
 
   const particleSeeds = useMemo(() => {
     const seeds = new Float32Array(INSTANCE_COUNT * 6);
@@ -379,10 +415,12 @@ function KineticQuads() {
     bzDeltaRef.current *= 0.92;
 
     material.uniforms.u_time.value = Math.max(0.001, time);
-    const defensiveAlpha = Math.max(0.002, inverionAlpha);
+    const defensiveAlpha = Math.max(0.002, visualPayload.alpha || inverionAlpha);
     material.uniforms.u_inverion_alpha.value = defensiveAlpha;
-    material.uniforms.u_boltzmann_temp.value = Math.max(0.01, 0.3 + temperature * 2.0);
-    material.uniforms.u_boltzmann_noise.value = Math.max(0.001, 0.05 + noiseFilter * 0.5);
+    material.uniforms.u_boltzmann_temp.value = Math.max(0.01, visualPayload.temp || (0.3 + temperature * 2.0));
+    material.uniforms.u_boltzmann_noise.value = Math.max(0.001, visualPayload.noise || (0.05 + noiseFilter * 0.5));
+    material.uniforms.u_bolt_impulse.value = Math.max(0.0, Math.min(1.0, visualPayload.bolt));
+    material.uniforms.u_grain_density.value = Math.max(0.0, Math.min(1.0, visualPayload.grain));
 
     const isDecayed = inverionAlpha < DECAY_THRESHOLD;
 

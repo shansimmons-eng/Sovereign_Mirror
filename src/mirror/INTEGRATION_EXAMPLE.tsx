@@ -15,12 +15,14 @@ import * as THREE from 'three';
  */
 export function ResonanceTrajectoryWithSimulation() {
   const meshRef = useRef<THREE.InstancedMesh>(null);
+  const uniformsRef = useRef({ alpha: 0.75, noise: 0.15, temp: 0.5, bolt: 0, grain: 0, orbitalVelocity: 0.2, toroidalRadius: 1.0, fissionStretch: 0 });
 
-  useFrame((_state) => {
+  useFrame(async (_state) => {
     if (!meshRef.current) return;
 
     // Get current simulation state from Python stream
-    const uniforms = CORE_GATEWAY.getCurrentSimulationState();
+    const uniforms = await CORE_GATEWAY.getCurrentSimulationState();
+    uniformsRef.current = { ...uniforms, orbitalVelocity: 0.2, toroidalRadius: 1.0, fissionStretch: 0 };
 
     // Apply state to mesh transformations
     const time = Date.now() * 0.001;
@@ -30,26 +32,27 @@ export function ResonanceTrajectoryWithSimulation() {
       const dummy = new THREE.Object3D();
 
       // Use simulation uniforms for toroidal geometry
+      const currentUniforms = uniformsRef.current;
       const theta = (i / 2000) * Math.PI * 2;
-      const phi = time * uniforms.orbitalVelocity;
+      const phi = time * currentUniforms.orbitalVelocity;
 
       // Apply alpha-driven radius
-      const majorRadius = uniforms.toroidalRadius * 2.0;
+      const majorRadius = currentUniforms.toroidalRadius * 2.0;
       const minorRadius = 0.5;
 
       // Position on torus with fission stretch
-      const stretchFactor = 1.0 + (uniforms.fissionStretch * 0.3);
+      const stretchFactor = 1.0 + (currentUniforms.fissionStretch * 0.3);
       dummy.position.x = (majorRadius + minorRadius * Math.cos(phi)) * Math.cos(theta) * stretchFactor;
       dummy.position.y = (majorRadius + minorRadius * Math.cos(phi)) * Math.sin(theta);
       dummy.position.z = minorRadius * Math.sin(phi);
 
       // Apply noise-based jitter
-      dummy.position.x += (Math.random() - 0.5) * uniforms.noise * 0.2;
-      dummy.position.y += (Math.random() - 0.5) * uniforms.noise * 0.2;
-      dummy.position.z += (Math.random() - 0.5) * uniforms.noise * 0.2;
+      dummy.position.x += (Math.random() - 0.5) * currentUniforms.noise * 0.2;
+      dummy.position.y += (Math.random() - 0.5) * currentUniforms.noise * 0.2;
+      dummy.position.z += (Math.random() - 0.5) * currentUniforms.noise * 0.2;
 
       // Apply temperature-based scale
-      const scale = 0.02 + (uniforms.temp * 0.03);
+      const scale = 0.02 + (currentUniforms.temp * 0.03);
       dummy.scale.set(scale, scale, scale);
 
       dummy.updateMatrix();
@@ -155,9 +158,9 @@ export function SyncSimulationToHUD() {
 
 /**
  * Example 5: Debug overlay showing all simulation data
+ * Note: Example component - not wired to production
  */
 export function SimulationDebugOverlay() {
-  const uniforms = CORE_GATEWAY.getCurrentSimulationState();
   const cycleCount = STATE_LOADER.getCycleCount();
   const uptime = STATE_LOADER.getUptime();
 
@@ -169,30 +172,6 @@ export function SimulationDebugOverlay() {
 
         <div>Uptime:</div>
         <div className="text-cyan-400">{uptime}s</div>
-
-        <div className="col-span-2 border-t border-gray-700 my-1" />
-
-        <div>Alpha:</div>
-        <div className="text-green-400">{uniforms.alpha.toFixed(3)}</div>
-
-        <div>Noise:</div>
-        <div className="text-green-400">{uniforms.noise.toFixed(3)}</div>
-
-        <div>Temp:</div>
-        <div className="text-green-400">{uniforms.temp.toFixed(3)}</div>
-
-        <div className="col-span-2 border-t border-gray-700 my-1" />
-
-        <div>Orbital V:</div>
-        <div className="text-yellow-400">{uniforms.orbitalVelocity.toFixed(3)}</div>
-
-        <div>Toroidal R:</div>
-        <div className="text-yellow-400">{uniforms.toroidalRadius.toFixed(3)}</div>
-
-        <div>Fission:</div>
-        <div className={uniforms.fissionStretch > 1.0 ? "text-red-400" : "text-gray-500"}>
-          {uniforms.fissionStretch.toFixed(2)}
-        </div>
       </div>
     </div>
   );
