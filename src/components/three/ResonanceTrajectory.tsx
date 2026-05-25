@@ -4,6 +4,7 @@ import * as THREE from 'three';
 import { EffectComposer, Bloom } from '@react-three/postprocessing';
 import { useHUDStore } from '../../state/stores/hudStore';
 import { useNodeStore } from '../../state/stores/nodeStore';
+import { ConcentricRings } from './OrbitalRings';
 
 // Particle count - balance between visual density and performance
 // Reduced from 5000 to improve frame rates on lower-end devices
@@ -571,6 +572,7 @@ function DecayBloomEffect({ inverionAlpha }: { inverionAlpha: number }) {
 
 export function ResonanceTrajectory() {
   const inverionAlpha = useNodeStore((s) => s.flux);
+  const temperature = useHUDStore((s) => s.temperature);
   const isDecayed = inverionAlpha < DECAY_THRESHOLD;
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -620,6 +622,7 @@ export function ResonanceTrajectory() {
           distance={isDecayed ? 3 : 6}
         />
         <KineticQuads />
+        <ConcentricRings inverionAlpha={inverionAlpha} temperature={temperature} />
         <StarField />
         <IgnitionCore inverionAlpha={inverionAlpha} />
         <CameraRig />
