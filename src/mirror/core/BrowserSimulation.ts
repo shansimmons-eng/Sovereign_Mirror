@@ -4,11 +4,11 @@
  * Runs entirely in browser - no server required
  */
 
-import { STATE_MILESTONES, SimulationState } from './mockLedgerTypes';
+import { STATE_MILESTONES } from './mockLedgerTypes';
 
 export interface SimulationConfig {
   cycleIntervalMs: number;
-  onStateChange?: (state: SimulationState) => void;
+  onStateChange?: (state: StateMilestone) => void;
   onCycle?: (cycleCount: number, milestone: StateMilestone) => void;
 }
 

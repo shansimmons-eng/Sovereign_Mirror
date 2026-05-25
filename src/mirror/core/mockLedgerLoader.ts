@@ -3,8 +3,8 @@
  * Cycles through mock_ledger.json milestones without external network calls
  */
 
-import mockLedger from '../mock_ledger.json';
-import { TelemetryPayload } from './CryptoWrapper';
+import mockLedger from './mock_ledger.json';
+import type { TelemetryPayload } from './CryptoWrapper';
 
 export type SimulationState = 'ACTIVE' | 'SYNCING' | 'STANDBY';
 

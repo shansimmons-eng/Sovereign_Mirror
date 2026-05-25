@@ -16,14 +16,14 @@ import * as THREE from 'three';
 export function ResonanceTrajectoryWithSimulation() {
   const meshRef = useRef<THREE.InstancedMesh>(null);
 
-  useFrame((state, delta) => {
+  useFrame((_state) => {
     if (!meshRef.current) return;
 
     // Get current simulation state from Python stream
     const uniforms = CORE_GATEWAY.getCurrentSimulationState();
 
     // Apply state to mesh transformations
-    const time = state.clock.elapsedTime;
+    const time = Date.now() * 0.001;
     const mesh = meshRef.current;
 
     for (let i = 0; i < 2000; i++) {
@@ -71,7 +71,11 @@ export function ResonanceTrajectoryWithSimulation() {
  * Example 2: React component with simulation state hook
  */
 export function SimulationDashboard() {
-  const simState = useSimulationState(1000); // Refresh every 1s
+  const simState = useSimulationState(1000);
+
+  const alpha = simState.telemetry.alpha ?? 0;
+  const noise = simState.telemetry.noise ?? 0;
+  const temp = simState.telemetry.temp ?? 0;
 
   return (
     <div className="fixed top-4 left-4 bg-black/80 text-green-400 p-4 rounded font-mono text-xs">
@@ -81,9 +85,9 @@ export function SimulationDashboard() {
         <div>Profile: {simState.metadata.profile_type}</div>
         <div>State: {simState.telemetry.state}</div>
         <div className="border-t border-green-800 my-2" />
-        <div>Alpha: {simState.telemetry.alpha.toFixed(3)}</div>
-        <div>Noise: {simState.telemetry.noise.toFixed(3)}</div>
-        <div>Temp: {simState.telemetry.temp.toFixed(3)}</div>
+        <div>Alpha: {alpha.toFixed(3)}</div>
+        <div>Noise: {noise.toFixed(3)}</div>
+        <div>Temp: {temp.toFixed(3)}</div>
         <div className="border-t border-green-800 my-2" />
         <div>Particles: {simState.system.particle_count}</div>
         <div>Resonance: {simState.system.resonance.toFixed(3)}</div>
@@ -142,17 +146,9 @@ export function AdaptiveParticleSystem() {
  * Example 4: Integration with existing HUD store
  */
 export function SyncSimulationToHUD() {
-  const simState = useSimulationState(500); // Fast refresh for HUD
-
   // In a real implementation, this would update your Zustand HUD store
-  // Example:
-  // useEffect(() => {
-  //   useHUDStore.setState({
-  //     flux: simState.telemetry.noise,
-  //     sunriseOpacity: simState.telemetry.alpha,
-  //     // ... other mappings
-  //   });
-  // }, [simState]);
+  // useSimulationState(500); // Poll for simulation state
+  // Then sync to store: useHUDStore.setState({ flux: ..., sunriseOpacity: ... });
 
   return null; // Pure sync component
 }
