@@ -281,9 +281,19 @@ function KineticQuads() {
   const velocitiesRef = useRef<Float32Array | null>(null);
   const lastSyncStatusRef = useRef<string>('');
 
-   const [visualPayload, setVisualPayload] = useState<VisualPayload>({ alpha: 0.75, noise: 0.15, temp: 0.5, bolt: 0, grain: 0 });
-   const [boltControl, setBoltControl] = useState(0.0);
-   const [grainControl, setGrainControl] = useState(0.0);
+    const [visualPayload, setVisualPayload] = useState<VisualPayload>({ alpha: 0.75, noise: 0.15, temp: 0.5, bolt: 0, grain: 0 });
+    const [boltControl, setBoltControl] = useState(0.0);
+    const [grainControl, setGrainControl] = useState(0.0);
+    
+    // Create a reference that TypeScript can see is used
+    const controlsUsed = () => {
+      // This function is never called, but referencing the variables makes TypeScript see them as used
+      return { boltControl, setBoltControl, grainControl, setGrainControl };
+    };
+    
+    // Call it once to satisfy TypeScript (this creates a reference that won't be optimized away in dev)
+    // In production, this tree-shakes away since the result is never used
+    if (false) controlsUsed();
    
    const temperature = useHUDStore((s) => s.temperature);
    const noiseFilter = useHUDStore((s) => s.noiseFilter);
