@@ -114,7 +114,7 @@ export function Dashboard() {
                   <span className="hidden md:inline">FRAME: <span style={{ color: '#FFB300' }}>16.6ms</span></span>
                 </div>
               </div>
-              <div className="flex-1 relative" style={{ minHeight: '250px', height: '250px' }}>
+              <div className="flex-1 relative" style={{ minHeight: '300px', height: 'clamp(300px, 40vh, 400px)' }}>
                 <ResonanceTrajectory />
                 {/* HUD Overlay - Top Left */}
                 <div className="absolute top-2 left-2 z-20 p-2 border backdrop-blur-md rounded" style={{ backgroundColor: 'rgba(10, 10, 10, 0.7)', borderColor: 'rgba(255, 255, 255, 0.1)' }}>
@@ -171,7 +171,7 @@ export function Dashboard() {
               {activeSection === 'architecture' && <QuantumAlignmentPanel />}
             </div>
 
-            <div className="col-span-12 backdrop-blur-2xl border p-2 md:p-4 rounded-lg flex-1" style={{ backgroundColor: 'rgba(10, 10, 10, 0.6)', borderColor: 'rgba(255, 255, 255, 0.1)', minHeight: '0' }}>
+            <div className="col-span-12 backdrop-blur-2xl border p-2 md:p-4 rounded-lg flex-1 min-h-[120px] md:min-h-0" style={{ backgroundColor: 'rgba(10, 10, 10, 0.6)', borderColor: 'rgba(255, 255, 255, 0.1)' }}>
               <VeracityLog />
             </div>
           </div>
