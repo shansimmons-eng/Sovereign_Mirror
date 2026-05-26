@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>SOVEREIGN MIRROR | TECHNICAL DASHBOARD</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            background-color: #131313;
+            color: #e2e2e2;
+            overflow: hidden;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .glow-amber {
+            box-shadow: 0 0 15px rgba(255, 215, 155, 0.2);
+        }
+        .sphere-container {
+            perspective: 1000px;
+        }
+        .rotating-ring {
+            animation: rotate 20s linear infinite;
+        }
+        .rotating-ring-reverse {
+            animation: rotate-reverse 15s linear infinite;
+        }
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        @keyframes rotate-reverse {
+            from { transform: rotate(360deg); }
+            to { transform: rotate(0deg); }
+        }
+        .scanline {
+            width: 100%;
+            height: 2px;
+            background: rgba(255, 215, 155, 0.1);
+            position: absolute;
+            top: 0;
+            animation: scan 4s linear infinite;
+        }
+        @keyframes scan {
+            0% { top: 0%; }
+            100% { top: 100%; }
+        }
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0e0e0e;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #353535;
+        }
+        .blink {
+            animation: blinker 1s step-end infinite;
+        }
+        @keyframes blinker {
+            50% { opacity: 0; }
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "on-primary-fixed-variant": "#604100",
+                      "amber-dim": "#4D3600",
+                      "inverse-surface": "#e2e2e2",
+                      "surface": "#131313",
+                      "surface-container-low": "#1b1b1b",
+                      "tertiary-fixed": "#b5ebff",
+                      "on-primary": "#432c00",
+                      "outline": "#9e8e78",
+                      "warning-red": "#FF4500",
+                      "interface-grid": "#1A1A1A",
+                      "surface-container-lowest": "#0e0e0e",
+                      "secondary-fixed-dim": "#c4c7c8",
+                      "on-tertiary": "#003543",
+                      "tertiary-fixed-dim": "#43d6ff",
+                      "on-surface": "#e2e2e2",
+                      "outline-variant": "#514532",
+                      "primary": "#ffd79b",
+                      "on-error-container": "#ffdad6",
+                      "surface-tint": "#ffba38",
+                      "tertiary-container": "#00d2fe",
+                      "surface-variant": "#353535",
+                      "surface-container-high": "#2a2a2a",
+                      "on-tertiary-fixed": "#001f28",
+                      "on-tertiary-fixed-variant": "#004e60",
+                      "inverse-primary": "#7e5700",
+                      "on-error": "#690005",
+                      "on-background": "#e2e2e2",
+                      "on-secondary": "#2d3132",
+                      "error": "#ffb4ab",
+                      "success-green": "#00FF41",
+                      "inverse-on-surface": "#303030",
+                      "on-primary-fixed": "#281900",
+                      "surface-bright": "#393939",
+                      "surface-container": "#1f1f1f",
+                      "error-container": "#93000a",
+                      "surface-container-highest": "#353535",
+                      "primary-fixed": "#ffdeac",
+                      "secondary-container": "#464a4b",
+                      "on-surface-variant": "#d6c4ac",
+                      "primary-container": "#ffb300",
+                      "tertiary": "#a4e7ff",
+                      "primary-fixed-dim": "#ffba38",
+                      "background": "#131313",
+                      "on-secondary-container": "#b6b9ba",
+                      "surface-dim": "#131313",
+                      "secondary-fixed": "#e0e3e4",
+                      "secondary": "#c4c7c8",
+                      "on-secondary-fixed-variant": "#444748",
+                      "on-secondary-fixed": "#181c1d",
+                      "on-primary-container": "#6b4900",
+                      "on-tertiary-container": "#00566a"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "safe-area": "32px",
+                      "gutter": "16px",
+                      "panel-margin": "24px",
+                      "unit": "4px"
+              },
+              "fontFamily": {
+                      "data-mono": ["JetBrains Mono"],
+                      "headline-md-mobile": ["JetBrains Mono"],
+                      "display-lg": ["JetBrains Mono"],
+                      "label-caps": ["JetBrains Mono"],
+                      "body-base": ["JetBrains Mono"],
+                      "headline-md": ["JetBrains Mono"]
+              },
+              "fontSize": {
+                      "data-mono": ["12px", {"lineHeight": "1.0", "fontWeight": "500"}],
+                      "headline-md-mobile": ["20px", {"lineHeight": "1.2", "fontWeight": "600"}],
+                      "display-lg": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                      "label-caps": ["10px", {"lineHeight": "1.0", "letterSpacing": "0.15em", "fontWeight": "700"}],
+                      "body-base": ["14px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                      "headline-md": ["24px", {"lineHeight": "1.2", "letterSpacing": "0.05em", "fontWeight": "600"}]
+              }
+            },
+          },
+        }
+    </script>
+</head>
+<body class="bg-background text-on-surface selection:bg-primary selection:text-surface">
+<!-- TopAppBar -->
+<header class="fixed top-0 left-0 w-full flex justify-between items-center px-gutter h-12 bg-background border-b border-interface-grid z-50">
+<div class="flex items-center gap-4">
+<span class="text-headline-md font-headline-md font-bold tracking-widest text-on-surface">SOVEREIGN MIRROR</span>
+<div class="px-2 py-1 bg-primary text-surface font-label-caps text-label-caps">RESONANCE_TRAJECTORY</div>
+</div>
+<nav class="hidden md:flex items-center gap-8">
+<a class="text-primary border-b-2 border-primary font-bold font-label-caps text-label-caps py-3" href="#">sensors</a>
+<a class="text-on-surface-variant font-label-caps text-label-caps hover:text-primary transition-colors duration-200" href="#">network_ping</a>
+<a class="text-on-surface-variant font-label-caps text-label-caps hover:text-primary transition-colors duration-200" href="#">settings</a>
+</nav>
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-on-surface-variant hover:text-primary cursor-pointer">hub</span>
+<span class="material-symbols-outlined text-on-surface-variant hover:text-primary cursor-pointer">security</span>
+<span class="material-symbols-outlined text-on-surface-variant hover:text-primary cursor-pointer">terminal</span>
+</div>
+</header>
+<!-- SideNavBar -->
+<aside class="fixed left-0 top-12 bottom-8 w-64 flex flex-col bg-surface-container-lowest border-r border-interface-grid z-40">
+<div class="p-gutter border-b border-interface-grid mb-4">
+<div class="text-primary font-headline-md text-headline-md font-bold mb-1">CU_CONTROL</div>
+<div class="text-on-surface-variant font-label-caps text-label-caps opacity-60">SYSTEMIC_PARAMETERS_v4.2</div>
+</div>
+<nav class="flex-grow">
+<div class="bg-surface-container-high text-primary border-l-2 border-primary px-gutter py-4 flex items-center gap-3 transition-all cursor-pointer group">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">analytics</span>
+<div class="flex flex-col">
+<span class="font-label-caps text-label-caps uppercase">analytics</span>
+<span class="text-[8px] text-on-surface-variant opacity-50 uppercase">Systemic Parameters</span>
+</div>
+</div>
+<div class="text-on-surface-variant px-gutter py-4 flex items-center gap-3 hover:bg-interface-grid hover:text-on-surface transition-all cursor-pointer group">
+<span class="material-symbols-outlined">grain</span>
+<div class="flex flex-col">
+<span class="font-label-caps text-label-caps uppercase">grain</span>
+<span class="text-[8px] text-on-surface-variant opacity-50 uppercase">Trajectory Matrix</span>
+</div>
+</div>
+<div class="text-on-surface-variant px-gutter py-4 flex items-center gap-3 hover:bg-interface-grid hover:text-on-surface transition-all cursor-pointer group">
+<span class="material-symbols-outlined">bolt</span>
+<div class="flex flex-col">
+<span class="font-label-caps text-label-caps uppercase">bolt</span>
+<span class="text-[8px] text-on-surface-variant opacity-50 uppercase">Flux Density</span>
+</div>
+</div>
+<div class="text-on-surface-variant px-gutter py-4 flex items-center gap-3 hover:bg-interface-grid hover:text-on-surface transition-all cursor-pointer group">
+<span class="material-symbols-outlined">account_tree</span>
+<div class="flex flex-col">
+<span class="font-label-caps text-label-caps uppercase">architecture</span>
+<span class="text-[8px] text-on-surface-variant opacity-50 uppercase">Quantum Alignment</span>
+</div>
+</div>
+</nav>
+<div class="p-gutter border-t border-interface-grid space-y-4">
+<button class="w-full bg-primary text-surface font-label-caps text-label-caps py-3 font-bold hover:brightness-110 active:scale-95 transition-all">IGNITION</button>
+<div class="flex flex-col gap-2">
+<div class="flex items-center justify-between text-on-surface-variant text-[10px]">
+<div class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">list_alt</span> LEDGER</div>
+<span class="text-primary">88%</span>
+</div>
+<div class="flex items-center justify-between text-on-surface-variant text-[10px]">
+<div class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">database</span> ARCHIVE</div>
+<span class="text-on-surface-variant opacity-50">SYNCED</span>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="ml-64 mt-12 mb-8 p-gutter grid grid-cols-12 gap-gutter h-[calc(100vh-80px)] overflow-y-auto">
+<!-- Central Sphere Core Module -->
+<div class="col-span-12 lg:col-span-8 bg-surface-container-lowest border border-interface-grid relative flex flex-col overflow-hidden min-h-[500px]">
+<div class="p-2 border-b border-interface-grid flex justify-between items-center text-[10px] font-label-caps bg-surface-container-low">
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 bg-primary animate-pulse"></div>
+<span class="text-on-surface">RESONANCE TRAJECTORY</span>
+</div>
+<div class="flex gap-4">
+<span class="text-on-surface-variant">dV: <span class="text-primary">~+1.42</span></span>
+<span class="text-on-surface-variant">FRAME: <span class="text-warning-red">16.6ms</span></span>
+</div>
+</div>
+<div class="flex-grow flex items-center justify-center relative sphere-container bg-[#080808]">
+<div class="scanline"></div>
+<!-- The Core Sphere Visualization -->
+<div class="relative w-[400px] h-[400px] flex items-center justify-center">
+<!-- Outer Halo -->
+<div class="absolute inset-0 rounded-full border border-primary/20 scale-110"></div>
+<!-- Technical Rings -->
+<div class="absolute inset-4 rounded-full border border-dashed border-primary/40 rotating-ring"></div>
+<div class="absolute inset-12 rounded-full border-2 border-primary/10 rotating-ring-reverse"></div>
+<!-- Main Sphere -->
+<div class="relative w-64 h-64 rounded-full border border-primary/60 shadow-[0_0_50px_rgba(255,215,155,0.1)] overflow-hidden flex items-center justify-center">
+<img class="absolute w-full h-full object-cover opacity-40 mix-blend-screen" data-alt="A macro view of a celestial body or deep-space phenomena with swirling gas clouds and distant stars. The visual style is highly technical, using a palette of deep blacks, rich ambers, and subtle chrome highlights. The lighting is focused, creating a dramatic, high-contrast effect suitable for a premium dark-mode interface dashboard." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCnXhBkr5h7yP058ddwsV3TMg0Ep7A1SP4KpyveAu02vpdx0eqSGh2aw2fzh5dWkd3dZGLg9jTsbj3qPiOX71c6SPjpVZ0p2MuO3vf-9nNWGHxiGMGIX9TaMLuMlXYs5en4iK00z1TRPksh3n-4rpBnQdkWjVh00KFirpY8h1wbEB5I3dvier-GGtFGbnQutxNYu6Z6yNrl_c5j5TBHJKodZb7kGKYbTC0uCVClJ5SWF5ZQY3DfmioV90wECqy-7EPzlaumtyGk6qnp"/>
+<!-- Internal Wireframe/HUD Overlay -->
+<div class="absolute inset-0 flex items-center justify-center">
+<div class="w-[80%] h-[1px] bg-primary/40"></div>
+<div class="h-[80%] w-[1px] bg-primary/40"></div>
+<div class="absolute w-12 h-12 border border-primary animate-ping opacity-30"></div>
+<div class="absolute w-full h-full flex items-center justify-center">
+<div class="w-[70%] h-[70%] rounded-full border border-primary/20 border-t-primary/80 border-b-primary/80 rotating-ring"></div>
+</div>
+</div>
+</div>
+<!-- HUD Data Points -->
+<div class="absolute top-0 right-0 p-4 font-data-mono text-[10px] text-primary/80">
+                        LAT: 44.921<br/>LNG: 01.002<br/>ALT: 18.2K
+                    </div>
+<div class="absolute bottom-0 left-0 p-4 font-data-mono text-[10px] text-primary/80">
+                        STATUS: ACTIVE<br/>P-GATE: PASS<br/>THREAT: NULL
+                    </div>
+</div>
+</div>
+<div class="p-2 border-t border-interface-grid flex justify-between items-center text-[10px] font-label-caps bg-surface-container-low">
+<span class="text-primary opacity-50">INVERION_DIVIDE</span>
+<span class="text-on-surface-variant">NODE: 0x4FF2A</span>
+</div>
+</div>
+<!-- Right Side Parameter Modules -->
+<div class="col-span-12 lg:col-span-4 flex flex-col gap-gutter">
+<!-- Parameters Panel -->
+<div class="bg-surface-container-lowest border border-interface-grid p-panel-margin">
+<div class="text-primary font-label-caps text-label-caps mb-6 flex justify-between">
+<span>CU PARAMETERS</span>
+<span class="text-on-surface-variant opacity-50">MOD-0192</span>
+</div>
+<div class="space-y-6">
+<div class="space-y-2">
+<div class="flex justify-between text-[10px] font-data-mono text-on-surface-variant">
+<span>TEMP (TS)</span>
+<span class="text-on-surface">50.0%</span>
+</div>
+<input class="w-full h-1 bg-interface-grid rounded-none appearance-none cursor-pointer accent-primary" type="range" value="50"/>
+</div>
+<div class="space-y-2">
+<div class="flex justify-between text-[10px] font-data-mono text-on-surface-variant">
+<span>NOISE (BN)</span>
+<span class="text-on-surface">30.0%</span>
+</div>
+<input class="w-full h-1 bg-interface-grid rounded-none appearance-none cursor-pointer accent-primary" type="range" value="30"/>
+</div>
+<div class="space-y-2">
+<div class="flex justify-between text-[10px] font-data-mono text-on-surface-variant">
+<span>ALPHA (A)</span>
+<span class="text-on-surface">0.750</span>
+</div>
+<input class="w-full h-1 bg-interface-grid rounded-none appearance-none cursor-pointer accent-primary" type="range" value="75"/>
+</div>
+</div>
+</div>
+<!-- Node Status Panel -->
+<div class="bg-surface-container-lowest border border-interface-grid p-panel-margin">
+<div class="text-primary font-label-caps text-label-caps mb-4">NODE STATUS</div>
+<div class="space-y-3">
+<div class="flex justify-between font-data-mono text-data-mono">
+<span class="text-on-surface-variant">Temperature:</span>
+<span class="text-primary">50.0%</span>
+</div>
+<div class="flex justify-between font-data-mono text-data-mono">
+<span class="text-on-surface-variant">Noise Filter:</span>
+<span class="text-primary">30.0%</span>
+</div>
+<div class="flex justify-between font-data-mono text-data-mono">
+<span class="text-on-surface-variant">Sunrise Opacity:</span>
+<span class="text-warning-red">0.300</span>
+</div>
+<div class="flex justify-between font-data-mono text-data-mono">
+<span class="text-on-surface-variant">Tick Rate:</span>
+<span class="text-primary">400ms</span>
+</div>
+</div>
+<div class="mt-6 space-y-2">
+<div class="w-full py-4 bg-on-primary-container/20 border border-on-primary-container text-primary flex flex-col items-center justify-center">
+<span class="text-[10px] font-bold">P-GATE</span>
+<span class="text-headline-md font-bold">ACTIVE</span>
+</div>
+<button class="w-full border border-interface-grid text-on-surface font-label-caps text-[10px] py-2 hover:bg-interface-grid transition-colors">Test API (0.75)</button>
+</div>
+<div class="mt-4 text-center text-[10px] text-on-surface-variant opacity-50 font-data-mono uppercase">
+                    Tick Rate: 400ms | Flux: 0.750
+                </div>
+</div>
+</div>
+<!-- Veracity Ledger Feed -->
+<div class="col-span-12 bg-surface-container-lowest border border-interface-grid overflow-hidden">
+<div class="p-2 border-b border-interface-grid flex justify-between items-center text-[10px] font-label-caps bg-surface-container-low">
+<div class="flex items-center gap-2">
+<span class="text-primary">receipt_long</span>
+<span class="text-on-surface">VERACITY_LEDGER</span>
+</div>
+<div class="flex gap-4">
+<span class="text-on-surface-variant">LIVE_FEED</span>
+</div>
+</div>
+<div class="p-2 max-h-48 overflow-y-auto bg-surface-container-lowest">
+<table class="w-full text-left font-data-mono text-[10px]">
+<thead>
+<tr class="text-on-surface-variant opacity-50 border-b border-interface-grid">
+<th class="py-2 font-normal">TIME</th>
+<th class="py-2 font-normal">NODE</th>
+<th class="py-2 font-normal">EVENT</th>
+<th class="py-2 font-normal text-right">STATUS</th>
+</tr>
+</thead>
+<tbody class="text-on-surface divide-y divide-interface-grid/50">
+<tr>
+<td class="py-1">2026-05-25 03:09:48.529</td>
+<td class="py-1">#0xNODE</td>
+<td class="py-1">ZKPROOF_PASS</td>
+<td class="py-1 text-right text-primary">V=1.30</td>
+</tr>
+<tr>
+<td class="py-1">2026-05-25 03:09:48.528</td>
+<td class="py-1">#0xNODE</td>
+<td class="py-1">ZKPROOF_PASS</td>
+<td class="py-1 text-right text-primary">V=0.66</td>
+</tr>
+<tr>
+<td class="py-1">2026-05-25 03:09:48.528</td>
+<td class="py-1">#0xNODE</td>
+<td class="py-1">ZKPROOF_PASS</td>
+<td class="py-1 text-right text-primary">V=0.39</td>
+</tr>
+<tr>
+<td class="py-1">2026-05-25 03:09:48.526</td>
+<td class="py-1">#0xNODE</td>
+<td class="py-1">ZKPROOF_PASS</td>
+<td class="py-1 text-right text-primary">V=0.95</td>
+</tr>
+<tr class="animate-pulse">
+<td class="py-1 text-warning-red">2026-05-25 03:09:48.525</td>
+<td class="py-1 text-warning-red">#0xNODE</td>
+<td class="py-1 text-warning-red">RESONANCE_SPIKE</td>
+<td class="py-1 text-right text-warning-red">V=9.99</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</main>
+<!-- Footer -->
+<footer class="fixed bottom-0 left-0 w-full flex justify-between items-center px-gutter h-8 bg-surface-container-lowest border-t border-interface-grid z-50 text-data-mono font-data-mono text-[10px]">
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-success-green"></span> LEDGER</div>
+<span class="text-on-surface-variant opacity-50">KEY: 72A-D9K-X04</span>
+</div>
+<div class="flex items-center gap-6">
+<div class="flex gap-4 text-on-surface-variant">
+<span class="hover:text-primary cursor-pointer">[AUDIT]</span>
+<span class="hover:text-primary cursor-pointer">[ZK]</span>
+</div>
+<div class="text-primary font-bold">dV: 0.880</div>
+<div class="text-on-surface-variant border-l border-interface-grid pl-4">
+                14:32:01 <span class="blink">_</span>
+</div>
+</div>
+</footer>
+<script>
+        // Atmospheric effects and small interactions
+        document.querySelectorAll('input[type="range"]').forEach(input => {
+            input.addEventListener('input', (e) => {
+                const val = e.target.value;
+                const parent = e.target.closest('.space-y-2');
+                const display = parent.querySelector('.text-on-surface');
+                if (display) {
+                    display.innerText = e.target.step == "1" ? val + ".0%" : val;
+                }
+            });
+        });
+
+        // Add random log entries to simulate live feed
+        const ledgerBody = document.querySelector('tbody');
+        setInterval(() => {
+            const time = new Date().toISOString().replace('T', ' ').replace('Z', '').slice(0, -1);
+            const value = (Math.random() * 2).toFixed(2);
+            const newRow = document.createElement('tr');
+            newRow.innerHTML = `
+                <td class="py-1">${time}</td>
+                <td class="py-1">#0xNODE</td>
+                <td class="py-1">ZKPROOF_PASS</td>
+                <td class="py-1 text-right text-primary">V=${value}</td>
+            `;
+            ledgerBody.prepend(newRow);
+            if (ledgerBody.children.length > 20) {
+                ledgerBody.lastElementChild.remove();
+            }
+        }, 3000);
+    </script>
+</body></html>

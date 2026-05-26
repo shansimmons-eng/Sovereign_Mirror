@@ -417,8 +417,10 @@ function KineticQuads() {
     bzDeltaRef.current *= 0.92;
 
     material.uniforms.u_time.value = Math.max(0.001, time);
-    const defensiveAlpha = Math.max(0.002, visualPayload.alpha || inverionAlpha);
-    material.uniforms.u_inverion_alpha.value = defensiveAlpha;
+    // Use inverionAlpha from local state (user slider), not visualPayload API value
+    // visualPayload is used for bolt/grain controls only
+    const localAlpha = isFinite(inverionAlpha) ? Math.max(0.002, inverionAlpha) : 0.75;
+    material.uniforms.u_inverion_alpha.value = localAlpha;
     material.uniforms.u_boltzmann_temp.value = Math.max(0.01, visualPayload.temp || (0.3 + temperature * 2.0));
     material.uniforms.u_boltzmann_noise.value = Math.max(0.001, visualPayload.noise || (0.05 + noiseFilter * 0.5));
     // Apply interactive controls to bolt/grain values

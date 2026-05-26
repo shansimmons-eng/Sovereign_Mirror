@@ -1,26 +1,26 @@
 {
   "metadata": {
-    "simulation_timestamp": 1716163200000,
-    "cycle_count": 0,
-    "current_milestone_id": "profile_standard_001",
-    "profile_type": "STANDARD_OPERATIONAL",
-    "uptime_seconds": 0
+    "simulation_timestamp": 1779494942058,
+    "cycle_count": 5698,
+    "current_milestone_id": "profile_fission_001",
+    "profile_type": "HIGH_NOISE_FISSION",
+    "uptime_seconds": 85776
   },
   "telemetry": {
-    "alpha": 0.82,
-    "inverion_alpha": 0.82,
-    "noise": 0.12,
-    "boltzmann_noise": 0.12,
-    "temp": 0.55,
-    "boltzmann_temperature": 0.55,
-    "velocity": 0.38,
+    "alpha": 0.45,
+    "inverion_alpha": 0.45,
+    "noise": 0.88,
+    "boltzmann_noise": 0.88,
+    "temp": 0.92,
+    "boltzmann_temperature": 0.92,
+    "velocity": 0.67,
     "state": "ACTIVE"
   },
   "system": {
-    "resonance": 0.71,
-    "nodes_count": 47,
-    "particle_count": 4700,
-    "fission_stretch": 0.0
+    "resonance": 0.41,
+    "nodes_count": 63,
+    "particle_count": 5000,
+    "fission_stretch": 1.42
   },
-  "description": "Standard operational state - balanced veracity flow"
+  "description": "Dumbbell fission mode - extreme noise creates particle separation"
 }

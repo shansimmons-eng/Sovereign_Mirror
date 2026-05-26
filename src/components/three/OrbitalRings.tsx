@@ -47,43 +47,48 @@ export function ConcentricRings({ inverionAlpha, temperature }: ConcentricRingPr
   // When fully decayed (strand mode), show barbell instead of rings
   const showBarbell = strandIntensity > 0.5;
 
+  // Barbell geometry constants
+  const lobeRadius = 0.6;
+  const lobeDistance = 2.8;
+  const strandRadius = 0.04;
+
   return (
     <group position={[0, 0, 0]}>
       {/* Outer ring - always visible with minimum opacity */}
-      <group ref={outerRingRef}>
-        <mesh rotation={[Math.PI / 2, 0, 0]}>
-          <ringGeometry args={[3.0, 3.1, 128]} />
+      <group ref={outerRingRef} rotation={[Math.PI / 2, 0, 0]}>
+        <mesh>
+          <ringGeometry args={[3.0, 3.15, 128]} />
           <meshBasicMaterial 
             color="#FFB300" 
             transparent 
-            opacity={showBarbell ? baseOpacity * 0.1 : baseOpacity * 0.5} 
-            side={THREE.DoubleSide} 
+            opacity={showBarbell ? baseOpacity * 0.15 : baseOpacity * 0.5} 
+            side={THREE.DoubleSide}
           />
         </mesh>
       </group>
 
       {/* Middle ring */}
-      <group ref={middleRingRef}>
-        <mesh rotation={[Math.PI / 2, 0, 0]}>
-          <ringGeometry args={[2.0, 2.08, 128]} />
+      <group ref={middleRingRef} rotation={[Math.PI / 2, 0, 0]}>
+        <mesh>
+          <ringGeometry args={[2.0, 2.12, 128]} />
           <meshBasicMaterial 
             color="#FF8F00" 
             transparent 
-            opacity={showBarbell ? baseOpacity * 0.1 : baseOpacity * 0.7} 
-            side={THREE.DoubleSide} 
+            opacity={showBarbell ? baseOpacity * 0.15 : baseOpacity * 0.7} 
+            side={THREE.DoubleSide}
           />
         </mesh>
       </group>
 
       {/* Inner ring */}
-      <group ref={innerRingRef}>
-        <mesh rotation={[Math.PI / 2, 0, 0]}>
-          <ringGeometry args={[1.0, 1.05, 128]} />
+      <group ref={innerRingRef} rotation={[Math.PI / 2, 0, 0]}>
+        <mesh>
+          <ringGeometry args={[1.0, 1.08, 128]} />
           <meshBasicMaterial 
             color="#FFD700" 
             transparent 
-            opacity={showBarbell ? baseOpacity * 0.15 : baseOpacity * 0.9} 
-            side={THREE.DoubleSide} 
+            opacity={showBarbell ? baseOpacity * 0.2 : baseOpacity * 0.9} 
+            side={THREE.DoubleSide}
           />
         </mesh>
       </group>
@@ -91,20 +96,27 @@ export function ConcentricRings({ inverionAlpha, temperature }: ConcentricRingPr
       {/* Barbell lobes - visible when alpha is very low (strands state) */}
       <group ref={barbellRef} visible={showBarbell}>
         {/* Left lobe */}
-        <mesh position={[-2.5, 0, 0]} rotation={[Math.PI / 2, 0, 0]}>
-          <sphereGeometry args={[0.4, 32, 32]} />
-          <meshBasicMaterial color="#FFD700" transparent opacity={strandIntensity * 0.7} />
+        <mesh position={[-lobeDistance, 0, 0]} rotation={[Math.PI / 2, 0, 0]}>
+          <sphereGeometry args={[lobeRadius, 32, 32]} />
+          <meshBasicMaterial color="#FFD700" transparent opacity={strandIntensity * 0.85} />
         </mesh>
         {/* Right lobe */}
-        <mesh position={[2.5, 0, 0]} rotation={[Math.PI / 2, 0, 0]}>
-          <sphereGeometry args={[0.4, 32, 32]} />
-          <meshBasicMaterial color="#FFD700" transparent opacity={strandIntensity * 0.7} />
+        <mesh position={[lobeDistance, 0, 0]} rotation={[Math.PI / 2, 0, 0]}>
+          <sphereGeometry args={[lobeRadius, 32, 32]} />
+          <meshBasicMaterial color="#FFD700" transparent opacity={strandIntensity * 0.85} />
         </mesh>
         {/* Connecting strand/cylinder */}
         <mesh rotation={[Math.PI / 2, 0, 0]}>
-          <cylinderGeometry args={[0.03, 0.03, 4.2, 16]} />
-          <meshBasicMaterial color="#FFD700" transparent opacity={strandIntensity * 0.4} />
+          <cylinderGeometry args={[strandRadius, strandRadius, lobeDistance * 2 + lobeRadius * 2, 16]} />
+          <meshBasicMaterial color="#FFB300" transparent opacity={strandIntensity * 0.5} />
         </mesh>
+        {/* Additional golden particles along strand */}
+        {showBarbell && Array.from({ length: 5 }).map((_, i) => (
+          <mesh key={i} position={[-(lobeDistance - lobeRadius) + i * (lobeDistance * 2 / 4) - lobeDistance + lobeRadius, 0, 0]} rotation={[Math.PI / 2, 0, 0]}>
+            <sphereGeometry args={[0.08, 16, 16]} />
+            <meshBasicMaterial color="#FFFFFF" transparent opacity={strandIntensity * 0.6} />
+          </mesh>
+        ))}
       </group>
 
       {/* Central core - always visible */}
