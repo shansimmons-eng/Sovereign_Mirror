@@ -592,9 +592,10 @@ function CameraRig() {
   useFrame((state) => {
     const time = state.clock.getElapsedTime();
     const camera = state.camera;
-    camera.position.x = Math.sin(time * 0.06) * 3;
-    camera.position.y = Math.cos(time * 0.08) * 2.5;
-    camera.position.z = 16 + Math.sin(time * 0.04) * 2;
+    const breathe = Math.sin(time * 0.3) * 0.1;
+    camera.position.x = breathe;
+    camera.position.y = breathe * 0.5;
+    camera.position.z = 14;
     camera.lookAt(0, 0, 0);
   });
   return null;
