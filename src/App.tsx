@@ -4,7 +4,7 @@ import { TestDashboard } from './components/ui/TestDashboard';
 
 export function App() {
   return (
-    <div className="relative min-h-screen h-screen bg-void-black overflow-hidden">
+    <div className="relative min-h-screen bg-void-black overflow-y-auto">
       <Background />
       <TestDashboard />
       <Dashboard />
