@@ -2,15 +2,36 @@ import { useState } from 'react';
 import { ResonanceTrajectory } from '../three/ResonanceTrajectory';
 import { VeracityLog } from '../hud/VeracityLog';
 import { useHUDStore } from '../../state/stores/hudStore';
+import { useNodeStore } from '../../state/stores/nodeStore';
 import { SystemicSliders } from './SystemicSliders';
 import { PGateButton } from './PGateButton';
 
+type NavSection = 'analytics' | 'grain' | 'bolt' | 'architecture';
+
 export function Dashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [activeSection, setActiveSection] = useState<NavSection>('analytics');
+
   const handleNavClick = (section: string) => {
-    console.log(`[NAV] ${section} clicked`);
-    setSidebarOpen(false);
+    const sectionMap: Record<string, NavSection> = {
+      'Systemic Parameters': 'analytics',
+      'Trajectory Matrix': 'grain',
+      'Flux Density': 'bolt',
+      'Quantum Alignment': 'architecture',
+    };
+    const mapped = sectionMap[section];
+    if (mapped) {
+      setActiveSection(mapped);
+      setSidebarOpen(false);
+    }
   };
+
+  const navItems: { id: NavSection; icon: string; label: string; sectionKey: string }[] = [
+    { id: 'analytics', icon: 'analytics', label: 'Systemic Parameters', sectionKey: 'Systemic Parameters' },
+    { id: 'grain', icon: 'grain', label: 'Trajectory Matrix', sectionKey: 'Trajectory Matrix' },
+    { id: 'bolt', icon: 'bolt', label: 'Flux Density', sectionKey: 'Flux Density' },
+    { id: 'architecture', icon: 'architecture', label: 'Quantum Alignment', sectionKey: 'Quantum Alignment' },
+  ];
 
   return (
     <div className="relative bg-void-black overflow-hidden flex flex-col" style={{ backgroundColor: '#000000', color: '#e5e2e1', height: '100vh', minHeight: '-webkit-fill-available' }}>
@@ -49,22 +70,22 @@ export function Dashboard() {
               </button>
           </div>
           <div className="flex-1 py-2 md:py-4 flex flex-col gap-0 md:gap-1 overflow-y-auto">
-            <button onClick={() => handleNavClick('Systemic Parameters')} className="pl-3 md:pl-4 py-2 md:py-3 transition-all flex items-center gap-2 md:gap-3 border-l-2 text-left" style={{ backgroundColor: 'rgba(255, 255, 255, 0.05)', color: '#ffffff', border: 'none', borderLeft: '2px solid #FFB300' }}>
-              <span className="material-symbols-outlined text-sm md:text-base">analytics</span>
-              <span className="text-[9px] md:text-[10px] font-mono">Systemic Parameters</span>
-            </button>
-            <button onClick={() => handleNavClick('Trajectory Matrix')} className="px-3 md:px-4 py-2 md:py-3 font-mono transition-all flex items-center gap-2 md:gap-3 hover:pl-5 md:hover:pl-6 text-left" style={{ color: '#c4c7c8', background: 'none', border: 'none' }}>
-              <span className="material-symbols-outlined text-sm md:text-base">grain</span>
-              <span className="text-[9px] md:text-[10px] font-mono">Trajectory Matrix</span>
-            </button>
-            <button onClick={() => handleNavClick('Flux Density')} className="px-3 md:px-4 py-2 md:py-3 font-mono transition-all flex items-center gap-2 md:gap-3 hover:pl-5 md:hover:pl-6 text-left" style={{ color: '#c4c7c8', background: 'none', border: 'none' }}>
-              <span className="material-symbols-outlined text-sm md:text-base">bolt</span>
-              <span className="text-[9px] md:text-[10px] font-mono">Flux Density</span>
-            </button>
-            <button onClick={() => handleNavClick('Quantum Alignment')} className="px-3 md:px-4 py-2 md:py-3 font-mono transition-all flex items-center gap-2 md:gap-3 hover:pl-5 md:hover:pl-6 text-left" style={{ color: '#c4c7c8', background: 'none', border: 'none' }}>
-              <span className="material-symbols-outlined text-sm md:text-base">architecture</span>
-              <span className="text-[9px] md:text-[10px] font-mono">Quantum Alignment</span>
-            </button>
+            {navItems.map((item) => (
+              <button
+                key={item.id}
+                onClick={() => handleNavClick(item.sectionKey)}
+                className="pl-3 md:pl-4 py-2 md:py-3 transition-all flex items-center gap-2 md:gap-3 border-l-2 text-left"
+                style={{
+                  backgroundColor: activeSection === item.id ? 'rgba(255, 255, 255, 0.05)' : 'none',
+                  color: '#c4c7c8',
+                  border: 'none',
+                  borderLeft: activeSection === item.id ? '2px solid #FFB300' : '2px solid transparent',
+                }}
+              >
+                <span className="material-symbols-outlined text-sm md:text-base" style={{ color: activeSection === item.id ? '#FFB300' : '#c4c7c8' }}>{item.icon}</span>
+                <span className="text-[9px] md:text-[10px] font-mono" style={{ color: activeSection === item.id ? '#ffffff' : '#c4c7c8' }}>{item.label}</span>
+              </button>
+            ))}
           </div>
           <div className="p-2 md:p-4 mt-auto">
             <button onClick={() => handleNavClick('INITIATE_IGNITION')} className="w-full py-2 md:py-4 font-mono font-bold tracking-widest uppercase transition-colors text-xs md:text-sm" style={{ backgroundColor: '#FFB300', color: '#000000', border: 'none', cursor: 'pointer' }}>
@@ -99,18 +120,26 @@ export function Dashboard() {
             </div>
 
             <div className="col-span-12 lg:col-span-4 flex flex-col gap-2 md:gap-4">
-              <div className="backdrop-blur-2xl border p-2 md:p-4 rounded-lg" style={{ backgroundColor: 'rgba(10, 10, 10, 0.6)', borderColor: 'rgba(255, 255, 255, 0.1)' }}>
-                <div className="text-[10px] md:text-[11px] mb-2 md:mb-3 pb-2 border-b" style={{ color: '#FFB300', borderColor: 'rgba(255, 255, 255, 0.1)' }}>CU PARAMETERS</div>
-                <SystemicSliders />
-              </div>
+              {activeSection === 'analytics' && (
+                <>
+                  <div className="backdrop-blur-2xl border p-2 md:p-4 rounded-lg" style={{ backgroundColor: 'rgba(10, 10, 10, 0.6)', borderColor: 'rgba(255, 255, 255, 0.1)' }}>
+                    <div className="text-[10px] md:text-[11px] mb-2 md:mb-3 pb-2 border-b" style={{ color: '#FFB300', borderColor: 'rgba(255, 255, 255, 0.1)' }}>CU PARAMETERS</div>
+                    <SystemicSliders />
+                  </div>
 
-              <div className="backdrop-blur-2xl border p-2 md:p-4 rounded-lg flex flex-col" style={{ backgroundColor: 'rgba(10, 10, 10, 0.6)', borderColor: 'rgba(255, 255, 255, 0.1)' }}>
-                <div className="font-mono text-xs mb-2 md:mb-3" style={{ color: '#FFF7ED' }}>NODE STATUS</div>
-                <div className="flex-1">
-                  <NodeStatusPanel />
-                </div>
-                <PGateButton nodeId="NODE_001" />
-              </div>
+                  <div className="backdrop-blur-2xl border p-2 md:p-4 rounded-lg flex flex-col" style={{ backgroundColor: 'rgba(10, 10, 10, 0.6)', borderColor: 'rgba(255, 255, 255, 0.1)' }}>
+                    <div className="font-mono text-xs mb-2 md:mb-3" style={{ color: '#FFF7ED' }}>NODE STATUS</div>
+                    <div className="flex-1">
+                      <NodeStatusPanel />
+                    </div>
+                    <PGateButton nodeId="NODE_001" />
+                  </div>
+                </>
+              )}
+
+              {activeSection === 'grain' && <TrajectoryMatrixPanel />}
+              {activeSection === 'bolt' && <FluxDensityPanel />}
+              {activeSection === 'architecture' && <QuantumAlignmentPanel />}
             </div>
 
             <div className="col-span-12 backdrop-blur-2xl border p-2 md:p-4 rounded-lg flex-1" style={{ backgroundColor: 'rgba(10, 10, 10, 0.6)', borderColor: 'rgba(255, 255, 255, 0.1)', minHeight: '0' }}>
@@ -194,6 +223,127 @@ function NodeStatusPanel() {
       <div className="flex justify-between">
         <span>Tick Rate:</span>
         <span style={{ color: '#FFB300' }}>{effectiveTickRate.toFixed(0)}ms</span>
+      </div>
+    </div>
+  );
+}
+
+function TrajectoryMatrixPanel() {
+  const temperature = useHUDStore((s) => s.temperature);
+  const noiseFilter = useHUDStore((s) => s.noiseFilter);
+  const flux = useNodeStore((s) => s.flux);
+
+  return (
+    <div className="backdrop-blur-2xl border p-2 md:p-4 rounded-lg" style={{ backgroundColor: 'rgba(10, 10, 10, 0.6)', borderColor: 'rgba(255, 255, 255, 0.1)' }}>
+      <div className="text-[10px] md:text-[11px] mb-2 md:mb-3 pb-2 border-b flex justify-between items-center" style={{ color: '#FFB300', borderColor: 'rgba(255, 255, 255, 0.1)' }}>
+        <span>TRAJECTORY MATRIX</span>
+        <span className="text-[8px] opacity-50">GRAIN</span>
+      </div>
+      <div className="space-y-3 font-mono text-[9px] md:text-[10px]" style={{ color: '#c4c7c8' }}>
+        <div className="grid grid-cols-2 gap-2">
+          <div className="flex justify-between">
+            <span>Alpha:</span>
+            <span style={{ color: '#FFB300' }}>{flux.toFixed(3)}</span>
+          </div>
+          <div className="flex justify-between">
+            <span>Beta:</span>
+            <span>{(temperature * 2 - 1).toFixed(3)}</span>
+          </div>
+        </div>
+        <div className="grid grid-cols-2 gap-2">
+          <div className="flex justify-between">
+            <span>Noise:</span>
+            <span style={{ color: '#FFB300' }}>{noiseFilter.toFixed(3)}</span>
+          </div>
+          <div className="flex justify-between">
+            <span>Delta:</span>
+            <span>{(flux * noiseFilter).toFixed(3)}</span>
+          </div>
+        </div>
+        <div className="grid grid-cols-2 gap-2">
+          <div className="flex justify-between">
+            <span>Entropy:</span>
+            <span>{((1 - flux) * noiseFilter).toFixed(3)}</span>
+          </div>
+          <div className="flex justify-between">
+            <span>Phase:</span>
+            <span style={{ color: '#FFB300' }}>{((temperature + noiseFilter) % 1).toFixed(3)}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function FluxDensityPanel() {
+  const flux = useNodeStore((s) => s.flux);
+  const temperature = useHUDStore((s) => s.temperature);
+  const noiseFilter = useHUDStore((s) => s.noiseFilter);
+
+  const fluxDensity = flux * (1 - noiseFilter) * (1 + temperature);
+
+  return (
+    <div className="backdrop-blur-2xl border p-2 md:p-4 rounded-lg" style={{ backgroundColor: 'rgba(10, 10, 10, 0.6)', borderColor: 'rgba(255, 255, 255, 0.1)' }}>
+      <div className="text-[10px] md:text-[11px] mb-2 md:mb-3 pb-2 border-b flex justify-between items-center" style={{ color: '#FFB300', borderColor: 'rgba(255, 255, 255, 0.1)' }}>
+        <span>FLUX DENSITY</span>
+        <span className="text-[8px] opacity-50">BOLT</span>
+      </div>
+      <div className="space-y-4">
+        <div className="text-center">
+          <div className="text-2xl md:text-3xl font-bold" style={{ color: '#FFB300' }}>{fluxDensity.toFixed(4)}</div>
+          <div className="text-[8px] opacity-50">DENSITY_UNITS</div>
+        </div>
+        <div className="space-y-2 font-mono text-[9px] md:text-[10px]" style={{ color: '#c4c7c8' }}>
+          <div className="flex justify-between">
+            <span>Alpha Flux:</span>
+            <span style={{ color: '#FFB300' }}>{(flux * 1.5).toFixed(4)}</span>
+          </div>
+          <div className="flex justify-between">
+            <span>Noise Attenuation:</span>
+            <span>{(1 - noiseFilter).toFixed(4)}</span>
+          </div>
+          <div className="flex justify-between">
+            <span>Thermal Gain:</span>
+            <span>{(1 + temperature).toFixed(4)}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function QuantumAlignmentPanel() {
+  const flux = useNodeStore((s) => s.flux);
+  const temperature = useHUDStore((s) => s.temperature);
+  const noiseFilter = useHUDStore((s) => s.noiseFilter);
+
+  const alignment = Math.sqrt(flux * temperature * (1 - noiseFilter));
+
+  return (
+    <div className="backdrop-blur-2xl border p-2 md:p-4 rounded-lg" style={{ backgroundColor: 'rgba(10, 10, 10, 0.6)', borderColor: 'rgba(255, 255, 255, 0.1)' }}>
+      <div className="text-[10px] md:text-[11px] mb-2 md:mb-3 pb-2 border-b flex justify-between items-center" style={{ color: '#FFB300', borderColor: 'rgba(255, 255, 255, 0.1)' }}>
+        <span>QUANTUM ALIGNMENT</span>
+        <span className="text-[8px] opacity-50">ARCHITECTURE</span>
+      </div>
+      <div className="space-y-4">
+        <div className="text-center">
+          <div className="text-2xl md:text-3xl font-bold" style={{ color: '#FFB300' }}>{alignment.toFixed(4)}</div>
+          <div className="text-[8px] opacity-50">ALIGNMENT_SCORE</div>
+        </div>
+        <div className="space-y-2 font-mono text-[9px] md:text-[10px]" style={{ color: '#c4c7c8' }}>
+          <div className="flex justify-between">
+            <span>Veracity:</span>
+            <span style={{ color: '#FFB300' }}>{flux.toFixed(4)}</span>
+          </div>
+          <div className="flex justify-between">
+            <span>Coherence:</span>
+            <span>{temperature.toFixed(4)}</span>
+          </div>
+          <div className="flex justify-between">
+            <span>Stability:</span>
+            <span>{(1 - noiseFilter).toFixed(4)}</span>
+          </div>
+        </div>
       </div>
     </div>
   );
