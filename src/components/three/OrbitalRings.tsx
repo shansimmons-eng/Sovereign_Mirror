@@ -52,6 +52,7 @@ export function ConcentricRings({ inverionAlpha, temperature }: ConcentricRingPr
   const middleRingRef = useRef<THREE.Group>(null!);
   const innerRingRef = useRef<THREE.Group>(null!);
   const crosshairRef = useRef<THREE.Group>(null!);
+  const coreRef = useRef<THREE.Group>(null!);
 
   const timeRef = useRef(0);
 
@@ -68,20 +69,25 @@ export function ConcentricRings({ inverionAlpha, temperature }: ConcentricRingPr
       innerRingRef.current.rotation.z = timeRef.current * 0.12;
     }
     if (crosshairRef.current) {
-      const pulse = 1 + Math.sin(timeRef.current * 2) * 0.1;
+      const pulse = 1 + Math.sin(timeRef.current * 2) * 0.15;
       crosshairRef.current.scale.setScalar(pulse);
+    }
+    if (coreRef.current) {
+      const breathe = 1 + Math.sin(timeRef.current * 0.8) * 0.08;
+      coreRef.current.scale.setScalar(breathe);
     }
   });
 
   const baseOpacity = 0.6 + temperature * 0.35;
   const haloOpacity = 0.5 + inverionAlpha * 0.4;
+  const coreIntensity = 0.7 + inverionAlpha * 0.3;
 
   return (
     <group position={[0, 0, 0]}>
-      {/* Outer glow halo */}
+      {/* Outer glow halo - large faint background glow */}
       <mesh rotation={[Math.PI / 2, 0, 0]}>
-        <ringGeometry args={[7.5, 8.5, 128]} />
-        <meshBasicMaterial color="#FFD79B" transparent opacity={haloOpacity * 0.12} side={THREE.DoubleSide} />
+        <ringGeometry args={[7.5, 12.0, 128]} />
+        <meshBasicMaterial color="#FFD79B" transparent opacity={haloOpacity * 0.08} side={THREE.DoubleSide} />
       </mesh>
 
       {/* Outer ring group - large sweeping rings */}
@@ -102,32 +108,56 @@ export function ConcentricRings({ inverionAlpha, temperature }: ConcentricRingPr
         <OrbitalRing radius={2.8} opacity={baseOpacity * 0.35} color="#FFB300" rotationSpeed={0} thickness={0.004} />
       </group>
 
+      {/* Central white-hot core glow */}
+      <group ref={coreRef}>
+        {/* Outermost glow */}
+        <mesh rotation={[Math.PI / 2, 0, 0]}>
+          <circleGeometry args={[1.2, 64]} />
+          <meshBasicMaterial color="#FFFFFF" transparent opacity={coreIntensity * 0.15} />
+        </mesh>
+        {/* Middle glow */}
+        <mesh rotation={[Math.PI / 2, 0, 0]}>
+          <circleGeometry args={[0.6, 64]} />
+          <meshBasicMaterial color="#FFD79B" transparent opacity={coreIntensity * 0.3} />
+        </mesh>
+        {/* Inner glow */}
+        <mesh rotation={[Math.PI / 2, 0, 0]}>
+          <circleGeometry args={[0.3, 64]} />
+          <meshBasicMaterial color="#FFFFFF" transparent opacity={coreIntensity * 0.6} />
+        </mesh>
+        {/* Core point */}
+        <mesh rotation={[Math.PI / 2, 0, 0]}>
+          <circleGeometry args={[0.12, 32]} />
+          <meshBasicMaterial color="#FFFFFF" transparent opacity={0.95} />
+        </mesh>
+      </group>
+
       {/* Central crosshair - prominent center marker */}
       <group ref={crosshairRef}>
         {/* Outer crosshair ring */}
         <mesh rotation={[Math.PI / 2, 0, 0]}>
-          <ringGeometry args={[0.35, 0.42, 32]} />
-          <meshBasicMaterial color="#FFD79B" transparent opacity={0.6 + inverionAlpha * 0.35} side={THREE.DoubleSide} />
+          <ringGeometry args={[0.45, 0.55, 32]} />
+          <meshBasicMaterial color="#FFD79B" transparent opacity={0.5 + inverionAlpha * 0.3} side={THREE.DoubleSide} />
         </mesh>
         {/* Inner crosshair ring */}
         <mesh rotation={[Math.PI / 2, 0, 0]}>
-          <ringGeometry args={[0.18, 0.22, 32]} />
+          <ringGeometry args={[0.25, 0.32, 32]} />
           <meshBasicMaterial color="#FFD79B" transparent opacity={0.4 + inverionAlpha * 0.3} side={THREE.DoubleSide} />
         </mesh>
         {/* Horizontal line */}
         <mesh rotation={[Math.PI / 2, 0, 0]}>
-          <planeGeometry args={[3.0, 0.012]} />
-          <meshBasicMaterial color="#FFD79B" transparent opacity={0.8} />
+          <planeGeometry args={[5.0, 0.01]} />
+          <meshBasicMaterial color="#FFD79B" transparent opacity={0.6} />
         </mesh>
         {/* Vertical line */}
         <mesh rotation={[Math.PI / 2, 0, 0]}>
-          <planeGeometry args={[0.012, 3.0]} />
-          <meshBasicMaterial color="#FFD79B" transparent opacity={0.8} />
+          <planeGeometry args={[0.01, 5.0]} />
+          <meshBasicMaterial color="#FFD79B" transparent opacity={0.6} />
         </mesh>
         {/* Center dot */}
         <mesh rotation={[Math.PI / 2, 0, 0]}>
-          <circleGeometry args={[0.06, 32]} />
-          <meshBasicMaterial color="#FFD79B" transparent opacity={0.9} />
+          <circleGeometry args={[0.08, 32]} />
+          <meshBasicMaterial color="#FFFFFF" transparent opacity={0.9} />
         </mesh>
       </group>
     </group>

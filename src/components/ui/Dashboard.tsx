@@ -97,6 +97,10 @@ export function Dashboard() {
         <main className="flex-1 relative flex flex-col overflow-hidden p-2 md:p-4 md:ml-64" style={{ backgroundColor: '#000000' }}>
           <div className="grid grid-cols-12 gap-2 md:gap-4 flex-1">
             <div className="col-span-12 lg:col-span-8 backdrop-blur-2xl rounded-lg p-2 md:p-4 flex flex-col relative overflow-hidden border" style={{ backgroundColor: 'rgba(10, 10, 10, 0.6)', borderColor: 'rgba(255, 255, 255, 0.1)', height: '50vh' }}>
+              {/* Background glow effect */}
+              <div className="absolute inset-0 pointer-events-none z-0" style={{
+                background: 'radial-gradient(circle at 50% 50%, rgba(255, 179, 0, 0.08) 0%, transparent 60%)'
+              }} />
               <div className="scanline" />
               <div className="flex justify-between items-start mb-1 md:mb-2 relative z-10">
                 <div>
@@ -112,6 +116,31 @@ export function Dashboard() {
               </div>
               <div className="flex-1 relative" style={{ minHeight: '250px', height: '250px' }}>
                 <ResonanceTrajectory />
+                {/* HUD Overlay - Top Left */}
+                <div className="absolute top-2 left-2 z-20 p-2 border backdrop-blur-md rounded" style={{ backgroundColor: 'rgba(10, 10, 10, 0.7)', borderColor: 'rgba(255, 255, 255, 0.1)' }}>
+                  <div className="text-[9px] font-mono text-amber-400 mb-1">RESONANCE TRAJECTORY</div>
+                  <div className="space-y-0.5 text-[9px] font-mono" style={{ color: '#c4c7c8' }}>
+                    <div className="flex justify-between gap-4"><span>dV:</span> <span style={{ color: '#ffffff' }}>~±1.42</span></div>
+                    <div className="flex justify-between gap-4"><span>FRAME:</span> <span style={{ color: '#FFB300' }}>16.6ms</span></div>
+                  </div>
+                </div>
+                {/* HUD Overlay - Top Right */}
+                <div className="absolute top-2 right-2 z-20 text-[9px] font-mono" style={{ color: '#c4c7c8' }}>
+                  INVERION_DIVIDE: SHRED_ACTIVE
+                </div>
+                {/* HUD Overlay - Bottom Left */}
+                <div className="absolute bottom-2 left-2 z-20 p-2 border backdrop-blur-md rounded" style={{ backgroundColor: 'rgba(10, 10, 10, 0.7)', borderColor: 'rgba(255, 255, 255, 0.1)' }}>
+                  <div className="text-[9px] font-mono mb-2" style={{ color: '#c4c7c8' }}>SYSTEM OVERVIEWS</div>
+                  <div className="space-y-1 text-[9px] font-mono" style={{ color: '#c4c7c8' }}>
+                    <div className="flex justify-between gap-4"><span>GASKET:</span> <span style={{ color: '#00FF41' }}>Level 4</span></div>
+                    <div className="flex justify-between gap-4"><span>DISP:</span> <span>~0.01</span></div>
+                  </div>
+                </div>
+                {/* HUD Overlay - Bottom Right */}
+                <div className="absolute bottom-2 right-2 z-20 flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: '#00FF41' }}></div>
+                  <span className="text-[9px] font-mono" style={{ color: '#c4c7c8' }}>0x4FF2A</span>
+                </div>
               </div>
               <div className="mt-1 md:mt-2 flex justify-between text-[9px] md:text-[10px] font-mono border-t pt-2" style={{ color: '#c4c7c8', borderColor: 'rgba(255, 255, 255, 0.1)' }}>
                 <span style={{ color: '#FFB300' }}>INVERION_DIVIDE</span>
