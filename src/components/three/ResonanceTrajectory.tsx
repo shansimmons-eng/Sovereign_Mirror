@@ -590,12 +590,8 @@ function KineticQuads() {
 
 function CameraRig() {
   useFrame((state) => {
-    const time = state.clock.getElapsedTime();
     const camera = state.camera;
-    const breathe = Math.sin(time * 0.3) * 0.1;
-    camera.position.x = breathe;
-    camera.position.y = breathe * 0.5;
-    camera.position.z = 14;
+    camera.position.set(0, 0, 20);
     camera.lookAt(0, 0, 0);
   });
   return null;
