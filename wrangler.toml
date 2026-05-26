@@ -10,3 +10,7 @@ node_version = "18"
 
 [install]
 quick = true
+
+[functions]
+  # Include all files in the functions directory
+  include = ["src/pages/functions/**/*"]
