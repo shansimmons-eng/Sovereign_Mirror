@@ -1,6 +1,7 @@
 /**
  * Cloudflare Worker to serve dynamic active_state.json
  * Generates state with varying bolt/grain values over time
+ * Rebuilt: 2026-05-25 18:49:00 - Force redeploy
  */
 
 addEventListener('fetch', event => {
