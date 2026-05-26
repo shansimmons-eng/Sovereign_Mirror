@@ -282,17 +282,13 @@ function KineticQuads() {
   const lastSyncStatusRef = useRef<string>('');
 
     const [visualPayload, setVisualPayload] = useState<VisualPayload>({ alpha: 0.75, noise: 0.15, temp: 0.5, bolt: 0, grain: 0 });
-    const [boltControl, setBoltControl] = useState(0.0);
-    const [grainControl, setGrainControl] = useState(0.0);
+    const [boltControl] = useState(0.0);
+    const [grainControl] = useState(0.0);
     
     const temperature = useHUDStore((s) => s.temperature);
     const noiseFilter = useHUDStore((s) => s.noiseFilter);
     const inverionAlpha = useNodeStore((s) => s.flux);
     const setSyncStatus = useNodeStore((s) => s.setSyncStatus);
-
-    // Use actual slider values (not just placeholder refs)
-    const effectiveBolt = boltControl;
-    const effectiveGrain = grainControl;
 
   // Fetch active_state.json every 500ms
   useEffect(() => {
