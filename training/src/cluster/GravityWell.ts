@@ -345,7 +345,7 @@ export class SemanticBridge {
     };
   }
 
-  private calculatePosition(fallacyType: string, temporalIndex: number, magnitude: number): [number, number, number] {
+  private calculatePosition(_fallacyType: string, temporalIndex: number, magnitude: number): [number, number, number] {
     const xSpacing = 2.0;
     const x = temporalIndex * xSpacing;
     const y = magnitude * 2.0;

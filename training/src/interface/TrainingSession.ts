@@ -27,7 +27,7 @@ export function useTrainingSession({ nodeId, onFrameCreated }: TrainingSessionPr
   const semanticBridge = new SemanticBridge(manifoldDeformer);
 
   const analyzeInput = useCallback((rawInput: string): ManifoldUpdate => {
-    const chunks = slidingWindow.ingest(rawInput);
+    slidingWindow.ingest(rawInput);
     
     const detectedFallacies: FallacyVector[] = [];
     let maxConfidence = 0;

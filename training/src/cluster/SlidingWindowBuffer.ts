@@ -2,17 +2,13 @@ import { SlidingWindowChunk } from '../types';
 
 export class SlidingWindowBuffer {
   private windowSize: number;
-  private overlap: number;
-  private stepSize: number;
   private buffer: string[] = [];
   private chunks: SlidingWindowChunk[] = [];
   private tokenCount = 0;
   private bypassLockoutUntil: number | null = null;
 
-  constructor(windowSize = 512, overlap = 0.5) {
+  constructor(windowSize = 512, _overlap = 0.5) {
     this.windowSize = windowSize;
-    this.overlap = overlap;
-    this.stepSize = Math.floor(windowSize * (1 - overlap));
   }
 
   private tokenize(text: string): string[] {
