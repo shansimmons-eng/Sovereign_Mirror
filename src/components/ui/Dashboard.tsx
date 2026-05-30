@@ -5,8 +5,9 @@ import { useHUDStore } from '../../state/stores/hudStore';
 import { useNodeStore } from '../../state/stores/nodeStore';
 import { SystemicSliders } from './SystemicSliders';
 import { PGateButton } from './PGateButton';
+import { CognoscentaeUltrans } from '../../../training/src/interface/CognoscentaeUltrans';
 
-type NavSection = 'analytics' | 'grain' | 'bolt' | 'architecture';
+type NavSection = 'analytics' | 'grain' | 'bolt' | 'architecture' | 'training';
 
 export function Dashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -31,6 +32,7 @@ export function Dashboard() {
     { id: 'grain', icon: 'grain', label: 'Trajectory Matrix', sectionKey: 'Trajectory Matrix' },
     { id: 'bolt', icon: 'bolt', label: 'Flux Density', sectionKey: 'Flux Density' },
     { id: 'architecture', icon: 'architecture', label: 'Quantum Alignment', sectionKey: 'Quantum Alignment' },
+    { id: 'training', icon: 'school', label: 'Node Training', sectionKey: 'Node Training' },
   ];
 
   return (
@@ -169,6 +171,14 @@ export function Dashboard() {
               {activeSection === 'grain' && <TrajectoryMatrixPanel />}
               {activeSection === 'bolt' && <FluxDensityPanel />}
               {activeSection === 'architecture' && <QuantumAlignmentPanel />}
+              {activeSection === 'training' && (
+                <div className="col-span-12 backdrop-blur-2xl border p-2 md:p-4 rounded-lg" style={{ backgroundColor: 'rgba(10, 10, 10, 0.6)', borderColor: 'rgba(255, 255, 255, 0.1)', height: '50vh' }}>
+                  <div className="text-[10px] md:text-[11px] mb-2 md:mb-3 pb-2 border-b" style={{ color: '#FFB300', borderColor: 'rgba(255, 255, 255, 0.1)' }}>NODE TRAINING - COGNOSCENTAE ULTRANS</div>
+                  <div className="flex-1" style={{ height: 'calc(100% - 40px)' }}>
+                    <CognoscentaeUltrans />
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="col-span-12 backdrop-blur-2xl border p-2 md:p-4 rounded-lg flex-1 min-h-[120px] md:min-h-0" style={{ backgroundColor: 'rgba(10, 10, 10, 0.6)', borderColor: 'rgba(255, 255, 255, 0.1)' }}>
