@@ -18,16 +18,16 @@ export function CognoscentaeUltrans() {
     analyzeInput,
     triggerIntercept,
     resolveIntercept,
-    setCurrentInput,
   } = useTrainingSession({ nodeId: 'NODE_001', onFrameCreated: handleFrameCreated });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const text = e.target.value;
     setInputText(text);
-    setCurrentInput(text);
+  };
 
-    if (text.trim()) {
-      const result = analyzeInput(text);
+  const handleAnalyze = () => {
+    if (inputText.trim()) {
+      const result = analyzeInput(inputText);
       if (result.inverion_triggered || result.bypass_triggered) {
         triggerIntercept();
       }
@@ -79,7 +79,26 @@ export function CognoscentaeUltrans() {
             onChange={handleInputChange}
             placeholder="Enter your statement for analysis..."
             disabled={interceptActive}
+            style={{ width: '100%', minHeight: '80px', background: '#0a0a0a', border: '1px solid rgba(255,179,0,0.3)', color: '#fff', padding: '8px', fontFamily: 'monospace', fontSize: '12px', resize: 'vertical' }}
           />
+          <button
+            onClick={handleAnalyze}
+            disabled={interceptActive || !inputText.trim()}
+            style={{
+              marginTop: '8px',
+              padding: '8px 16px',
+              background: inputText.trim() && !interceptActive ? '#FFB300' : '#333',
+              color: inputText.trim() && !interceptActive ? '#000' : '#666',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: inputText.trim() && !interceptActive ? 'pointer' : 'not-allowed',
+              fontFamily: 'monospace',
+              fontSize: '11px',
+              fontWeight: 'bold',
+            }}
+          >
+            ANALYZE
+          </button>
           <div className="fallacy-spectrograph">
             <span className="spectrograph-label">FALLACY SPECTROGRAPH</span>
             {detectedFallacies.length === 0 ? (
