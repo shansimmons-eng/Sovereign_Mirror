@@ -17,9 +17,9 @@ from functools import wraps
 import threading
 import time
 
-from .real_time_bridge import get_bridge, initialize_bridge, SimulationBridge
-from .model import SimulationConfig
-from .network import NetworkTopology
+from real_time_bridge import get_bridge, initialize_bridge, SimulationBridge
+from model import SimulationConfig
+from network import NetworkTopology
 
 
 def create_app(bridge: SimulationBridge = None) -> Flask:

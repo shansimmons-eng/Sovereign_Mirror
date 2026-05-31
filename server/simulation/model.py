@@ -13,9 +13,9 @@ from pathlib import Path
 import json
 import random
 
-from .agents import RealNodeAgent, AgentConfig, Strategy, InverionState
-from .game_logic import GameEngine
-from .network import AgentNetwork, NetworkTopology
+from agents import RealNodeAgent, AgentConfig, Strategy, InverionState
+from game_logic import GameEngine
+from network import AgentNetwork, NetworkTopology
 
 
 # Paths from setup directory

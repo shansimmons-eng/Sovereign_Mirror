@@ -3,16 +3,16 @@
 main.py - Entry point for simulation backend
 
 Usage:
-    python main.py                      # Run with defaults
-    python main.py --api-only          # Run API only (no simulation)
-    python main.py --headless          # Run simulation without API
-    python main.py --port 5002         # Custom port
+    cd /home/retroporter/cup/server/simulation
+    python3 main.py --port 5001
 """
 
 import argparse
 import sys
-import threading
-import time
+import os
+
+# Add directory to path so imports work
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from real_time_bridge import initialize_bridge, SimulationBridge
 from model import SimulationConfig

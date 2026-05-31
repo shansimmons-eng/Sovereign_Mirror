@@ -11,8 +11,8 @@ from pathlib import Path
 from typing import Optional, Callable, Dict
 import json
 
-from .model import RealTimeGovernanceModel, SimulationConfig, SimulationMetrics
-from .network import NetworkTopology
+from model import RealTimeGovernanceModel, SimulationConfig, SimulationMetrics
+from network import NetworkTopology
 
 
 class SimulationBridge:
