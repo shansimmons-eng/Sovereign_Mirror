@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ResonanceTrajectory } from '../three/ResonanceTrajectory';
 import { VeracityLog } from '../hud/VeracityLog';
 import { useHUDStore } from '../../state/stores/hudStore';
@@ -19,6 +19,8 @@ export function Dashboard() {
       'Trajectory Matrix': 'grain',
       'Flux Density': 'bolt',
       'Quantum Alignment': 'architecture',
+      'Node Training': 'training',
+      'ULTRANS': 'training',
     };
     const mapped = sectionMap[section];
     if (mapped) {
@@ -28,11 +30,11 @@ export function Dashboard() {
   };
 
   const navItems: { id: NavSection; icon: string; label: string; sectionKey: string }[] = [
-    { id: 'analytics', icon: 'analytics', label: 'Systemic Parameters', sectionKey: 'Systemic Parameters' },
-    { id: 'grain', icon: 'grain', label: 'Trajectory Matrix', sectionKey: 'Trajectory Matrix' },
-    { id: 'bolt', icon: 'bolt', label: 'Flux Density', sectionKey: 'Flux Density' },
-    { id: 'architecture', icon: 'architecture', label: 'Quantum Alignment', sectionKey: 'Quantum Alignment' },
-    { id: 'training', icon: 'school', label: 'Node Training', sectionKey: 'Node Training' },
+    { id: 'analytics', icon: 'analytics', label: 'Parameters', sectionKey: 'Systemic Parameters' },
+    { id: 'grain', icon: 'grain', label: 'Trajectory', sectionKey: 'Trajectory Matrix' },
+    { id: 'bolt', icon: 'bolt', label: 'Flux', sectionKey: 'Flux Density' },
+    { id: 'architecture', icon: 'architecture', label: 'Quantum', sectionKey: 'Quantum Alignment' },
+    { id: 'training', icon: 'psychology', label: 'Ultrans', sectionKey: 'ULTRANS' },
   ];
 
   return (
@@ -173,12 +175,17 @@ export function Dashboard() {
               {activeSection === 'architecture' && <QuantumAlignmentPanel />}
               {activeSection === 'training' && (
                 <div className="col-span-12 backdrop-blur-2xl border p-2 md:p-4 rounded-lg" style={{ backgroundColor: 'rgba(10, 10, 10, 0.6)', borderColor: 'rgba(255, 255, 255, 0.1)', height: '50vh' }}>
-                  <div className="text-[10px] md:text-[11px] mb-2 md:mb-3 pb-2 border-b" style={{ color: '#FFB300', borderColor: 'rgba(255, 255, 255, 0.1)' }}>NODE TRAINING - COGNOSCENTAE ULTRANS</div>
+                  <div className="text-[10px] md:text-[11px] mb-2 md:mb-3 pb-2 border-b flex justify-between items-center" style={{ color: '#FFB300', borderColor: 'rgba(255, 255, 255, 0.1)' }}>
+                    <span>COGNOSCENTAE ULTRANS</span>
+                    <span className="text-[8px] opacity-50">PSYCHOLOGY</span>
+                  </div>
                   <div className="flex-1" style={{ height: 'calc(100% - 40px)' }}>
                     <CognoscentaeUltrans />
                   </div>
                 </div>
               )}
+
+              {activeSection === 'training' && <SimulationMetricsPanel />}
             </div>
 
             <div className="col-span-12 backdrop-blur-2xl border p-2 md:p-4 rounded-lg flex-1 min-h-[120px] md:min-h-0" style={{ backgroundColor: 'rgba(10, 10, 10, 0.6)', borderColor: 'rgba(255, 255, 255, 0.1)' }}>
@@ -369,21 +376,87 @@ function QuantumAlignmentPanel() {
           <div className="text-2xl md:text-3xl font-bold" style={{ color: '#FFB300' }}>{alignment.toFixed(4)}</div>
           <div className="text-[8px] opacity-50">ALIGNMENT_SCORE</div>
         </div>
-        <div className="space-y-2 font-mono text-[9px] md:text-[10px]" style={{ color: '#c4c7c8' }}>
-          <div className="flex justify-between">
-            <span>Veracity:</span>
-            <span style={{ color: '#FFB300' }}>{flux.toFixed(4)}</span>
-          </div>
-          <div className="flex justify-between">
-            <span>Coherence:</span>
-            <span>{temperature.toFixed(4)}</span>
-          </div>
+<div className="space-y-2 font-mono text-[9px] md:text-[10px]" style={{ color: '#c4c7c8' }}>
           <div className="flex justify-between">
             <span>Stability:</span>
             <span>{(1 - noiseFilter).toFixed(4)}</span>
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+function SimulationMetricsPanel() {
+  const [metrics, setMetrics] = useState<{
+    collective_v_active: number;
+    cascade_risk: number;
+    pgate_success_rate: number;
+    agent_count: number;
+    cooperation_rate: number;
+    defection_rate: number;
+  } | null>(null);
+
+  useEffect(() => {
+    const fetchMetrics = async () => {
+      try {
+        const res = await fetch('http://localhost:5001/api/simulation/metrics');
+        if (res.ok) {
+          const data = await res.json();
+          setMetrics(data);
+        }
+      } catch {
+        // Simulation not running
+      }
+    };
+
+    fetchMetrics();
+    const interval = setInterval(fetchMetrics, 2000);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <div className="backdrop-blur-2xl border p-2 md:p-4 rounded-lg" style={{ backgroundColor: 'rgba(10, 10, 10, 0.6)', borderColor: 'rgba(255, 255, 255, 0.1)' }}>
+      <div className="text-[10px] md:text-[11px] mb-2 md:mb-3 pb-2 border-b flex justify-between items-center" style={{ color: '#FFB300', borderColor: 'rgba(255, 255, 255, 0.1)' }}>
+        <span>AGENT SIMULATION</span>
+        <span className="text-[8px] opacity-50">LIVE</span>
+      </div>
+      {metrics ? (
+        <div className="space-y-3 font-mono text-[9px] md:text-[10px]" style={{ color: '#c4c7c8' }}>
+          <div className="grid grid-cols-3 gap-2 text-center">
+            <div>
+              <div className="text-lg md:text-xl font-bold" style={{ color: '#00FF41' }}>{metrics.collective_v_active.toFixed(3)}</div>
+              <div className="text-[8px] opacity-50">V_ACTIVE</div>
+            </div>
+            <div>
+              <div className="text-lg md:text-xl font-bold" style={{ color: metrics.cascade_risk > 0.5 ? '#FF4500' : '#FFB300' }}>{metrics.cascade_risk.toFixed(3)}</div>
+              <div className="text-[8px] opacity-50">CASCADE_RISK</div>
+            </div>
+            <div>
+              <div className="text-lg md:text-xl font-bold" style={{ color: '#FFB300' }}>{metrics.pgate_success_rate.toFixed(3)}</div>
+              <div className="text-[8px] opacity-50">PGATE</div>
+            </div>
+          </div>
+          <div className="grid grid-cols-3 gap-2 text-center">
+            <div>
+              <div className="text-lg md:text-xl font-bold" style={{ color: '#ffffff' }}>{metrics.agent_count}</div>
+              <div className="text-[8px] opacity-50">AGENTS</div>
+            </div>
+            <div>
+              <div className="text-lg md:text-xl font-bold" style={{ color: '#00FF41' }}>{metrics.cooperation_rate.toFixed(2)}</div>
+              <div className="text-[8px] opacity-50">COOP_RATE</div>
+            </div>
+            <div>
+              <div className="text-lg md:text-xl font-bold" style={{ color: '#FF4500' }}>{metrics.defection_rate.toFixed(2)}</div>
+              <div className="text-[8px] opacity-50">DEFECT_RATE</div>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="text-center py-4 text-[10px]" style={{ color: '#636565' }}>
+          Simulation not running on localhost:5001
+        </div>
+      )}
     </div>
   );
 }
