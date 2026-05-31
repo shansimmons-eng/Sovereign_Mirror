@@ -26,6 +26,13 @@ def create_app(bridge: SimulationBridge = None) -> Flask:
     """Create and configure Flask app"""
     app = Flask(__name__)
 
+    @app.after_request
+    def add_cors(response):
+        response.headers["Access-Control-Allow-Origin"] = "*"
+        response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
+        response.headers["Access-Control-Allow-Headers"] = "Content-Type"
+        return response
+
     _bridge = bridge or get_bridge()
 
     def require_sim(f):
