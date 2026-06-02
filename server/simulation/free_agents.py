@@ -188,7 +188,19 @@ def _query_openrouter_model(model: str, text: str, key: str) -> AgentResult:
                 reasoning="",
                 error=str(data["error"])[:100],
             )
-        content = data["choices"][0]["message"]["content"]
+        message = data["choices"][0]["message"]
+        # Some models return reasoning only with null content - use reasoning as fallback
+        content = message.get("content") or message.get("reasoning") or ""
+        if not content:
+            return AgentResult(
+                agent="openrouter",
+                model=model,
+                detected=False,
+                fallacy_type=None,
+                confidence=0.0,
+                reasoning="",
+                error="Empty content and reasoning in response",
+            )
         result = _parse_llm_json(content)
         if result:
             return AgentResult(
