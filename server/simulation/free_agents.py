@@ -29,8 +29,9 @@ DEEPINFRA_URL = "https://api.deepinfra.com/v1/openai/chat/completions"
 
 # Preferred free models - queried concurrently
 PREFERRED_FREE_MODELS = [
-    "openai/gpt-oss-120b:free",
-    "nvidia/nemotron-3-super-120b-a12b:free",
+    # OpenRouter free models - unreliable in WSL, kept for non-WSL deployments
+    # "openai/gpt-oss-120b:free",
+    # "nvidia/nemotron-3-super-120b-a12b:free",
     # "moonshotai/kimi-k2.6:free",
     # "qwen/qwen3-next-80b-a3b-instruct:free",
     # "z-ai/glm-4.5-air:free",
