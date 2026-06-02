@@ -28,12 +28,12 @@ OPENROUTER_MODELS_URL = "https://openrouter.ai/api/v1/models"
 
 # Preferred free models - queried concurrently
 PREFERRED_FREE_MODELS = [
-    "moonshotai/kimi-k2:free",
-    "qwen/qwen3-235b-a22b:free",
     "openai/gpt-4o:free",
-    "z-ai/glm-4.5-air:free",
     "nvidia/llama-3.1-nemotron-70b-instruct:free",
-    "nousresearch/hermes-3-llama-3.1-405b:free",
+    # "moonshotai/kimi-k2:free",
+    # "qwen/qwen3-235b-a22b:free",
+    # "z-ai/glm-4.5-air:free",
+    # "nousresearch/hermes-3-llama-3.1-405b:free",
 ]
 
 SYSTEM_PROMPT = """You are a logical fallacy detection expert. Analyze the statement and determine if it contains a logical fallacy.
