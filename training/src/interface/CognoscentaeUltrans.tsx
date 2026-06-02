@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { InverionState, FallacyVector } from '../types';
 import { useTrainingSession } from './TrainingSession';
 import { FALLACY_CRITICAL_THRESHOLD } from '../types';
@@ -7,27 +7,24 @@ export function CognoscentaeUltrans() {
   const [inputText, setInputText] = useState('');
   const [refactorText, setRefactorText] = useState('');
 
-  const handleFrameCreated = useCallback((frame: { detectedFallacies: FallacyVector[]; inverionState: InverionState; radicalVeracityPassed: boolean }, rawInput: string) => {
-    console.log('Frame created:', frame, rawInput);
+  const handleFrameCreated = useCallback((_frame: { detectedFallacies: FallacyVector[]; inverionState: InverionState; radicalVeracityPassed: boolean }, _rawInput: string) => {
+    // Frame creation handled via statementLog
   }, []);
 
   const {
     interceptActive,
     detectedFallacies,
+    statementLog,
+    inverionState,
     metrics,
     analyzeInput,
     triggerIntercept,
     resolveIntercept,
   } = useTrainingSession({ nodeId: 'NODE_001', onFrameCreated: handleFrameCreated });
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const text = e.target.value;
-    setInputText(text);
-  };
-
-  const handleAnalyze = () => {
+  const handleAnalyze = async () => {
     if (inputText.trim()) {
-      const result = analyzeInput(inputText);
+      const result = await analyzeInput(inputText);
       if (result.inverion_triggered || result.bypass_triggered) {
         triggerIntercept();
       }
@@ -76,7 +73,7 @@ export function CognoscentaeUltrans() {
           <textarea
             className="input-area"
             value={inputText}
-            onChange={handleInputChange}
+            onChange={(e) => setInputText(e.target.value)}
             placeholder="Enter your statement for analysis..."
             disabled={interceptActive}
             style={{ width: '100%', minHeight: '80px', background: '#0a0a0a', border: '1px solid rgba(255,179,0,0.3)', color: '#fff', padding: '8px', fontFamily: 'monospace', fontSize: '12px', resize: 'vertical' }}
@@ -154,6 +151,31 @@ export function CognoscentaeUltrans() {
               <span className="metric-value">{metrics.currentStreak} / {metrics.maxStreak}</span>
             </div>
           </div>
+          <div className="statement-log">
+            <span className="log-label">STATEMENT LOG</span>
+            <div className="log-entries">
+              {statementLog.length === 0 ? (
+                <div className="log-empty">No statements analyzed</div>
+              ) : (
+                statementLog.slice(0, 5).map((entry) => (
+                  <div key={entry.id} className="log-entry">
+                    <div className="log-text">{entry.text.substring(0, 60)}{entry.text.length > 60 ? '...' : ''}</div>
+                    <div className="log-meta">
+                      <span className={`log-state ${entry.radicalVeracityPassed ? 'passed' : 'failed'}`}>
+                        {entry.radicalVeracityPassed ? 'PASS' : 'FAIL'}
+                      </span>
+                      <span className="log-count">{entry.fallacies.length} fallacies</span>
+                      {entry.freeAgentValidation && (
+                        <span className="log-agent" title={entry.freeAgentValidation.reason}>
+                          [{entry.freeAgentValidation.agent.toUpperCase()}]
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
         </div>
       </main>
 
@@ -184,7 +206,7 @@ export function CognoscentaeUltrans() {
 
       <footer className="cui-footer">
         <div className="state-indicator">
-          Current State: {getStateLabel(InverionState.SUBJECTIVE_NOISE)}
+          Current State: {getStateLabel(inverionState)}
         </div>
         <div className="threshold-note">
           Threshold: {FALLACY_CRITICAL_THRESHOLD}

@@ -14,6 +14,7 @@ Flask API endpoints for:
 
 from flask import Flask, jsonify, request
 from functools import wraps
+from typing import Optional
 import threading
 import time
 
@@ -22,7 +23,7 @@ from model import SimulationConfig
 from network import NetworkTopology
 
 
-def create_app(bridge: SimulationBridge = None) -> Flask:
+def create_app(bridge: Optional[SimulationBridge] = None) -> Flask:
     """Create and configure Flask app"""
     app = Flask(__name__)
 
@@ -47,14 +48,14 @@ def create_app(bridge: SimulationBridge = None) -> Flask:
         return decorated
 
     @app.route("/api/simulation/state", methods=["GET"])
+    @require_sim
     def get_state():
-        """Get current simulation state"""
         state = _bridge.get_state()
         return jsonify(state)
 
     @app.route("/api/simulation/metrics", methods=["GET"])
+    @require_sim
     def get_metrics():
-        """Get latest simulation metrics"""
         metrics = _bridge.get_metrics()
         return jsonify(
             {
@@ -72,29 +73,28 @@ def create_app(bridge: SimulationBridge = None) -> Flask:
         )
 
     @app.route("/api/simulation/time-series", methods=["GET"])
+    @require_sim
     def get_time_series():
-        """Get historical time series data"""
         limit = request.args.get("limit", 100, type=int)
         state = _bridge.get_state()
         time_series = state.get("time_series", [])[-limit:]
         return jsonify({"time_series": time_series})
 
     @app.route("/api/simulation/agents", methods=["GET"])
+    @require_sim
     def get_agents():
-        """Get agent states"""
         limit = request.args.get("limit", 20, type=int)
         state = _bridge.get_state()
         agents = state.get("agent_states", [])[:limit]
         return jsonify({"agents": agents})
 
     @app.route("/api/simulation/start", methods=["POST"])
+    @require_sim
     def start_simulation():
-        """Start the simulation"""
         if _bridge.is_running:
             return jsonify(
                 {"status": "already_running", "timestep": _bridge.model.timestep}
             )
-
         _bridge.start()
         return jsonify(
             {
@@ -105,25 +105,20 @@ def create_app(bridge: SimulationBridge = None) -> Flask:
         )
 
     @app.route("/api/simulation/stop", methods=["POST"])
+    @require_sim
     def stop_simulation():
-        """Stop the simulation"""
         _bridge.stop()
-        return jsonify(
-            {
-                "status": "stopped",
-                "final_timestep": _bridge.model.timestep,
-            }
-        )
+        return jsonify({"status": "stopped", "final_timestep": _bridge.model.timestep})
 
     @app.route("/api/simulation/reset", methods=["POST"])
+    @require_sim
     def reset_simulation():
-        """Reset the simulation"""
         _bridge.reset()
         return jsonify({"status": "reset"})
 
     @app.route("/api/simulation/config", methods=["GET", "POST"])
+    @require_sim
     def config_simulation():
-        """Get or update simulation configuration"""
         if request.method == "GET":
             config = _bridge.model.config
             return jsonify(
@@ -137,10 +132,7 @@ def create_app(bridge: SimulationBridge = None) -> Flask:
                 }
             )
 
-        # POST - update config
         data = request.get_json() or {}
-
-        # Update config values
         config = _bridge.model.config
 
         if "n_initial_agents" in data:
@@ -168,8 +160,8 @@ def create_app(bridge: SimulationBridge = None) -> Flask:
         )
 
     @app.route("/api/simulation/step", methods=["POST"])
+    @require_sim
     def step_simulation():
-        """Advance simulation one step (for debugging)"""
         metrics = _bridge.model.step()
         return jsonify(
             {
@@ -180,15 +172,17 @@ def create_app(bridge: SimulationBridge = None) -> Flask:
         )
 
     @app.route("/api/network/stats", methods=["GET"])
+    @require_sim
     def get_network_stats():
-        """Get network statistics"""
         state = _bridge.get_state()
-        network = state.get("network", {})
-        return jsonify(network)
+        return jsonify(state.get("network", {}))
 
     @app.route("/api/health", methods=["GET"])
     def health():
-        """Health check endpoint"""
+        if _bridge is None:
+            return jsonify(
+                {"status": "error", "error": "Simulation bridge not initialized"}
+            ), 500
         return jsonify(
             {
                 "status": "ok",
@@ -201,7 +195,9 @@ def create_app(bridge: SimulationBridge = None) -> Flask:
     return app
 
 
-def run_api(bridge: SimulationBridge = None, host: str = "0.0.0.0", port: int = 5001):
+def run_api(
+    bridge: Optional[SimulationBridge] = None, host: str = "0.0.0.0", port: int = 5001
+):
     """Run the Flask API server"""
     app = create_app(bridge)
     app.run(host=host, port=port, debug=False, threaded=True)

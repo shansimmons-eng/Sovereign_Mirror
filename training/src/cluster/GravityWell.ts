@@ -71,7 +71,7 @@ export class GravityWell {
 }
 
 export class GravityWellRegistry {
-  private wells: FallacyWell[] = [];
+  private wells: GravityWell[] = [];
   private maxWells: number;
 
   constructor(maxWells = 50) {
@@ -82,13 +82,22 @@ export class GravityWellRegistry {
     if (this.wells.length >= this.maxWells) {
       this.wells.shift();
     }
-    this.wells.push(well);
+    // Convert plain FallacyWell into a proper GravityWell instance
+    const instance = new GravityWell(
+      well.fallacyType,
+      well.position,
+      well.magnitude,
+      well.persistence,
+      well.depth,
+      well.parentId
+    );
+    this.wells.push(instance);
   }
 
   removeWell(position: [number, number, number]): void {
-    this.wells = this.wells.filter(w => 
-      w.position[0] !== position[0] || 
-      w.position[1] !== position[1] || 
+    this.wells = this.wells.filter(w =>
+      w.position[0] !== position[0] ||
+      w.position[1] !== position[1] ||
       w.position[2] !== position[2]
     );
   }
@@ -101,14 +110,13 @@ export class GravityWellRegistry {
     const displacements = new Float32Array(vertexCount * 3);
 
     for (const well of this.wells) {
-      const gravityWell = well as GravityWell;
       for (let i = 0; i < vertexCount; i++) {
         const pos: [number, number, number] = [
           vertexPositions[i * 3],
           vertexPositions[i * 3 + 1],
           vertexPositions[i * 3 + 2],
         ];
-        const disp = gravityWell.calculateDisplacement(pos);
+        const disp = well.calculateDisplacement(pos);
         displacements[i * 3] += disp[0];
         displacements[i * 3 + 1] += disp[1];
         displacements[i * 3 + 2] += disp[2];
@@ -122,13 +130,12 @@ export class GravityWellRegistry {
     const zOffsets = new Float32Array(vertexCount);
 
     for (const well of this.wells) {
-      const gravityWell = well as GravityWell;
       for (let i = 0; i < vertexCount; i++) {
-        const dx = vertexPositions[i * 3] - gravityWell.position[0];
-        const dy = vertexPositions[i * 3 + 1] - gravityWell.position[1];
-        const dz = vertexPositions[i * 3 + 2] - gravityWell.position[2];
+        const dx = vertexPositions[i * 3] - well.position[0];
+        const dy = vertexPositions[i * 3 + 1] - well.position[1];
+        const dz = vertexPositions[i * 3 + 2] - well.position[2];
         const distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
-        zOffsets[i] += gravityWell.getZOffset(distance);
+        zOffsets[i] += well.getZOffset(distance);
       }
     }
 

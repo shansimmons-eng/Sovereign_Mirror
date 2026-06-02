@@ -6,6 +6,8 @@ mesa>=0.9.0
 numpy>=1.24.0
 networkx>=3.0
 requests>=2.31.0
+transformers>=4.36.0
+torch>=2.0.0
 
 # Optional: for Jupyter visualization
 # jupyter>=1.0.0

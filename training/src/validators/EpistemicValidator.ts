@@ -3,7 +3,6 @@ import {
   FALLACY_CRITICAL_THRESHOLD,
   FALLACY_ID_REGEX,
   UUID_REGEX,
-  FallacyVector,
 } from '../types';
 
 export class EpistemicValidator {

@@ -27,6 +27,7 @@ export function Dashboard() {
       setActiveSection(mapped);
       setSidebarOpen(false);
     }
+    // Placeholder nav items (sensors, network_ping, settings) are intentionally no-ops
   };
 
   const navItems: { id: NavSection; icon: string; label: string; sectionKey: string }[] = [
