@@ -96,44 +96,65 @@ def _parse_llm_json(content: str) -> Optional[dict]:
 
 
 def _query_openrouter_model(model: str, text: str, key: str) -> AgentResult:
-    """Query a single OpenRouter model."""
+    """Query a single OpenRouter model. Uses curl subprocess as fallback for WSL DNS issues."""
+    payload = json.dumps(
+        {
+            "model": model,
+            "messages": [
+                {"role": "system", "content": SYSTEM_PROMPT},
+                {
+                    "role": "user",
+                    "content": f"Analyze this statement for logical fallacies: {text}",
+                },
+            ],
+            "temperature": 0.1,
+            "max_tokens": 200,
+        }
+    )
+
+    # Try urllib first, fall back to curl subprocess (WSL DNS workaround)
+    response_text = None
+
     try:
         req = urllib.request.Request(
             OPENROUTER_URL,
-            data=json.dumps(
-                {
-                    "model": model,
-                    "messages": [
-                        {"role": "system", "content": SYSTEM_PROMPT},
-                        {
-                            "role": "user",
-                            "content": f"Analyze this statement for logical fallacies: {text}",
-                        },
-                    ],
-                    "temperature": 0.1,
-                    "max_tokens": 200,
-                }
-            ).encode("utf-8"),
+            data=payload.encode("utf-8"),
             headers={
                 "Authorization": f"Bearer {key}",
                 "Content-Type": "application/json",
             },
             method="POST",
         )
+        with urllib.request.urlopen(req, timeout=15) as response:
+            response_text = response.read().decode("utf-8")
+    except Exception:
+        # Fallback: use curl subprocess (works even when WSL urllib DNS fails)
+        try:
+            import subprocess
 
-        with urllib.request.urlopen(req, timeout=30) as response:
-            data = json.loads(response.read().decode("utf-8"))
-            content = data["choices"][0]["message"]["content"]
-            result = _parse_llm_json(content)
-            if result:
-                return AgentResult(
-                    agent="openrouter",
-                    model=model,
-                    detected=bool(result.get("detected", False)),
-                    fallacy_type=result.get("fallacy_type"),
-                    confidence=float(result.get("confidence", 0.0)),
-                    reasoning=result.get("reasoning", ""),
-                )
+            result = subprocess.run(
+                [
+                    "curl",
+                    "-s",
+                    "--max-time",
+                    "20",
+                    "-X",
+                    "POST",
+                    OPENROUTER_URL,
+                    "-H",
+                    f"Authorization: Bearer {key}",
+                    "-H",
+                    "Content-Type: application/json",
+                    "-d",
+                    payload,
+                ],
+                capture_output=True,
+                text=True,
+                timeout=25,
+            )
+            if result.returncode == 0 and result.stdout:
+                response_text = result.stdout
+        except Exception as curl_err:
             return AgentResult(
                 agent="openrouter",
                 model=model,
@@ -141,10 +162,10 @@ def _query_openrouter_model(model: str, text: str, key: str) -> AgentResult:
                 fallacy_type=None,
                 confidence=0.0,
                 reasoning="",
-                error="Could not parse JSON response",
+                error=f"Both urllib and curl failed: {str(curl_err)[:80]}",
             )
-    except urllib.error.HTTPError as e:
-        body = e.read().decode() if e.fp else str(e)
+
+    if not response_text:
         return AgentResult(
             agent="openrouter",
             model=model,
@@ -152,7 +173,40 @@ def _query_openrouter_model(model: str, text: str, key: str) -> AgentResult:
             fallacy_type=None,
             confidence=0.0,
             reasoning="",
-            error=f"HTTP {e.code}: {body[:100]}",
+            error="Empty response",
+        )
+
+    try:
+        data = json.loads(response_text)
+        if "error" in data:
+            return AgentResult(
+                agent="openrouter",
+                model=model,
+                detected=False,
+                fallacy_type=None,
+                confidence=0.0,
+                reasoning="",
+                error=str(data["error"])[:100],
+            )
+        content = data["choices"][0]["message"]["content"]
+        result = _parse_llm_json(content)
+        if result:
+            return AgentResult(
+                agent="openrouter",
+                model=model,
+                detected=bool(result.get("detected", False)),
+                fallacy_type=result.get("fallacy_type"),
+                confidence=float(result.get("confidence", 0.0)),
+                reasoning=result.get("reasoning", ""),
+            )
+        return AgentResult(
+            agent="openrouter",
+            model=model,
+            detected=False,
+            fallacy_type=None,
+            confidence=0.0,
+            reasoning="",
+            error="Could not parse JSON response",
         )
     except Exception as e:
         return AgentResult(
@@ -232,7 +286,7 @@ def query_openrouter_concurrent(text: str) -> list[AgentResult]:
 
 
 def query_groq(text: str) -> AgentResult:
-    """Query Groq API."""
+    """Query Groq API via curl (avoids Cloudflare 403 on Python urllib User-Agent)."""
     key = _get_groq_key()
     if not key:
         return AgentResult(
@@ -244,42 +298,46 @@ def query_groq(text: str) -> AgentResult:
             reasoning="",
             error="GROQ_API_KEY not set",
         )
-    try:
-        req = urllib.request.Request(
-            GROQ_URL,
-            data=json.dumps(
+
+    payload = json.dumps(
+        {
+            "model": "llama-3.1-8b-instant",
+            "messages": [
+                {"role": "system", "content": SYSTEM_PROMPT},
                 {
-                    "model": "llama-3.1-8b-instant",
-                    "messages": [
-                        {"role": "system", "content": SYSTEM_PROMPT},
-                        {
-                            "role": "user",
-                            "content": f"Analyze this statement for logical fallacies: {text}",
-                        },
-                    ],
-                    "temperature": 0.1,
-                    "max_tokens": 200,
-                }
-            ).encode("utf-8"),
-            headers={
-                "Authorization": f"Bearer {key}",
-                "Content-Type": "application/json",
-            },
-            method="POST",
+                    "role": "user",
+                    "content": f"Analyze this statement for logical fallacies: {text}",
+                },
+            ],
+            "temperature": 0.1,
+            "max_tokens": 200,
+        }
+    )
+
+    try:
+        import subprocess
+
+        result = subprocess.run(
+            [
+                "curl",
+                "-s",
+                "--max-time",
+                "20",
+                "-X",
+                "POST",
+                GROQ_URL,
+                "-H",
+                f"Authorization: Bearer {key}",
+                "-H",
+                "Content-Type: application/json",
+                "-d",
+                payload,
+            ],
+            capture_output=True,
+            text=True,
+            timeout=25,
         )
-        with urllib.request.urlopen(req, timeout=30) as response:
-            data = json.loads(response.read().decode("utf-8"))
-            content = data["choices"][0]["message"]["content"]
-            result = _parse_llm_json(content)
-            if result:
-                return AgentResult(
-                    agent="groq",
-                    model="llama-3.1-8b-instant",
-                    detected=bool(result.get("detected", False)),
-                    fallacy_type=result.get("fallacy_type"),
-                    confidence=float(result.get("confidence", 0.0)),
-                    reasoning=result.get("reasoning", ""),
-                )
+        if result.returncode != 0 or not result.stdout:
             return AgentResult(
                 agent="groq",
                 model="llama-3.1-8b-instant",
@@ -287,10 +345,30 @@ def query_groq(text: str) -> AgentResult:
                 fallacy_type=None,
                 confidence=0.0,
                 reasoning="",
-                error="Could not parse JSON response",
+                error=f"curl failed: {result.stderr[:80]}",
             )
-    except urllib.error.HTTPError as e:
-        body = e.read().decode() if e.fp else str(e)
+        data = json.loads(result.stdout)
+        if "error" in data:
+            return AgentResult(
+                agent="groq",
+                model="llama-3.1-8b-instant",
+                detected=False,
+                fallacy_type=None,
+                confidence=0.0,
+                reasoning="",
+                error=str(data["error"])[:100],
+            )
+        content = data["choices"][0]["message"]["content"]
+        parsed = _parse_llm_json(content)
+        if parsed:
+            return AgentResult(
+                agent="groq",
+                model="llama-3.1-8b-instant",
+                detected=bool(parsed.get("detected", False)),
+                fallacy_type=parsed.get("fallacy_type"),
+                confidence=float(parsed.get("confidence", 0.0)),
+                reasoning=parsed.get("reasoning", ""),
+            )
         return AgentResult(
             agent="groq",
             model="llama-3.1-8b-instant",
@@ -298,7 +376,7 @@ def query_groq(text: str) -> AgentResult:
             fallacy_type=None,
             confidence=0.0,
             reasoning="",
-            error=f"HTTP {e.code}: {body[:100]}",
+            error="Could not parse JSON response",
         )
     except Exception as e:
         return AgentResult(
@@ -314,13 +392,18 @@ def query_groq(text: str) -> AgentResult:
 
 def compute_consensus(results: list[AgentResult]) -> dict:
     """Compute consensus across agent results."""
+    total = len(results)
     valid = [r for r in results if not r.error]
+
     if not valid:
         return {
             "detected": False,
             "confidence": 0.0,
             "agreement_rate": 0.0,
-            "reasoning": "All agents failed",
+            "agents_queried": total,
+            "agents_detected": 0,
+            "fallacy_type": None,
+            "reasoning": "All agents failed or unavailable",
         }
 
     detections = [r for r in valid if r.detected]
@@ -329,7 +412,6 @@ def compute_consensus(results: list[AgentResult]) -> dict:
         sum(r.confidence for r in detections) / len(detections) if detections else 0.0
     )
 
-    # Collect fallacy types from detecting agents
     fallacy_types = [r.fallacy_type for r in detections if r.fallacy_type]
     top_fallacy = (
         max(set(fallacy_types), key=fallacy_types.count) if fallacy_types else None

@@ -8,8 +8,8 @@ const ROBERTA_ENDPOINT = 'http://localhost:5002/classify-single';
 const FREE_AGENTS_ENDPOINT = 'http://localhost:5003/validate';
 const USE_ROBERTA = true;
 const USE_FREE_AGENTS = true;
-const ROBERTA_THRESHOLD = 0.60;
-const WORD_COUNT_THRESHOLD = 8;
+const ROBERTA_THRESHOLD = 0.60;  // Trigger free agent check above this confidence
+const WORD_COUNT_CAP = 200;       // Only skip free agents for very long inputs (performance)
 
 interface StatementLog {
   id: string;
@@ -89,11 +89,12 @@ export function useTrainingSession({ nodeId, onFrameCreated }: TrainingSessionPr
       }
     }
 
-    // Free agent validation for short high-confidence detections
+    // Free agent validation - triggers on any detection above confidence threshold
+    // Skip only for very long inputs (performance) - cap at 200 words
     const wordCount = rawInput.trim().split(/\s+/).length;
     let freeAgentValidation: StatementLog['freeAgentValidation'] = null;
 
-    if (USE_FREE_AGENTS && robertaResults.length > 0 && wordCount < WORD_COUNT_THRESHOLD && maxConfidence >= ROBERTA_THRESHOLD) {
+    if (USE_FREE_AGENTS && robertaResults.length > 0 && wordCount <= WORD_COUNT_CAP && maxConfidence >= ROBERTA_THRESHOLD) {
       try {
         const response = await fetch(FREE_AGENTS_ENDPOINT, {
           method: 'POST',
