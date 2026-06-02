@@ -19,7 +19,7 @@ import urllib.request
 import urllib.error
 from typing import Optional
 from dataclasses import dataclass, field
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import ThreadPoolExecutor
 from flask import Flask, request, jsonify
 
 GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
@@ -261,7 +261,7 @@ def _fetch_dynamic_free_models(key: str, limit: int = 6) -> list[str]:
 
 
 def query_openrouter_concurrent(text: str) -> list[AgentResult]:
-    """Query all preferred free models concurrently. Falls back to dynamic list if all fail."""
+    """Query all preferred free models serially. Falls back to dynamic list if all fail."""
     key = _get_openrouter_key()
     if not key:
         return [
@@ -276,28 +276,18 @@ def query_openrouter_concurrent(text: str) -> list[AgentResult]:
             )
         ]
 
-    models = list(PREFERRED_FREE_MODELS)
     results: list[AgentResult] = []
+    for model in PREFERRED_FREE_MODELS:
+        result = _query_openrouter_model(model, text, key)
+        results.append(result)
 
-    with ThreadPoolExecutor(max_workers=len(models)) as executor:
-        futures = {
-            executor.submit(_query_openrouter_model, model, text, key): model
-            for model in models
-        }
-        for future in as_completed(futures):
-            results.append(future.result())
-
-    # If all preferred models failed, fetch dynamic list and try those
+    # If all preferred models failed, fetch dynamic list and try those serially
     if all(r.error for r in results):
         dynamic_models = _fetch_dynamic_free_models(key)
         if dynamic_models:
-            with ThreadPoolExecutor(max_workers=len(dynamic_models)) as executor:
-                futures = {
-                    executor.submit(_query_openrouter_model, m, text, key): m
-                    for m in dynamic_models
-                }
-                dynamic_results = [f.result() for f in as_completed(futures)]
-            # Only return successes or fallback to original errors
+            dynamic_results = [
+                _query_openrouter_model(m, text, key) for m in dynamic_models
+            ]
             successes = [r for r in dynamic_results if not r.error]
             if successes:
                 return successes
