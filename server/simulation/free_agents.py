@@ -25,6 +25,7 @@ from flask import Flask, request, jsonify
 GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
 OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
 OPENROUTER_MODELS_URL = "https://openrouter.ai/api/v1/models"
+DEEPINFRA_URL = "https://api.deepinfra.com/v1/openai/chat/completions"
 
 # Preferred free models - queried concurrently
 PREFERRED_FREE_MODELS = [
@@ -109,7 +110,8 @@ def _query_openrouter_model(model: str, text: str, key: str) -> AgentResult:
                 },
             ],
             "temperature": 0.1,
-            "max_tokens": 500,  # Increased - reasoning models need tokens before outputting JSON
+            "max_tokens": 500,
+            "stream": False,  # Force non-streaming response
         }
     )
 
@@ -401,6 +403,112 @@ def query_groq(text: str) -> AgentResult:
         )
 
 
+def query_deepinfra(text: str) -> AgentResult:
+    """Query DeepInfra API - fast, cheap, reliable."""
+    key = os.environ.get("DEEPINFRA_API_KEY", "")
+    if not key:
+        return AgentResult(
+            agent="deepinfra",
+            model="meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo",
+            detected=False,
+            fallacy_type=None,
+            confidence=0.0,
+            reasoning="",
+            error="DEEPINFRA_API_KEY not set",
+        )
+
+    payload = json.dumps(
+        {
+            "model": "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo",
+            "messages": [
+                {"role": "system", "content": SYSTEM_PROMPT},
+                {
+                    "role": "user",
+                    "content": f"Analyze this statement for logical fallacies: {text}",
+                },
+            ],
+            "temperature": 0.1,
+            "max_tokens": 200,
+            "stream": False,
+        }
+    )
+
+    try:
+        import subprocess
+
+        result = subprocess.run(
+            [
+                "curl",
+                "-s",
+                "--max-time",
+                "20",
+                "-X",
+                "POST",
+                DEEPINFRA_URL,
+                "-H",
+                f"Authorization: Bearer {key}",
+                "-H",
+                "Content-Type: application/json",
+                "-d",
+                payload,
+            ],
+            capture_output=True,
+            text=True,
+            timeout=25,
+        )
+        if result.returncode != 0 or not result.stdout.strip():
+            return AgentResult(
+                agent="deepinfra",
+                model="meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo",
+                detected=False,
+                fallacy_type=None,
+                confidence=0.0,
+                reasoning="",
+                error=f"curl failed: {result.stderr[:80]}",
+            )
+        data = json.loads(result.stdout)
+        if "error" in data:
+            return AgentResult(
+                agent="deepinfra",
+                model="meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo",
+                detected=False,
+                fallacy_type=None,
+                confidence=0.0,
+                reasoning="",
+                error=str(data["error"])[:100],
+            )
+        content = data["choices"][0]["message"].get("content", "") or ""
+        parsed = _parse_llm_json(content)
+        if parsed:
+            return AgentResult(
+                agent="deepinfra",
+                model="meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo",
+                detected=bool(parsed.get("detected", False)),
+                fallacy_type=parsed.get("fallacy_type"),
+                confidence=float(parsed.get("confidence", 0.0)),
+                reasoning=parsed.get("reasoning", ""),
+            )
+        return AgentResult(
+            agent="deepinfra",
+            model="meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo",
+            detected=False,
+            fallacy_type=None,
+            confidence=0.0,
+            reasoning="",
+            error=f"Could not parse response: {content[:100]}",
+        )
+    except Exception as e:
+        return AgentResult(
+            agent="deepinfra",
+            model="meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo",
+            detected=False,
+            fallacy_type=None,
+            confidence=0.0,
+            reasoning="",
+            error=str(e)[:100],
+        )
+
+
 def compute_consensus(results: list[AgentResult]) -> dict:
     """Compute consensus across agent results."""
     total = len(results)
@@ -450,15 +558,16 @@ def validate():
     if len(text.strip()) < 5:
         return jsonify({"error": "Text too short"}), 400
 
-    # Run all agents concurrently
+    # Run groq and deepinfra concurrently, openrouter serially after
     with ThreadPoolExecutor(max_workers=2) as executor:
         groq_future = executor.submit(query_groq, text)
-        openrouter_future = executor.submit(query_openrouter_concurrent, text)
+        deepinfra_future = executor.submit(query_deepinfra, text)
 
     groq_result = groq_future.result()
-    openrouter_results = openrouter_future.result()
+    deepinfra_result = deepinfra_future.result()
+    openrouter_results = query_openrouter_concurrent(text)
 
-    all_results = [groq_result] + openrouter_results
+    all_results = [groq_result, deepinfra_result] + openrouter_results
     consensus = compute_consensus(all_results)
 
     return jsonify(
@@ -522,10 +631,11 @@ def main():
 
         with ThreadPoolExecutor(max_workers=2) as executor:
             groq_future = executor.submit(query_groq, args.text)
-            openrouter_future = executor.submit(query_openrouter_concurrent, args.text)
+            deepinfra_future = executor.submit(query_deepinfra, args.text)
 
         groq_result = groq_future.result()
-        openrouter_results = openrouter_future.result()
+        deepinfra_result = deepinfra_future.result()
+        openrouter_results = query_openrouter_concurrent(args.text)
 
         print("--- Groq ---")
         print(f"Detected: {groq_result.detected}")
@@ -535,7 +645,15 @@ def main():
         if groq_result.error:
             print(f"Error: {groq_result.error}")
 
-        print("\n--- OpenRouter (concurrent) ---")
+        print("\n--- DeepInfra ---")
+        print(f"Detected: {deepinfra_result.detected}")
+        print(f"Type: {deepinfra_result.fallacy_type}")
+        print(f"Confidence: {deepinfra_result.confidence}")
+        print(f"Reasoning: {deepinfra_result.reasoning}")
+        if deepinfra_result.error:
+            print(f"Error: {deepinfra_result.error}")
+
+        print("\n--- OpenRouter ---")
         for r in openrouter_results:
             print(f"\n  [{r.model}]")
             print(f"  Detected: {r.detected}")
@@ -545,7 +663,9 @@ def main():
             if r.error:
                 print(f"  Error: {r.error}")
 
-        consensus = compute_consensus([groq_result] + openrouter_results)
+        consensus = compute_consensus(
+            [groq_result, deepinfra_result] + openrouter_results
+        )
         print(f"\n--- CONSENSUS ---")
         print(f"Detected: {consensus['detected']}")
         print(
@@ -556,9 +676,10 @@ def main():
     else:
         print(f"Starting Free Agents server on port {args.port}")
         print("Endpoints:")
-        print("  POST /validate - Validate statement with all agents concurrently")
+        print("  POST /validate - Validate statement with all agents")
         print("  GET  /health   - Health check")
         print(f"\nGroq configured: {bool(_get_groq_key())}")
+        print(f"DeepInfra configured: {bool(os.environ.get('DEEPINFRA_API_KEY'))}")
         print(f"OpenRouter configured: {bool(_get_openrouter_key())}")
         print(f"Preferred models: {len(PREFERRED_FREE_MODELS)}")
         app.run(host="0.0.0.0", port=args.port, debug=False)
