@@ -108,7 +108,7 @@ def _query_openrouter_model(model: str, text: str, key: str) -> AgentResult:
                 },
             ],
             "temperature": 0.1,
-            "max_tokens": 200,
+            "max_tokens": 500,  # Increased - reasoning models need tokens before outputting JSON
         }
     )
 
@@ -189,18 +189,26 @@ def _query_openrouter_model(model: str, text: str, key: str) -> AgentResult:
                 error=str(data["error"])[:100],
             )
         message = data["choices"][0]["message"]
-        # Some models return reasoning only with null content - use reasoning as fallback
-        content = message.get("content") or message.get("reasoning") or ""
+        # Some reasoning models return null content - extract JSON from reasoning field
+        content = message.get("content") or ""
         if not content:
-            return AgentResult(
-                agent="openrouter",
-                model=model,
-                detected=False,
-                fallacy_type=None,
-                confidence=0.0,
-                reasoning="",
-                error="Empty content and reasoning in response",
+            reasoning_text = message.get("reasoning") or ""
+            # Try to find JSON in the reasoning output
+            json_match = re.search(
+                r'\{[^{}]*"detected"[^{}]*\}', reasoning_text, re.DOTALL
             )
+            if json_match:
+                content = json_match.group()
+            else:
+                return AgentResult(
+                    agent="openrouter",
+                    model=model,
+                    detected=False,
+                    fallacy_type=None,
+                    confidence=0.0,
+                    reasoning=reasoning_text[:200] if reasoning_text else "",
+                    error="Model returned only reasoning with no JSON output - increase max_tokens",
+                )
         result = _parse_llm_json(content)
         if result:
             return AgentResult(
