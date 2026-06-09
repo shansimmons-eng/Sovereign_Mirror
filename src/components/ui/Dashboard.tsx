@@ -99,9 +99,9 @@ export function Dashboard() {
           </div>
         </nav>
 
-        <main className="flex-1 relative flex flex-col overflow-hidden p-2 md:p-4 md:ml-64" style={{ backgroundColor: '#000000' }}>
-          <div className="grid grid-cols-12 gap-2 md:gap-4 flex-1">
-            <div className="col-span-12 lg:col-span-8 backdrop-blur-2xl rounded-lg p-2 md:p-4 flex flex-col relative overflow-hidden border" style={{ backgroundColor: 'rgba(10, 10, 10, 0.6)', borderColor: 'rgba(255, 255, 255, 0.1)', height: '50vh' }}>
+        <main className="flex-1 relative flex flex-col md:overflow-hidden md:ml-64 overflow-y-auto" style={{ backgroundColor: '#000000' }}>
+          <div className="grid grid-cols-12 gap-2 md:gap-4 p-2 md:p-4 md:flex-1 md:overflow-hidden">
+            <div className="col-span-12 lg:col-span-8 backdrop-blur-2xl rounded-lg p-2 md:p-4 flex flex-col relative overflow-hidden border md:min-h-0" style={{ backgroundColor: 'rgba(10, 10, 10, 0.6)', borderColor: 'rgba(255, 255, 255, 0.1)', minHeight: '50vh', height: '50vh' }}>
               {/* Background glow effect */}
               <div className="absolute inset-0 pointer-events-none z-0" style={{
                 background: 'radial-gradient(circle at 50% 50%, rgba(255, 179, 0, 0.08) 0%, transparent 60%)'
@@ -153,7 +153,7 @@ export function Dashboard() {
               </div>
             </div>
 
-            <div className="col-span-12 lg:col-span-4 flex flex-col gap-2 md:gap-4">
+            <div className="col-span-12 lg:col-span-4 flex flex-col gap-2 md:gap-4 md:min-h-0 md:overflow-y-auto">
               {activeSection === 'analytics' && (
                 <>
                   <div className="backdrop-blur-2xl border p-2 md:p-4 rounded-lg" style={{ backgroundColor: 'rgba(10, 10, 10, 0.6)', borderColor: 'rgba(255, 255, 255, 0.1)' }}>
@@ -175,12 +175,12 @@ export function Dashboard() {
               {activeSection === 'bolt' && <FluxDensityPanel />}
               {activeSection === 'architecture' && <QuantumAlignmentPanel />}
               {activeSection === 'training' && (
-                <div className="col-span-12 backdrop-blur-2xl border p-2 md:p-4 rounded-lg" style={{ backgroundColor: 'rgba(10, 10, 10, 0.6)', borderColor: 'rgba(255, 255, 255, 0.1)', height: '50vh' }}>
+                <div className="col-span-12 backdrop-blur-2xl border p-2 md:p-4 rounded-lg cui-wrapper" style={{ backgroundColor: 'rgba(10, 10, 10, 0.6)', borderColor: 'rgba(255, 255, 255, 0.1)' }}>
                   <div className="text-[10px] md:text-[11px] mb-2 md:mb-3 pb-2 border-b flex justify-between items-center" style={{ color: '#FFB300', borderColor: 'rgba(255, 255, 255, 0.1)' }}>
                     <span>COGNOSCENTAE ULTRANS</span>
                     <span className="text-[8px] opacity-50">PSYCHOLOGY</span>
                   </div>
-                  <div className="flex-1" style={{ height: 'calc(100% - 40px)' }}>
+                  <div className="cui-wrapper-inner">
                     <CognoscentaeUltrans />
                   </div>
                 </div>
@@ -401,7 +401,7 @@ function SimulationMetricsPanel() {
   useEffect(() => {
     const fetchMetrics = async () => {
       try {
-        const res = await fetch('http://localhost:5001/api/simulation/metrics');
+        const res = await fetch('/api/simulation/metrics');
         if (res.ok) {
           const data = await res.json();
           setMetrics(data);

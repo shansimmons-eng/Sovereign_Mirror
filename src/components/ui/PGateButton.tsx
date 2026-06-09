@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useHUDStore } from '../../state/stores/hudStore';
 import { useNodeStore } from '../../state/stores/nodeStore';
 import { engagePGate } from '../../services/apiService';
@@ -12,11 +13,23 @@ export function PGateButton(_props: PGateButtonProps) {
   const syncStatus = useNodeStore((s) => s.syncStatus);
   const syncProgress = useNodeStore((s) => s.syncProgress);
   const setSyncStatus = useNodeStore((s) => s.setSyncStatus);
+  const [testResult, setTestResult] = useState<{ level: number; status: string; canEngage: boolean; fluxAfter: number } | null>(null);
 
   const handleEngage = async () => {
     const targetLevel = flux > 0 ? flux : 0.75;
     const result = await engagePGate('resonance', targetLevel);
     console.log('[PGATE] Engagement result:', result);
+  };
+
+  const handleTestApi = async () => {
+    setTestResult(null);
+    const result = await engagePGate('resonance', 0.75);
+    const fluxAfter = useNodeStore.getState().flux;
+    if (result.ok && result.data) {
+      setTestResult({ level: result.data.level, status: result.data.status, canEngage: result.data.canEngage, fluxAfter });
+    } else {
+      setTestResult({ level: 0.75, status: `ERROR: ${result.error ?? 'unknown'}`, canEngage: false, fluxAfter });
+    }
   };
 
   const handleSyncClick = () => {
@@ -67,13 +80,24 @@ export function PGateButton(_props: PGateButtonProps) {
 
       <button
         className="pgate-test w-full py-2 font-mono text-xs mt-2"
-        onClick={async () => {
-          const result = await engagePGate('resonance', 0.75);
-          console.log('[PGATE] Direct engagement:', result);
-        }}
+        onClick={handleTestApi}
       >
         <span className="pgate-text-primary">Test API (0.75)</span>
       </button>
+
+      {testResult && (
+        <div className="mt-2 p-2 border text-[10px] font-mono" style={{ borderColor: testResult.canEngage ? '#2e7d32' : '#c62828', backgroundColor: testResult.canEngage ? 'rgba(46, 125, 50, 0.1)' : 'rgba(198, 40, 40, 0.1)' }}>
+          <div style={{ color: testResult.canEngage ? '#86EFAC' : '#FCA5A5', fontWeight: 'bold' }}>
+            {testResult.canEngage ? '✓' : '✗'} {testResult.status}
+          </div>
+          <div style={{ color: '#FFB300', marginTop: '2px' }}>
+            Target: {testResult.level.toFixed(3)} → Flux: {testResult.fluxAfter.toFixed(3)}
+          </div>
+          <div style={{ color: Math.abs(testResult.fluxAfter - 0.75) < 0.001 ? '#86EFAC' : '#FCA5A5', marginTop: '1px', fontSize: '9px' }}>
+            {Math.abs(testResult.fluxAfter - 0.75) < 0.001 ? '✓ Flux set to 0.75' : '✗ Flux mismatch'}
+          </div>
+        </div>
+      )}
 
       <div className="mt-3 text-center text-on-surface-variant font-mono text-xs">
         Tick Rate: {effectiveTickRate.toFixed(0)}ms | Flux: {flux.toFixed(3)}

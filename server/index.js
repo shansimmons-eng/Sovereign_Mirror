@@ -1,5 +1,6 @@
 import { createServer } from 'node:http';
 import { veracityGate, calculateQuorum, calculateAtrophyDecay, getThresholdWithEntropy } from './logic/kernel.js';
+import { getAllWeights, recordFeedback, applyVerdict, getRecentFeedback, recordAnalysis, getRecentAnalyses } from './feedbackStore.js';
 
 const PORT = 3001;
 const ALLOWED_ORIGINS = [
@@ -7,10 +8,12 @@ const ALLOWED_ORIGINS = [
   'http://localhost:4173',
   'https://kylosarc.org',
   'https://www.kylosarc.org',
+  'http://178.156.135.222',
+  'http://178.156.135.222:80',
 ];
 const MAX_BODY_SIZE = 4096;
 const RATE_LIMIT_WINDOW_MS = 60000;
-const RATE_LIMIT_MAX = 100;
+const RATE_LIMIT_MAX = 5000;
 const REQUEST_TIMEOUT_MS = 30000; // 30 second timeout for slow loris protection
 const requestCounts = new Map();
 
@@ -74,7 +77,8 @@ async function getRTSW() {
 }
 
 function getRateLimitKey(req) {
-  return req.socket.remoteAddress || 'unknown';
+  const ip = req.socket.remoteAddress || 'unknown';
+  return `${ip}|${req.url?.split('?')[0] ?? ''}`;
 }
 
 function isRateLimited(key) {
@@ -333,6 +337,78 @@ const server = createServer(async (req, res) => {
     return;
   }
 
+  if (url.pathname === '/api/feedback/weights' && req.method === 'GET') {
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ weights: getAllWeights(), timestamp: Date.now() }));
+    return;
+  }
+
+  if (url.pathname === '/api/feedback' && req.method === 'POST') {
+    let body = '';
+    let size = 0;
+    req.on('data', chunk => {
+      size += chunk.length;
+      if (size > MAX_BODY_SIZE * 4) { req.destroy(); return; }
+      body += chunk;
+    });
+    req.on('end', () => {
+      try {
+        const { statementId, fallacyId, text, verdict, agentScores } = JSON.parse(body);
+        if (!verdict || !['correct', 'incorrect'].includes(verdict)) {
+          res.writeHead(400, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: 'verdict must be "correct" or "incorrect"' }));
+          return;
+        }
+        const before = getAllWeights();
+        const after = applyVerdict({ verdict, agentScores: agentScores || {} });
+        recordFeedback({ statementId, fallacyId, text, verdict, agentScores, weightBefore: before, weightAfter: after });
+        console.log(`[FEEDBACK] ${verdict} on ${fallacyId || statementId} | weights: ${Object.entries(after).map(([k,v]) => `${k}=${v.weight.toFixed(2)}`).join(', ')}`);
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ ok: true, weights: after, timestamp: Date.now() }));
+      } catch (e) {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'Invalid JSON' }));
+      }
+    });
+    return;
+  }
+
+  if (url.pathname === '/api/feedback/history' && req.method === 'GET') {
+    const limit = Math.min(parseInt(url.searchParams.get('limit') || '50', 10), 500);
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ events: getRecentFeedback(limit), timestamp: Date.now() }));
+    return;
+  }
+
+  if (url.pathname === '/api/feedback/analyze' && req.method === 'POST') {
+    let body = '';
+    let size = 0;
+    req.on('data', chunk => {
+      size += chunk.length;
+      if (size > MAX_BODY_SIZE * 8) { req.destroy(); return; }
+      body += chunk;
+    });
+    req.on('end', () => {
+      try {
+        const payload = JSON.parse(body);
+        recordAnalysis(payload);
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ ok: true, timestamp: Date.now() }));
+      } catch (e) {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'Invalid JSON' }));
+      }
+    });
+    return;
+  }
+
+  if (url.pathname === '/api/feedback/analyses' && req.method === 'GET') {
+    const limit = Math.min(parseInt(url.searchParams.get('limit') || '50', 10), 500);
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ events: getRecentAnalyses(limit), timestamp: Date.now() }));
+    return;
+  }
+
   res.writeHead(404, { 'Content-Type': 'application/json' });
   res.end(JSON.stringify({ error: 'Not found' }));
 });
@@ -347,4 +423,9 @@ server.listen(PORT, () => {
   console.log(`  POST /api/quorum/calculate`);
   console.log(`  POST /api/atrophy/calculate`);
   console.log(`  GET  /api/kernel/version`);
+  console.log(`  GET  /api/feedback/weights`);
+  console.log(`  POST /api/feedback`);
+  console.log(`  GET  /api/feedback/history`);
+  console.log(`  POST /api/feedback/analyze`);
+  console.log(`  GET  /api/feedback/analyses`);
 });

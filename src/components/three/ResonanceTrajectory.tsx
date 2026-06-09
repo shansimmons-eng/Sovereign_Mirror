@@ -129,7 +129,7 @@ const particleFragmentShader = `
     float grainEffect = hash(vUv * 100.0 + u_bolt_impulse);
     finalColor += vec3(grainEffect * u_grain_density * 0.15);
 
-    gl_FragColor = vec4(finalColor * (vIntensity * 2.5), alphaMask);
+    gl_FragColor = vec4(finalColor * (vIntensity * 2.5), alphaMask * 0.35);
   }
 `;
 

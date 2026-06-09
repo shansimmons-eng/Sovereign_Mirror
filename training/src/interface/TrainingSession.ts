@@ -1,15 +1,46 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { InverionState, FallacyVector, ManifoldUpdate } from '../types';
 import { SlidingWindowBuffer } from '../cluster/SlidingWindowBuffer';
 import { ManifoldDeformer, SemanticBridge } from '../cluster/GravityWell';
 import { FALLACY_CRITICAL_THRESHOLD } from '../types';
 
-const ROBERTA_ENDPOINT = 'http://localhost:5002/classify-single';
-const FREE_AGENTS_ENDPOINT = 'http://localhost:5003/validate';
+const ROBERTA_ENDPOINT = '/classify/classify-single';
+const FREE_AGENTS_ENDPOINT = '/validate/validate';
+const FEEDBACK_WEIGHTS_ENDPOINT = '/api/feedback/weights';
+const FEEDBACK_ANALYZE_ENDPOINT = '/api/feedback/analyze';
+const FEEDBACK_VERDICT_ENDPOINT = '/api/feedback';
 const USE_ROBERTA = true;
 const USE_FREE_AGENTS = true;
-const ROBERTA_THRESHOLD = 0.60;  // Trigger free agent check above this confidence
-const WORD_COUNT_CAP = 200;       // Only skip free agents for very long inputs (performance)
+const ROBERTA_THRESHOLD = 0.60;
+const WORD_COUNT_CAP = 200;
+
+const DEFAULT_WEIGHTS = { roberta: 1.0, groq: 1.0, openrouter: 1.0 };
+
+interface AgentScore {
+  agent: string;
+  detected: boolean;
+  confidence: number;
+  score: number;
+  reasoning?: string;
+  model?: string;
+  error?: string;
+}
+
+export interface AnalysisBreakdown {
+  statementId: string;
+  text: string;
+  roberta: { detected: boolean; score: number; fallacies: Array<{ id: string; score: number }>; raw: unknown };
+  groq: AgentScore | null;
+  openrouter: AgentScore[];
+  weights: Record<string, number>;
+  weightedScore: number;
+  state: InverionState;
+  inverionTriggered: boolean;
+  bypassTriggered: boolean;
+  timestamp: number;
+  processingMs: number;
+  fallacyVerdicts: Record<string, 'correct' | 'incorrect' | undefined>;
+}
 
 interface StatementLog {
   id: string;
@@ -18,6 +49,7 @@ interface StatementLog {
   fallacies: FallacyVector[];
   inverionState: InverionState;
   radicalVeracityPassed: boolean;
+  breakdown?: AnalysisBreakdown;
   freeAgentValidation?: { detected: boolean; reason: string; agent: string } | null;
   refactored?: string;
 }
@@ -40,6 +72,40 @@ export function useTrainingSession({ nodeId, onFrameCreated }: TrainingSessionPr
     currentStreak: 0,
     maxStreak: 0,
   });
+  const [weights, setWeights] = useState<Record<string, number>>(DEFAULT_WEIGHTS);
+  const [lastBreakdown, setLastBreakdown] = useState<AnalysisBreakdown | null>(null);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      console.log('[TRAINING] lastBreakdown state changed', { hasBreakdown: !!lastBreakdown, statementId: lastBreakdown?.statementId, weightedScore: lastBreakdown?.weightedScore });
+    }
+  }, [lastBreakdown]);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      console.log('[TRAINING] statementLog state changed', { count: statementLog.length, firstId: statementLog[0]?.id });
+    }
+  }, [statementLog]);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch(FEEDBACK_WEIGHTS_ENDPOINT);
+        if (!res.ok) return;
+        const data = await res.json();
+        if (cancelled) return;
+        if (data?.weights) {
+          const w: Record<string, number> = { ...DEFAULT_WEIGHTS };
+          for (const [k, v] of Object.entries(data.weights)) {
+            if (typeof (v as { weight: number }).weight === 'number') w[k] = (v as { weight: number }).weight;
+          }
+          setWeights(w);
+        }
+      } catch {}
+    })();
+    return () => { cancelled = true; };
+  }, []);
 
   // Stable refs - not recreated on every render
   const slidingWindowRef = useRef(new SlidingWindowBuffer(512, 0.5));
@@ -50,6 +116,7 @@ export function useTrainingSession({ nodeId, onFrameCreated }: TrainingSessionPr
     const slidingWindow = slidingWindowRef.current;
     const manifoldDeformer = manifoldDeformerRef.current;
     const semanticBridge = semanticBridgeRef.current;
+    const startedAt = Date.now();
 
     if (rawInput.trim().split(/\s+/).length < 2) {
       setDetectedFallacies([]);
@@ -60,9 +127,10 @@ export function useTrainingSession({ nodeId, onFrameCreated }: TrainingSessionPr
 
     const detectedFallacies: FallacyVector[] = [];
     let maxConfidence = 0;
-
-    // Try RoBERTa classifier first
+    let robertaRaw: unknown = null;
     let robertaResults: Array<{mappedLabel: string, confidence: number}> = [];
+    let robertaFallaciesForLog: Array<{ id: string; score: number }> = [];
+
     if (USE_ROBERTA) {
       try {
         const response = await fetch(ROBERTA_ENDPOINT, {
@@ -72,10 +140,12 @@ export function useTrainingSession({ nodeId, onFrameCreated }: TrainingSessionPr
         });
         if (response.ok) {
           const data = await response.json();
+          robertaRaw = data;
           if (data.fallacies && Array.isArray(data.fallacies)) {
             robertaResults = data.fallacies;
             for (const fallacy of robertaResults) {
               maxConfidence = Math.max(maxConfidence, fallacy.confidence);
+              robertaFallaciesForLog.push({ id: fallacy.mappedLabel, score: fallacy.confidence });
               detectedFallacies.push({
                 fallacyId: fallacy.mappedLabel,
                 confidenceScore: fallacy.confidence,
@@ -84,15 +154,14 @@ export function useTrainingSession({ nodeId, onFrameCreated }: TrainingSessionPr
             }
           }
         }
-      } catch {
-        // RoBERTa not available, fall back to local analysis
-      }
+      } catch {}
     }
 
-    // Free agent validation - triggers on any detection above confidence threshold
-    // Skip only for very long inputs (performance) - cap at 200 words
     const wordCount = rawInput.trim().split(/\s+/).length;
     let freeAgentValidation: StatementLog['freeAgentValidation'] = null;
+    let freeAgentsRaw: unknown = null;
+    let groqScore: AgentScore | null = null;
+    const openrouterScores: AgentScore[] = [];
 
     if (USE_FREE_AGENTS && robertaResults.length > 0 && wordCount <= WORD_COUNT_CAP && maxConfidence >= ROBERTA_THRESHOLD) {
       try {
@@ -103,7 +172,7 @@ export function useTrainingSession({ nodeId, onFrameCreated }: TrainingSessionPr
         });
         if (response.ok) {
           const data = await response.json();
-          // Use consensus from all agents
+          freeAgentsRaw = data;
           const consensus = data.consensus;
           if (consensus) {
             freeAgentValidation = {
@@ -111,22 +180,42 @@ export function useTrainingSession({ nodeId, onFrameCreated }: TrainingSessionPr
               reason: `${consensus.agents_detected}/${consensus.agents_queried} agents agree. ${consensus.reasoning}`,
               agent: `${consensus.agents_queried} agents`,
             };
-            // If majority disagree with RoBERTa, reduce confidence
-            if (!consensus.detected && maxConfidence < 0.8) {
-              maxConfidence = maxConfidence * 0.5;
+          }
+          const agents = data.agents || {};
+          if (agents.groq) {
+            const g = agents.groq;
+            groqScore = {
+              agent: 'groq',
+              detected: !!g.detected,
+              confidence: typeof g.confidence === 'number' ? g.confidence : 0,
+              score: g.detected ? Math.min(1, Math.max(0, (g.confidence ?? 0))) : (1 - Math.min(1, Math.max(0, (g.confidence ?? 0)))),
+              reasoning: g.reasoning || '',
+              model: g.model || '',
+              error: g.error,
+            };
+          }
+          if (Array.isArray(agents.openrouter)) {
+            for (const o of agents.openrouter) {
+              openrouterScores.push({
+                agent: 'openrouter',
+                detected: !!o.detected,
+                confidence: typeof o.confidence === 'number' ? o.confidence : 0,
+                score: o.detected ? Math.min(1, Math.max(0, (o.confidence ?? 0))) : (1 - Math.min(1, Math.max(0, (o.confidence ?? 0)))),
+                reasoning: o.reasoning || '',
+                model: o.model || '',
+                error: o.error,
+              });
             }
           }
         }
-      } catch {
-        // Free agent not available, continue with RoBERTa result
-      }
+      } catch {}
     }
 
-    // Fall back to local contextual analysis if no RoBERTa results
     if (robertaResults.length === 0) {
       const analysis = analyzeFallaciesContextual(rawInput);
       for (const detection of analysis.detections) {
         maxConfidence = Math.max(maxConfidence, detection.confidence);
+        robertaFallaciesForLog.push({ id: detection.fallacyId, score: detection.confidence });
         detectedFallacies.push({
           fallacyId: detection.fallacyId,
           confidenceScore: detection.confidence,
@@ -137,28 +226,98 @@ export function useTrainingSession({ nodeId, onFrameCreated }: TrainingSessionPr
 
     setDetectedFallacies(detectedFallacies);
 
-    const state = maxConfidence >= FALLACY_CRITICAL_THRESHOLD
+    const w = (n: string) => weights[n] ?? 1.0;
+    const robertaScore = robertaResults.length > 0 ? maxConfidence : 0;
+    const groqNumeric = groqScore ? groqScore.score : null;
+    const openrouterMean = openrouterScores.length > 0
+      ? openrouterScores.reduce((s, a) => s + a.score, 0) / openrouterScores.length
+      : null;
+
+    const contributors: Array<{ name: string; score: number; weight: number }> = [];
+    contributors.push({ name: 'roberta', score: robertaScore, weight: w('roberta') });
+    if (groqNumeric !== null) contributors.push({ name: 'groq', score: groqNumeric, weight: w('groq') });
+    if (openrouterMean !== null) contributors.push({ name: 'openrouter', score: openrouterMean, weight: w('openrouter') });
+
+    const totalWeight = contributors.reduce((s, c) => s + c.weight, 0) || 1;
+    const weightedScore = contributors.reduce((s, c) => s + c.score * c.weight, 0) / totalWeight;
+    const safeScore = Math.min(1, Math.max(0, isFinite(weightedScore) ? weightedScore : 0));
+
+    const state = safeScore >= FALLACY_CRITICAL_THRESHOLD
       ? InverionState.SUBJECTIVE_NOISE
-      : maxConfidence > 0
+      : safeScore > 0
         ? InverionState.TRANSITIONAL
         : InverionState.OBJECTIVE_REALITY;
 
     setInverionState(state);
 
-    const radicalVeracityPassed = maxConfidence < FALLACY_CRITICAL_THRESHOLD;
+    const radicalVeracityPassed = safeScore < FALLACY_CRITICAL_THRESHOLD;
+    const statementId = crypto.randomUUID();
+
+    const breakdown: AnalysisBreakdown = {
+      statementId,
+      text: rawInput,
+      roberta: { detected: robertaResults.length > 0, score: robertaScore, fallacies: robertaFallaciesForLog, raw: robertaRaw },
+      groq: groqScore,
+      openrouter: openrouterScores,
+      weights: { ...weights },
+      weightedScore: safeScore,
+      state,
+      inverionTriggered: state === InverionState.SUBJECTIVE_NOISE,
+      bypassTriggered: state === InverionState.OBJECTIVE_REALITY && robertaResults.length > 0,
+      timestamp: startedAt,
+      processingMs: Date.now() - startedAt,
+      fallacyVerdicts: {},
+    };
+    setLastBreakdown(breakdown);
+
+    const verdictMap: Record<string, { detected: boolean; confidence: number; model?: string }> = {};
+    verdictMap.roberta = { detected: robertaResults.length > 0, confidence: robertaScore };
+    if (groqScore) verdictMap.groq = { detected: groqScore.detected, confidence: groqScore.confidence, model: groqScore.model };
+    for (const o of openrouterScores) {
+      verdictMap[`openrouter:${o.model || 'unknown'}`] = { detected: o.detected, confidence: o.confidence, model: o.model };
+    }
+
+    fetch(FEEDBACK_ANALYZE_ENDPOINT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        statementId,
+        text: rawInput,
+        robertaFallacies: robertaFallaciesForLog,
+        robertaMax: robertaScore,
+        groqScore: groqNumeric,
+        groqDetected: groqScore ? groqScore.detected : null,
+        openrouterScores: openrouterScores.map(o => ({ model: o.model, score: o.score, confidence: o.confidence, detected: o.detected })),
+        openrouterMean,
+        weightsUsed: { ...weights },
+        weightedScore: safeScore,
+        state: InverionState[state] ?? 'UNSPECIFIED',
+        inverionTriggered: breakdown.inverionTriggered,
+        bypassTriggered: breakdown.bypassTriggered,
+        rawRobertaResponse: robertaRaw,
+        rawFreeAgentsResponse: freeAgentsRaw,
+        processingMs: breakdown.processingMs,
+      }),
+    }).catch(() => {});
 
     const logEntry: StatementLog = {
-      id: crypto.randomUUID(),
+      id: statementId,
       text: rawInput,
-      timestamp: Date.now(),
+      timestamp: breakdown.timestamp,
       fallacies: detectedFallacies,
       inverionState: state,
       radicalVeracityPassed,
+      breakdown,
       freeAgentValidation,
     };
-    setStatementLog((prev: StatementLog[]) => [logEntry, ...prev].slice(0, 50));
+    if (typeof window !== 'undefined') console.log('[TRAINING] analyze complete', { statementId, weightedScore: safeScore, state: InverionState[state], fallacies: detectedFallacies.length, logEntryId: logEntry.id });
+    setStatementLog((prev: StatementLog[]) => {
+      const next = [logEntry, ...prev].slice(0, 50);
+      if (typeof window !== 'undefined') console.log('[TRAINING] statementLog updated', { count: next.length, firstId: next[0]?.id });
+      return next;
+    });
 
-    if (onFrameCreated && (maxConfidence >= FALLACY_CRITICAL_THRESHOLD || detectedFallacies.length > 0)) {
+    if (onFrameCreated && (safeScore >= FALLACY_CRITICAL_THRESHOLD || detectedFallacies.length > 0)) {
       onFrameCreated({ detectedFallacies, inverionState: state, radicalVeracityPassed }, rawInput);
     }
 
@@ -170,9 +329,48 @@ export function useTrainingSession({ nodeId, onFrameCreated }: TrainingSessionPr
       persistence: 0.5,
     }));
 
-    return semanticBridge.processLLMOutput(llmJson, radicalVeracityPassed ? 1 : maxConfidence);
+    return semanticBridge.processLLMOutput(llmJson, radicalVeracityPassed ? 1 : safeScore);
 
-  }, [nodeId, onFrameCreated]);
+  }, [nodeId, onFrameCreated, weights]);
+
+  const markVerdict = useCallback(async (statementId: string, fallacyId: string, verdict: 'correct' | 'incorrect') => {
+    const entry = statementLog.find(e => e.id === statementId);
+    const breakdown = entry?.breakdown ?? lastBreakdown;
+    if (!breakdown) return;
+
+    const agentScores: Record<string, { detected: boolean; confidence: number; model?: string }> = {};
+    agentScores.roberta = { detected: breakdown.roberta.detected, confidence: breakdown.roberta.score };
+    if (breakdown.groq) {
+      agentScores.groq = { detected: breakdown.groq.detected, confidence: breakdown.groq.confidence, model: breakdown.groq.model };
+    }
+    for (const o of breakdown.openrouter) {
+      agentScores[`openrouter:${o.model || 'unknown'}`] = { detected: o.detected, confidence: o.confidence, model: o.model };
+    }
+
+    try {
+      const res = await fetch(FEEDBACK_VERDICT_ENDPOINT, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ statementId, fallacyId, text: breakdown.text, verdict, agentScores }),
+      });
+      if (!res.ok) return;
+      const data = await res.json();
+      if (data?.weights) {
+        const w: Record<string, number> = { ...DEFAULT_WEIGHTS };
+        for (const [k, v] of Object.entries(data.weights)) {
+          if (typeof (v as { weight: number }).weight === 'number') w[k] = (v as { weight: number }).weight;
+        }
+        setWeights(w);
+      }
+    } catch {}
+
+    setLastBreakdown(prev => prev?.statementId === statementId
+      ? { ...prev, fallacyVerdicts: { ...prev.fallacyVerdicts, [fallacyId]: verdict } }
+      : prev);
+    setStatementLog(prev => prev.map(e => e.id === statementId && e.breakdown
+      ? { ...e, breakdown: { ...e.breakdown, fallacyVerdicts: { ...e.breakdown.fallacyVerdicts, [fallacyId]: verdict } } }
+      : e));
+  }, [statementLog, lastBreakdown]);
 
 interface SessionMetrics {
   totalIntercepts: number;
@@ -223,7 +421,10 @@ interface SessionMetrics {
     statementLog,
     inverionState,
     metrics,
+    weights,
+    lastBreakdown,
     analyzeInput,
+    markVerdict,
     triggerIntercept,
     resolveIntercept,
     resetSession,

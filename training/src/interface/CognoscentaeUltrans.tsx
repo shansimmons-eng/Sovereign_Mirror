@@ -6,6 +6,7 @@ import { FALLACY_CRITICAL_THRESHOLD } from '../types';
 export function CognoscentaeUltrans() {
   const [inputText, setInputText] = useState('');
   const [refactorText, setRefactorText] = useState('');
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
 
   const handleFrameCreated = useCallback((_frame: { detectedFallacies: FallacyVector[]; inverionState: InverionState; radicalVeracityPassed: boolean }, _rawInput: string) => {
     // Frame creation handled via statementLog
@@ -17,18 +18,30 @@ export function CognoscentaeUltrans() {
     statementLog,
     inverionState,
     metrics,
+    weights,
+    lastBreakdown,
     analyzeInput,
+    markVerdict,
     triggerIntercept,
     resolveIntercept,
   } = useTrainingSession({ nodeId: 'NODE_001', onFrameCreated: handleFrameCreated });
 
   const handleAnalyze = async () => {
-    if (inputText.trim()) {
-      const result = await analyzeInput(inputText);
-      if (result.inverion_triggered || result.bypass_triggered) {
-        triggerIntercept();
+    if (inputText.trim() && !isAnalyzing) {
+      setIsAnalyzing(true);
+      try {
+        const result = await analyzeInput(inputText);
+        if (result.inverion_triggered || result.bypass_triggered) {
+          triggerIntercept();
+        }
+      } finally {
+        setIsAnalyzing(false);
       }
     }
+  };
+
+  const handleMark = (fallacyId: string, verdict: 'correct' | 'incorrect') => {
+    if (lastBreakdown) markVerdict(lastBreakdown.statementId, fallacyId, verdict);
   };
 
   const handleRefactorSubmit = (e: React.FormEvent) => {
@@ -80,38 +93,92 @@ export function CognoscentaeUltrans() {
           />
           <button
             onClick={handleAnalyze}
-            disabled={interceptActive || !inputText.trim()}
+            disabled={interceptActive || !inputText.trim() || isAnalyzing}
             style={{
               marginTop: '8px',
               padding: '8px 16px',
-              background: inputText.trim() && !interceptActive ? '#FFB300' : '#333',
-              color: inputText.trim() && !interceptActive ? '#000' : '#666',
+              background: inputText.trim() && !interceptActive && !isAnalyzing ? '#FFB300' : '#333',
+              color: inputText.trim() && !interceptActive && !isAnalyzing ? '#000' : '#666',
               border: 'none',
               borderRadius: '4px',
-              cursor: inputText.trim() && !interceptActive ? 'pointer' : 'not-allowed',
+              cursor: inputText.trim() && !interceptActive && !isAnalyzing ? 'pointer' : 'not-allowed',
               fontFamily: 'monospace',
               fontSize: '11px',
               fontWeight: 'bold',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              justifyContent: 'center',
+              width: '100%',
             }}
           >
-            ANALYZE
+            {isAnalyzing && <span className="cui-spinner" aria-label="Analyzing" />}
+            {isAnalyzing ? 'ANALYZING...' : 'ANALYZE'}
           </button>
+          {isAnalyzing && (
+            <div style={{ marginTop: '6px', fontSize: '10px', color: '#FFB300', fontFamily: 'monospace', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span className="cui-pulse" />
+              ROUTING TO RO+BERTa · GROQ · OPENROUTER
+            </div>
+          )}
           <div className="fallacy-spectrograph">
             <span className="spectrograph-label">FALLACY SPECTROGRAPH</span>
+            {lastBreakdown && (
+              <div className="weights-strip" style={{ fontSize: '10px', color: '#FFB300', marginBottom: '6px', fontFamily: 'monospace' }}>
+                <span style={{ marginRight: '8px' }}>WEIGHTED: {lastBreakdown.weightedScore.toFixed(2)}</span>
+                <span style={{ marginRight: '8px' }}>R:{weights.roberta?.toFixed(2) ?? '1.00'}</span>
+                {lastBreakdown.groq && <span style={{ marginRight: '8px' }}>G:{weights.groq?.toFixed(2) ?? '1.00'}</span>}
+                {lastBreakdown.openrouter.length > 0 && <span style={{ marginRight: '8px' }}>OR:{weights.openrouter?.toFixed(2) ?? '1.00'}</span>}
+              </div>
+            )}
             {detectedFallacies.length === 0 ? (
               <div className="no-fallacies">No fallacies detected</div>
             ) : (
               <div className="fallacy-list">
-                {detectedFallacies.map((fallacy, index) => (
-                  <div
-                    key={index}
-                    className="fallacy-item"
-                    style={{ borderLeftColor: getStateColor(fallacy) }}
-                  >
-                    <span className="fallacy-id">{fallacy.fallacyId}</span>
-                    <span className="fallacy-score">({fallacy.confidenceScore.toFixed(2)})</span>
-                  </div>
-                ))}
+                {detectedFallacies.map((fallacy, index) => {
+                  const verdict = lastBreakdown?.fallacyVerdicts?.[fallacy.fallacyId];
+                  return (
+                    <div
+                      key={index}
+                      className="fallacy-item"
+                      style={{ borderLeftColor: getStateColor(fallacy), paddingLeft: '8px' }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span className="fallacy-id">{fallacy.fallacyId}</span>
+                        <span className="fallacy-score">({fallacy.confidenceScore.toFixed(2)})</span>
+                        <button
+                          type="button"
+                          onClick={() => handleMark(fallacy.fallacyId, 'correct')}
+                          disabled={!!verdict}
+                          title="Mark this detection as correct"
+                          style={{ background: verdict === 'correct' ? '#2e7d32' : 'transparent', color: verdict === 'correct' ? '#fff' : '#2e7d32', border: '1px solid #2e7d32', borderRadius: '3px', cursor: verdict ? 'default' : 'pointer', fontSize: '10px', padding: '0 4px', fontFamily: 'monospace' }}
+                        >✓</button>
+                        <button
+                          type="button"
+                          onClick={() => handleMark(fallacy.fallacyId, 'incorrect')}
+                          disabled={!!verdict}
+                          title="Mark this detection as a false positive"
+                          style={{ background: verdict === 'incorrect' ? '#c62828' : 'transparent', color: verdict === 'incorrect' ? '#fff' : '#c62828', border: '1px solid #c62828', borderRadius: '3px', cursor: verdict ? 'default' : 'pointer', fontSize: '10px', padding: '0 4px', fontFamily: 'monospace' }}
+                        >✗</button>
+                      </div>
+                      {lastBreakdown && (
+                        <div style={{ fontSize: '9px', color: '#888', marginTop: '2px', fontFamily: 'monospace' }}>
+                          {lastBreakdown.groq && (
+                            <span style={{ marginRight: '6px' }} title={lastBreakdown.groq.reasoning}>
+                              groq: {lastBreakdown.groq.detected ? 'YES' : 'no'} ({lastBreakdown.groq.confidence.toFixed(2)})
+                            </span>
+                          )}
+                          {lastBreakdown.openrouter.length > 0 && (
+                            <span style={{ marginRight: '6px' }}>
+                              or: {lastBreakdown.openrouter.filter(o => o.detected).length}/{lastBreakdown.openrouter.length} ({lastBreakdown.openrouter.map(o => o.detected ? '✓' : '✗').join(' ')})
+                            </span>
+                          )}
+                          {verdict && <span style={{ color: verdict === 'correct' ? '#2e7d32' : '#c62828' }}>[{verdict === 'correct' ? 'CONFIRMED' : 'VETOED'}]</span>}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>
@@ -134,28 +201,50 @@ export function CognoscentaeUltrans() {
                 <span className="notice-icon">⚠</span>
                 <span>[NULL STATE - WAITING FOR RADICAL VERACITY SETTLEMENT]</span>
               </div>
-            ) : (
-              <div className="veracity-passed">
-                <span className="check-icon">✓</span>
-                <span>Radical Veracity Passed</span>
-              </div>
-            )}
+            ) : (() => {
+              const weighted = lastBreakdown?.weightedScore ?? null;
+              const passed = weighted === null ? null : weighted < FALLACY_CRITICAL_THRESHOLD;
+              if (passed === null) {
+                return <div className="veracity-pending" style={{ color: '#888' }}><span>—</span><span>Awaiting first analysis</span></div>;
+              }
+              return passed ? (
+                <div className="veracity-passed">
+                  <span className="check-icon">✓</span>
+                  <span>Radical Veracity Passed{weighted !== null ? ` (${weighted.toFixed(2)} &lt; ${FALLACY_CRITICAL_THRESHOLD})` : ''}</span>
+                </div>
+              ) : (
+                <div className="veracity-failed" style={{ color: '#FF4500' }}>
+                  <span className="cross-icon">✗</span>
+                  <span>Radical Veracity Failed{weighted !== null ? ` (${weighted.toFixed(2)} ≥ ${FALLACY_CRITICAL_THRESHOLD})` : ''}</span>
+                </div>
+              );
+            })()}
           </div>
           <div className="metrics-panel">
-            <div className="metric-row">
+            <div className="metric-row" title="Count of times you were prompted to refactor a statement that failed veracity">
               <span className="metric-label">Intercepts:</span>
               <span className="metric-value">{metrics.totalIntercepts}</span>
             </div>
-            <div className="metric-row">
+            <div className="metric-row" title="Consecutive successful refactors / Best streak ever">
               <span className="metric-label">Streak:</span>
               <span className="metric-value">{metrics.currentStreak} / {metrics.maxStreak}</span>
+            </div>
+            <div className="metric-row" style={{ fontSize: '10px', color: '#FFB300' }} title="Agent voting weights (adjust on Mark correct/incorrect)">
+              <span className="metric-label">Weights:</span>
+              <span className="metric-value">R:{weights.roberta?.toFixed(2)} G:{weights.groq?.toFixed(2)} OR:{weights.openrouter?.toFixed(2)}</span>
+            </div>
+          </div>
+          <div className="current-statement" style={{ marginTop: '8px', padding: '6px 8px', background: 'rgba(255,179,0,0.08)', border: '1px solid rgba(255,179,0,0.2)', borderRadius: '4px', fontFamily: 'monospace', fontSize: '11px' }} title="The most recent statement analyzed">
+            <div style={{ color: '#FFB300', fontSize: '9px', marginBottom: '2px' }}>CURRENT</div>
+            <div style={{ color: '#fff', wordBreak: 'break-word' }}>
+              {lastBreakdown?.text || inputText || <em style={{ color: '#666' }}>(type a statement and click ANALYZE)</em>}
             </div>
           </div>
           <div className="statement-log">
             <span className="log-label">STATEMENT LOG</span>
             <div className="log-entries">
               {statementLog.length === 0 ? (
-                <div className="log-empty">No statements analyzed</div>
+                <div className="log-empty">{lastBreakdown ? 'Statement analyzed (log sync pending)' : 'No statements analyzed'}</div>
               ) : (
                 statementLog.slice(0, 5).map((entry) => (
                   <div key={entry.id} className="log-entry">
@@ -205,11 +294,11 @@ export function CognoscentaeUltrans() {
       )}
 
       <footer className="cui-footer">
-        <div className="state-indicator">
+        <div className="state-indicator" title="SUBJECTIVE_NOISE = statement failed (weighted score ≥ threshold). TRANSITIONAL = possible fallacy, between 0 and threshold. OBJECTIVE_REALITY = passed cleanly.">
           Current State: {getStateLabel(inverionState)}
         </div>
-        <div className="threshold-note">
-          Threshold: {FALLACY_CRITICAL_THRESHOLD}
+        <div className="threshold-note" title="Weighted score at or above this = statement fails veracity. Below this = passes.">
+          Threshold: {FALLACY_CRITICAL_THRESHOLD} {lastBreakdown && `(score: ${lastBreakdown.weightedScore.toFixed(2)})`}
         </div>
       </footer>
     </div>

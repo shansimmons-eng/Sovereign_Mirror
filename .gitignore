@@ -55,8 +55,19 @@ typings/
 .rts2_cache_sw
 .rts2_cache_music
 
-# Secret
+# Secrets & credentials
 .env
+.env.*
+*.pem
+*.key
+*.crt
+secrets/
+config/local.json
+
+# SSH keys
+id_*
+*.pub
+hetzner
 
 # TypeScript type definition files (*.d.ts) built in the same directory as the source
 # and whose source code is stripped away during build
@@ -136,3 +147,57 @@ dist/
 
 # Backups
 backup*/
+backup_manual/
+backup_manual2/
+cup_backup_*
+*_backup_*
+*_backup_*.tar.gz
+cup_backup_*.tar.gz
+
+# Tarballs / archives
+*.tar.gz
+*.zip
+*.tar.bz2
+*.7z
+
+# Deploy artifacts
+deploy_artifacts/
+deployment_artifacts/
+cloudflared
+
+# Misc
+accept-new
+cd
+express-api.service
+free-agents.service
+simulation-abm.service
+roberta-classifier.service
+deploy_sovereign_mirror.sh
+setup_database.sql
+sovereign-mirror.conf
+
+# Binaries
+*.deb
+*.run
+server/simulation/cuda-*
+server/simulation/source
+server/simulation/0
+server/simulation/Error
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+venv/
+env/
+
+# Caches
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+
+# OS
+.DS_Store
+Thumbs.db

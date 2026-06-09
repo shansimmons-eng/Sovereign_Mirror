@@ -14,7 +14,7 @@ export interface FallacyDataset {
   sources: string[];
 }
 
-const DATASET_URL = 'http://localhost:5002/fallacy-data';
+const DATASET_URL = '/classify/fallacy-data';
 
 let cachedDataset: FallacyDataset | null = null;
 
