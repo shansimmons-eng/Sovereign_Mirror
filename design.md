@@ -89,3 +89,44 @@ To achieve the intended "Blinding" effect, the following settings must be strict
 ## 4. Goal-Driven Execution
 
 **Define success:** Use this design.md to stitch a functional, high-density solar interface.
+
+---
+
+## Session Log — June 2026
+
+### ResonanceTrajectory changes
+- `src/components/three/ResonanceTrajectory.tsx:122` — `KineticQuads` particle opacity reduced from 0.65 to 0.35. The earlier 0.65 was rendering the additive blending bright enough to wash out the orbital rings entirely.
+- `ResonanceTrajectory.tsx:574` — InstancedMesh uses `frustumCulled={false}` so particles don't pop out at the camera edges (per the Stability Guards section in `AGENTS.md`).
+- `ResonanceTrajectory.tsx:622-639` — ResizeObserver explicitly sets `canvas.style.width/height` on container resize (was missing).
+
+### OrbitalRings changes (NEW)
+- Complete rewrite of `src/components/three/OrbitalRings.tsx`. Old file was 3 thin concentric rings flattened onto the XZ plane. New file:
+  - 5 thick concentric rings (radii 0.8–3.85), alternating CW/CCW rotation
+  - 24/16/12/8/6 spokes per ring (major every 4th in white, minor in amber)
+  - 32 white particles per ring drift along circumference, opacity pulsing
+  - Wireframe outer sphere (r=4.2) rotating on Y axis
+  - Rotating reticle crosshair (4 spokes at cardinals)
+  - Pulse ring breathing scale + opacity
+  - Glow ring radial gradient (3.4–4.1)
+  - All face the camera (removed the `rotation={[Math.PI/2, 0, 0]}` that was flattening them)
+  - Kinetic particles dimmed to keep rings visible
+
+### Tone mapping compliance
+- `THREE.NoToneMapping` still in effect (per design spec §4)
+- Intensity curve inverse-square falloff still in effect
+- Velocity alignment for streak appearance still in effect
+
+### Aether-HUD spec integration
+The `UI2/UI-enhanced/DESIGN.md` spec is being incrementally integrated. Current alignment:
+- JetBrains Mono ✓ (sole typeface in app)
+- `#FFB300` primary amber ✓
+- `#000000` background ✓
+- 4px modular unit grid ✓ (via Tailwind)
+- Sharp (0px) corners ✓
+- Wireframe outer sphere ✓ (matches "Central Sphere" component)
+
+### Pending from Aether-HUD
+- Scanline effect (CSS class `.cui-scanline` defined, not yet applied to panels)
+- 45° chamfered corners on panel headers (CSS class `.cui-corner` defined, not yet applied)
+- Module ID prefixes in panel headers (e.g., `MOD-0192`) — not yet added
+- Square brackets around status chips (e.g., `[ STATUS: OK ]`) — not yet added

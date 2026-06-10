@@ -391,3 +391,33 @@ get_header();
 5. Preview and adjust dimensions as needed
 
 The simulation will run automatically, cycling through 8 different profiles every 15 seconds, with no server-side code required.
+---
+
+## Session Log — June 2026
+
+### Current Vercel URL
+The WordPress iframe is hardcoded to:
+```html
+<iframe src="https://dist-alpha-topaz-27.vercel.app" width="100%" height="1200px" frameborder="0" title="Sovereign Mirror Governance Simulation"></iframe>
+```
+
+### Deploy status
+- Vercel CLI installed (`Vercel CLI 54.4.1`) but NOT authenticated
+- Token needed to push: `vercel login` or `--token <VERCEL_TOKEN>`
+- Latest bundle in `dist/` is `index-BAiprzg4.js` / `index-CWG6l_sD.css` (with mobile overflow fixes, 5-layer rings, P-Gate feedback)
+
+### Recommended redeploy procedure
+1. `cd dist`
+2. `vercel --prod --yes` (or provide token)
+3. Update the iframe `src` to whatever URL Vercel returns (or use the existing `dist-alpha-topaz-27.vercel.app` if it's the same project)
+
+### Alternative: point WordPress iframe directly at Hetzner
+The Hetzner production deployment is at `http://178.156.135.222/`. WordPress iframes prefer HTTPS, but if the WP site is HTTP-only, you can use:
+```html
+<iframe src="http://178.156.135.222/" width="100%" height="1200px" frameborder="0"></iframe>
+```
+
+This avoids the Vercel dependency entirely. The bundle is the same one the Vercel deployment would serve.
+
+### WordPress plugin update (kylosarc-wp-api.php)
+The WordPress plugin at `~/experiment/map/kylosarc-wp-api.php` exposes the API as WP REST endpoints. With the new feedback endpoints in `server/index.js` (`/api/feedback/*`), the plugin should be updated to proxy these as well. **Not done yet** — pending Vercel redeploy.

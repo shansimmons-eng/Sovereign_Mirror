@@ -342,3 +342,53 @@ No formal test framework configured yet. Manual testing via dev server.
 - [ ] Should the ledger persist to localStorage?
 - [ ] What triggers sunriseOpacity changes?
 - [ ] Is there a maximum node count for quorum calculation?
+---
+
+## Session Log — June 2026
+
+### Tech stack actual versions
+| Component | Technology | Actual version in `package.json` |
+|-----------|------------|----------------------------------|
+| Framework | React | 18.2 |
+| Language | TypeScript | 5.3 |
+| 3D Engine | Three.js | 0.160 |
+| 3D React | @react-three/fiber | 8.15 |
+| 3D Utils | @react-three/drei | 9.92 |
+| State (Atoms) | Jotai | 2.6 |
+| State (HUD) | Zustand | 4.5 |
+| State (Ledger) | Redux Toolkit | 2.11 |
+| Styling | Tailwind CSS | 3.4 |
+| Build | Vite | **7.3** (was 6.4 in earlier docs) |
+| `better-sqlite3` | NEW | used by `server/feedbackStore.js` for weight persistence |
+
+### `src/components/three/OrbitalRings.tsx` — major rewrite
+5-layer concentric ring system (was 3 thin layers). All face the camera. Includes spokes, particles, wireframe outer sphere, reticle crosshair, pulse ring, glow ring. See commit `f2f5641` for details.
+
+### `src/components/three/ResonanceTrajectory.tsx`
+- Kinetic particle opacity reduced 0.65 → 0.35 (was drowning the orbital rings)
+- ResizeObserver now explicitly sets `canvas.style.width/height` to match container
+
+### `src/components/ui/Dashboard.tsx`
+- `<main>` changed from `md:overflow-hidden` to `md:overflow-hidden overflow-y-auto` — fixes mobile clipping
+- Cognoscentae Ultrans wrapper uses `.cui-wrapper` (min/max-height + overflow), collapsible to 1 column on mobile
+
+### State slices — added
+- `src/state/ledger/ledgerThunks.ts`: thunks for `fetchLedgerHistory`
+- `src/state/middleware/ledgerPersist.ts`: persists `veracity/logEvent` and `physicalization/triggerPhysicalization` actions to `/api/ledger/entry`
+
+### New files
+- `server/feedbackStore.js`: SQLite-backed adaptive weight store
+- `src/state/ledger/ledgerThunks.ts`
+- `src/state/middleware/ledgerPersist.ts`
+- `test_openrouter.py`: smoke test for OpenRouter integration (legacy; OpenRouter currently disabled)
+
+### New endpoints
+- `GET /api/feedback/weights`
+- `POST /api/feedback` (verdict → updates weights + logs)
+- `GET /api/feedback/history?limit=N`
+- `POST /api/feedback/analyze` (logs every analysis run)
+- `GET /api/feedback/analyses?limit=N`
+
+### Known issues addressed this session
+- **Empty statement log** after analyze: caused by rate-limit cascade (ABM flooding `/api/ledger/entry` and starving the user's analyze request). Fixed with per-`(ip, path)` keying in the rate limiter.
+- **Test API button "fails to set alpha 0.75"**: the P-Gate *was* engaging at 0.75 server-side, but the UI gave no visual confirmation. Added status box in `PGateButton.tsx` showing actual flux value and a `✓ Flux set to 0.75` / `✗ Flux mismatch` indicator.

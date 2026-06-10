@@ -87,3 +87,18 @@ Open an issue if you find:
 ## License
 
 By contributing, you agree that your contributions will be licensed under the MIT License.
+
+---
+
+## Session Log — June 2026
+
+### Contribution conventions reinforced
+- **Session Log section in every doc**: when you make changes, append a "Session Log — <date>" section to every relevant md file. This is now standard practice for the Sovereign Mirror project.
+- **TypeScript strict mode**: `noUnusedLocals` + `noUnusedParameters` are enforced. Every new variable must be used. Every callback must use its parameters.
+- **Three.js / R3F guards**: `frustumCulled={false}` on InstancedMesh, `isFinite()` and `isNaN()` guards on every matrix/uniform write, NaN continue for instance matrix updates.
+- **Server rate limit**: per-`(ip, path)` keying is the default. Don't revert to a global per-IP limit.
+
+### New conventions added this session
+- **Mobile-first CSS**: every panel has `min-h-0` to allow nested overflow. Mobile uses `flex-direction: column`, desktop uses `flex-direction: row`. No "desktop-only" layouts.
+- **Visual confirmation for state changes**: when a user clicks a button that triggers a network request, the button state must reflect the result (loading, success, failure). Not just console.log.
+- **Pre-commit security scan**: before every `git push`, verify: no secrets, no .pyc, no .venv, no SSH keys, no tarballs, no setup.sql with embedded passwords. Update `.gitignore` for any new pattern discovered.

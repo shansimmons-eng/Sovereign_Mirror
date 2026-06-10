@@ -140,3 +140,40 @@ The design system utilizes **Sharp (0px)** corners for all UI elements. This rei
 - **Cards/Modules:** Each card must have a visible header bar containing a unique alphanumeric ID in the top-left corner (e.g., `MOD-0192`).
 - **Central Sphere:** A 3D wireframe or point-cloud sphere that rotates slowly on the Y-axis, representing the core data source.
 - **Data Tables:** Borderless rows with 1px horizontal dividers. Alternating row highlights should be avoided; use subtle text-dimming instead.
+---
+
+## Session Log — June 2026
+
+### Aether-HUD integration status
+The Aether-HUD design spec is being incrementally applied to the live app. Current alignment:
+
+| Spec element | Status | Where in app |
+|--------------|--------|--------------|
+| JetBrains Mono sole typeface | ✓ Done | `index.html` Google Fonts |
+| `#FFB300` primary amber | ✓ Done | `tailwind.config.ts` + CSS variables |
+| `#000000` base background | ✓ Done | `<body>` and `<main>` |
+| 4px modular unit grid | ✓ Done | Tailwind config |
+| Sharp (0px) corners | ✓ Done | Default Tailwind |
+| Wireframe outer sphere | ✓ Done | `OrbitalRings.tsx` |
+| Concentric rings | ✓ Improved (was 3 thin, now 5 thick) | `OrbitalRings.tsx` |
+| **Chamfered (45°) panel corners** | ⏳ Pending | CSS class `.cui-corner` exists in `index.css`, not yet applied |
+| **Module ID prefixes** (e.g., `MOD-0192`) | ⏳ Pending | Would require adding to panel headers in `Dashboard.tsx` |
+| **Status chips in brackets** (`[ STATUS: OK ]`) | ✓ Partial | Used in nodeStore, not standardized in UI |
+| **Blinking caret** (500ms) | ⏳ Pending | Textareas still use default browser caret |
+| **Scanline effect** | ⏳ Pending | CSS class `.cui-scanline` exists, not yet applied to panels |
+| **Data tables: 1px horizontal dividers, no alternating rows** | ✓ Done | `VeracityLog.tsx` |
+
+### CSS classes ready but not yet applied
+- `.cui-scanline` — animated amber scanline (2px height, 6s loop, fades at top and bottom)
+- `.cui-corner.tl/tr/bl/br` — 12×12 L-shaped corner brackets in `#FFB300`
+- `.cui-header` — flex header bar with amber gradient
+- `.cui-main` — main panel area, 1-column on mobile, 2-column on desktop
+- `.cui-footer` — footer bar with threshold display
+- `.cui-wrapper` / `.cui-wrapper-inner` — flex container for the Ultrans screen
+
+### Pending application
+The Ultrans panel (`CognoscentaeUltrans.tsx`) does not yet use `.cui-header`, `.cui-main`, `.cui-footer`, `.cui-scanline`, or `.cui-corner` classes. They were defined in `src/index.css` but only `.cui-wrapper` and `.cui-wrapper-inner` are wired up.
+
+The Dashboard panels (`Dashboard.tsx`) don't have corner brackets either.
+
+Adding both is a 30-min job. Would visibly increase the HUD aesthetic.

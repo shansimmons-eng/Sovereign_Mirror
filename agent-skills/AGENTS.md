@@ -183,3 +183,28 @@ cp -r skills/{skill-name} ~/.claude/skills/
 Add the skill to project knowledge or paste SKILL.md contents into the conversation.
 
 If the skill requires network access, instruct users to add required domains at `claude.ai/settings/capabilities`.
+
+---
+
+## Session Log — June 2026
+
+### Operational notes
+- Hetzner server is the active production target. `178.156.135.222:80` → nginx → 3001 (express) / 5001-5003 (Python services)
+- All secrets are in `.env` files (gitignored). Never paste them into tracked files, never commit them
+- The build must be run via `wsl.exe -e bash -c "..."` (Vite has issues with UNC paths from PowerShell)
+- The Vercel deploy for the WordPress iframe is a separate workflow and currently blocked on auth
+
+### What worked
+- Pre-deployment security scan caught .pyc + tarball + SSH keys all in one pass
+- Per-`(ip, path)` rate-limit keying fixed the empty-statement-log bug AND the Test API "fail" complaint with a single change
+- Per-fallacy `✓` / `✗` buttons give users agency over the adaptive weight system
+- Mobile flex-direction switching (column on mobile, row on desktop) is simpler than 2 separate layouts
+
+### What didn't work
+- Initial assumption that the rings were "face-on" — they were rotated 90° onto the XZ plane and showing as thin lines. Camera at z=16 was looking edge-on. Required removing the `rotation={[Math.PI/2, 0, 0]}` from all 11 ring elements
+- Initial attempt to "fix the Test API button" by changing the slider — the test API was already working; the user just had no visual confirmation. Lesson: confirm the failure mode before changing the code path
+
+### Open questions
+- Should the ABM Python service batch its `/api/ledger/entry` writes (currently 100+/min)?
+- Should we add per-user rate limits to `/api/feedback` to prevent weight gaming?
+- Should we re-enable OpenRouter now that the rate limit is fixed, or keep Groq-only?

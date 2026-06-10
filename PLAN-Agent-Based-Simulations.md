@@ -327,3 +327,37 @@ curl -X POST http://localhost:5000/api/simulate \
   -H "Content-Type: application/json" \
   -d '{"n_agents": 50, "timesteps": 100}'
 ```
+---
+
+## Session Log — June 2026
+
+### ABM → real fallacy data wiring (DEFERRED)
+Per user direction: ABM integration with real RoBERTa outputs is deferred until Layer A (data foundation) is complete. The current ABM still runs synthetic agents.
+
+### Phase 1 status (mostly done, but with caveats)
+- [x] Python simulation backend skeleton (`server/simulation/api.py`)
+- [x] Basic agent class with veracity attributes (`server/simulation/agents.py` — `RealNodeAgent`)
+- [x] Simple cooperator/defector game (in `agents.py` and `game_logic.py`)
+- [x] REST endpoint for triggering simulations (`/api/simulation/*`)
+- [~] Mock data for frontend testing — partial. `src/mirror/core/BrowserSimulation.ts` cycles through 8 milestones every 15s, but the simulation isn't pulling from the ABM in real-time.
+
+### Phase 2 status (deferred)
+- [~] Full payoff matrix with veracity scaling — present in `game_logic.py` but not wired to the visualization
+- [~] Strategy types: TFT, Always Defect, Always Cooperate, Random — partial
+- [ ] Network topology effects
+- [ ] Evolutionary selection pressure
+
+### Phase 3 status (blocked on ABM → real data)
+Visualization integration blocked. The `ResonanceTrajectory` shows kinetic particles based on synthetic profiles from `BrowserSimulation.ts`, not real agent state.
+
+### Phase 4 status (deferred)
+- Mesa migration: not needed yet. Current implementation uses NumPy+NetworkX
+- Solar/NOAA data integration: not pursued
+- Parameter sweep UI: not pursued
+- Time-series prediction: not pursued
+
+### Open question for the user
+The current ABM writes to a SQLite ledger (`/opt/sovereign-mirror/data/ledger.db`) at very high rate (>100/min). This was burning through the global rate limit before the per-`(ip, path)` fix. Should we:
+1. Batch the ABM ledger writes (e.g., flush every 5s instead of every event)
+2. Move the ABM to its own dedicated rate-limit bucket
+3. Keep as-is and let the per-path fix handle it

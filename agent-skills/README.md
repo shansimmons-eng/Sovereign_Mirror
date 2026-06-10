@@ -302,3 +302,19 @@ See [docs/skill-anatomy.md](docs/skill-anatomy.md) for the format specification 
 ## License
 
 MIT - use these skills in your projects, teams, and tools.
+
+---
+
+## Session Log — June 2026
+
+### Agent system status
+- CodeNomad subagents in `agent-skills/` are the source-of-truth for AI-driven development of the Sovereign Mirror
+- Active skills: `spec-driven-development`, `frontend-ui-engineering`, `debugging-and-error-recovery`, `incremental-implementation`
+
+### Changes this session relevant to agent skills
+- Mobile responsiveness patterns (`.cui-wrapper`, `.cui-container`, `.cui-main`) added — should be documented in `frontend-ui-engineering` skill as a "responsive panel" pattern
+- Adaptive weight feedback system (`server/feedbackStore.js`) is a new "veracity-graded learning" pattern — relevant to `spec-driven-development` and `incremental-implementation`
+- Rate-limit cascading bug (ABM flooding `/api/ledger/entry` starving user requests) is a classic case of shared-token-bucket starvation — should be added to `debugging-and-error-recovery` as a "rate-limit cascade" failure mode
+
+### Not done yet
+- These skill updates should be written by a subagent when Layer A work begins

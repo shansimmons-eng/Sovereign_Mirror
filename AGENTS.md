@@ -214,3 +214,27 @@ server/
 - **React 18.2**, **Three.js 0.160**, **@react-three/fiber 8.15**
 - **Zustand 4.5**, **Jotai 2.6**, **@reduxjs/toolkit 2.11**
 - **Tailwind 3.4**, **Vite 7.3**, **TypeScript 5.3**
+
+---
+
+## Session Log — June 2026
+
+### Active feature work
+- **Mobile responsiveness**: All dashboard panels now scroll independently. Ultrans is 1 column on mobile (was 3 with divider). `src/index.css` adds `.cui-wrapper`, `.cui-container`, `.cui-main` (column on mobile, row on desktop), `.left-panel` / `.right-panel` (each `flex: 1 1 0; min-height: 0; overflow-y: auto` with thin amber scrollbars). `Dashboard.tsx:102` changed `md:overflow-hidden` to `md:overflow-hidden overflow-y-auto` so the main scrolls on mobile.
+- **5-layer orbital rings**: `OrbitalRings.tsx` was rewritten. Rings now face the camera (no Z-axis flattening). Includes 5 thick rings (radii 0.8–3.85), 24/16/12/8/6 spokes per ring, 32 particles per ring drifting along the circumference, wireframe outer sphere, rotating reticle crosshair, pulse ring, glow ring. Kinetic particle opacity reduced 0.65 → 0.35 to keep rings visible.
+- **P-Gate Test API feedback**: `PGateButton.tsx` shows engagement result inline with `Target: 0.750 → Flux: X.XXX` and a `✓ Flux set to 0.75` / `✗ Flux mismatch` indicator.
+- **Cognoscentae Ultrans UI**: loading spinner + "ROUTING TO..." indicator during `analyzeInput`. Spectrograph shows weighted score + per-agent breakdown (groq, openrouter) with `✓` / `✗` verdict buttons. Fixed "Radical Veracity Passed" always-true string to read `lastBreakdown.weightedScore` directly.
+- **Rate limit**: `server/index.js` bumped from 100/min → 5000/min and changed `getRateLimitKey` to include `req.url` (per-path keying) so the ABM firehose on `/api/ledger/entry` no longer starves the user. Result: 0 429s in last 5 min (was hundreds).
+
+### Critical bugs fixed
+- **Empty statement log**: Caused by the rate-limit cascade. The ABM was flooding `/api/ledger/entry` at >100 req/min, burning the global token bucket. The browser's analyze request was 429ing, throwing inside the function arguments, and aborting before `setLastBreakdown` / `setStatementLog` ran. Per-path keying fixes it. Bundle `index-BiBnOqX2.js` includes `useEffect` diagnostics (`[TRAINING] lastBreakdown state changed`, `[TRAINING] statementLog state changed`) to confirm.
+- **Test API button "fails to set alpha 0.75"**: The P-Gate *was* engaging at 0.75 server-side, but the user had no visual confirmation. Now `PGateButton.tsx` shows the actual flux value after the request — green ✓ if `Math.abs(flux - 0.75) < 0.001`, red ✗ otherwise.
+
+### Security
+- Zero secrets in tracked files. `.env` gitignored (all 6 `.env` files untracked). Removed 13 tracked `*.pyc` + 1 tarball via `git rm --cached`. Expanded `.gitignore` for `.venv`, `__pycache__/`, `*.tar.gz`, SSH keys, deploy artifacts, CUDA binaries, SQL setup files with embedded DB passwords.
+
+### Git
+- Feature branch `feat/mobile-overflow-and-rings` (commit `f2f5641`) ready locally. Push to `origin/main` blocked — no GitHub credentials in the environment.
+
+### Open / next
+- Layer A: data foundation (per-user sessions table, fallacy corpus dedupe, rebuttal API). Item 8 (rebuttals) is essentially free — `fallacy_data.json` already has `explanation` + `response` fields, and `FallacyDataset.ts` has `loadFallacyDataset()` + `findMatchingFallacy()` ready. Just needs a UI call.

@@ -231,3 +231,43 @@ We are actively seeking **Sustainability Scientists** and **ZK-Engineers** to pa
 *Build: SOVEREIGN_MIRROR_V0.1_ALPHA*
 *Date: 2026-05-06*
 *Status: LAUNCH_CANDIDATE*
+---
+
+## Session Log — June 2026
+
+### Production status
+The architecture is now deployed at `http://178.156.135.222/` on Hetzner, not Cloudflare. Hetzner is the new production host. The dev tunnels (`cloudflared tunnel --url ...`) described in the file are no longer in use.
+
+### Adversarial readiness — updates this session
+| Threat | Status | Mitigation verified |
+|--------|--------|---------------------|
+| Sybil Attack | ✓ unchanged | `Q = min(N, ⌈√N⌉ + 2)` still in place |
+| State Injection | ✓ unchanged | VeracityEnforcer still throws on drift |
+| Stochastic Spike Gaming | ✓ unchanged | 7-cycle prime confirmation |
+| Quorum Collusion | ✓ unchanged | √N scaling |
+| Ledger Manipulation | ✓ unchanged | Redux immutable event sourcing |
+| Atrophy Bypass | ✓ unchanged | 24h decay |
+| **Rate-limit starvation** | ✓ NEW | Per-`(ip, path)` keying prevents one noisy endpoint from blocking others |
+
+### New: Adaptive agent weighting
+- RoBERTa, Groq, and OpenRouter votes are now blended with learned weights (`/api/feedback` endpoints, `server/feedbackStore.js`)
+- A user marking a verdict "correct" or "incorrect" adjusts each agent's weight by ±0.1, clamped to `[0.1, 5.0]`
+- This makes the "Sybil Attack" threat model more relevant — an attacker would need to flood the feedback API with consistent marks to game the weights
+
+### New: Test API audit trail
+- Every P-Gate engagement attempt is now logged with the actual flux value before/after
+- `PGateButton.tsx` shows a `✓` / `✗` indicator so failed engagements are visible to the user, not silently dropped
+
+### Open positions update
+The two open positions are still valid, but the scope has shifted:
+1. **Sustainability Scientists** — still needed for `layerZeroBridge.ts` validation
+2. **ZK-Engineers** — `zkProof.ts` is still a shell; the actual ZK circuit for veracity gate verification is unimplemented
+
+### New open position
+3. **AI Safety Researchers** — given the adaptive weight system, we need adversarial testers to attempt to manipulate weights via the feedback API. The current defenses are:
+  - Weight change is capped at ±0.1 per verdict
+  - All verdicts are logged with their full context
+  - But there's no per-user rate limit on feedback submission yet
+
+### Build artifact
+- `f2f5641 Mobile overflow + 5-layer orbital rings + P-Gate test feedback` on branch `feat/mobile-overflow-and-rings` (local, not pushed — GitHub credentials missing)

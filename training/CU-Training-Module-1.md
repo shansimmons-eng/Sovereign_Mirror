@@ -735,3 +735,32 @@ We must verify that the interface design actively breaks the subconscious bias l
 
 **Systemic Reality Check:** Most user interfaces are designed to maximize "engagement" and "delight" by pandering to the user's immediate emotional desires. The Cognoscentae Ultrans interface is explicitly designed to introduce tactical, educational friction. It rewards clarity and penalizes the survival instinct, forcing the node to choose between intellectual precision or systemic immobility.
 
+
+---
+
+## Session Log — June 2026
+
+### Visual interface implementation status
+The CUI (Cognoscentae Ultrans Interface) is implemented in `training/src/interface/CognoscentaeUltrans.tsx` and is live in the app at the `/training` / "Ultrans" nav section.
+
+| CUI Component | Status | Where |
+|---------------|--------|-------|
+| The Inverion Divide Horizon | ✓ Implemented | Center divider, "THE INVERION DIVIDE HORIZON" header |
+| The Real-Time Fallacy Spectrograph | ✓ Implemented | `fallacy-spectrograph` panel, shows per-fallacy confidence + agent breakdown |
+| The Intercept Interlock Modal | ~ Partial | `interceptActive` state freezes UI; no full modal overlay yet (uses inline block, not modal) |
+| Node-Facing UX Architecture (split panels) | ✓ Implemented | Left = "DARWINIAN SHADOW" (input + spectrograph), Right = "LEDGER CORE" (verified state) |
+| Immediate Cognitive Arrest | ✓ Verified | `analyzeInput` returns synchronously, interceptActive is set in the same render cycle |
+| Clarity of Correction | ✓ Improved | Per-fallacy breakdown shows the exact semantic trigger |
+| Behavioral Friction Reduction | ⏳ Pending | Requires longitudinal metrics (Layer A) |
+
+### Mobile layout
+The desktop "Epistemic Mirror" layout (left panel / divider / right panel) collapses to a 1-column mobile stack at `<768px`. Both panels remain visible but scroll vertically within the wrapper.
+
+### What needs work
+- The "Intercept Interlock Modal" should be a true modal overlay (currently the intercept state is shown inline at the top)
+- The "Refactor input to strip zero-sum survival bias" prompt is not yet visible to the user
+- A "Reframed input" textarea for the user to type their correction is not yet implemented
+- The "Horizon Crossing" animation (text gliding across the Inverion Divide) is not yet implemented
+
+### Cluster Bus architecture
+The CRDT-based decentralized bus, Ed25519 signatures, and lattice-based ZK proofs described later in this document are aspirational. The current implementation uses a centralized Express server with a SQLite ledger. The Cluster Bus would be a significant refactor — Layer B work.

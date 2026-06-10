@@ -236,3 +236,28 @@ watch -n 1 cat src/mirror/core/current_state.json
 - Check browser console for import errors
 - Verify Vite dev server is watching JSON files
 - Call `STATE_LOADER.invalidateCache()` to force refresh
+
+---
+
+## Session Log — June 2026
+
+### Actual current architecture
+The Python `simulate_stream.py` is not currently running. The visualization is driven by `BrowserSimulation.ts` (a TypeScript equivalent that runs entirely in the browser, no Python process required).
+
+The file `current_state.json` exists in the repo and is updated by the Python stream when present, but the BrowserSimulation engine takes precedence when the Python stream is absent.
+
+### Hetzner production
+On the Hetzner server (`178.156.135.222`), `current_state.json` is served by nginx from `/opt/sovereign-mirror/dist/current_state.json`. The browser polls it via `getVisualPayload()` (in `src/mirror/core/CryptoWrapper.ts`) every 500ms. There's no ABM Python service running on the server in this configuration.
+
+### ABM service (Port 5001)
+- Server: `simulation-abm.service` (systemd)
+- Status: running but the high-rate `/api/ledger/entry` writes were causing the rate-limit cascade that broke `setStatementLog` and `setLastBreakdown` in the user's browser (fixed in this session by per-`(ip, path)` rate-limit keying)
+- Future: would benefit from batching writes (see open question in `PLAN-Agent-Based-Simulations.md`)
+
+### Future work
+- The Python `simulate_stream.py` script could be re-enabled on the Hetzner server to drive more realistic state updates
+- The `BrowserSimulation.ts` profiles (8 milestones, 15s cycle) are simpler than the Python stream and don't include the ABM's game-theory payoffs
+- A unified state source (Python ABM → current_state.json → BrowserSimulation fallback) would be cleaner
+
+### File path changes
+- `src/mirror/core/current_state.json` is the live file, not `dist/active_state.json`. The dist file was used by the earlier Cloudflare deployment and is no longer authoritative.

@@ -264,3 +264,58 @@ cup/
 3. **Add auto-restart** for tunnel processes
 4. **Production deployment** via Cloudflare Workers/VM
 5. **Add automated tests** for inference pipeline
+---
+
+## Session Log — June 2026
+
+### Component port changes
+The old dev port mapping (5001/5002/5003) is still in effect locally, but in production the Hetzner deployment uses:
+- Express API on **3001** (was 5000)
+- nginx front on **80** (was 7777 on Cloudflare dev)
+- RoBERTa, free-agents, and ABM still on 5001/5002/5003 internally, fronted by nginx
+
+### `server/feedbackStore.js` (NEW)
+- SQLite at `/opt/sovereign-mirror/data/feedback.db`
+- Tables: `agent_weights`, `feedback_events`, `analysis_events`
+- Functions: `getAllWeights`, `recordFeedback`, `applyVerdict`, `getRecentFeedback`, `recordAnalysis`, `getRecentAnalyses`
+- Adaptive weight logic: `±0.1` per verdict, clamped to `[0.1, 5.0]`. Marking `correct` rewards agents that voted `detected`; marking `incorrect` rewards agents that voted `not detected`.
+
+### `server/index.js` — new endpoints
+| Endpoint | Method | Purpose |
+|----------|--------|---------|
+| `/api/feedback/weights` | GET | Current agent weights |
+| `/api/feedback` | POST | Submit verdict (correct/incorrect) for a statement, updates weights + logs event |
+| `/api/feedback/history` | GET | Recent feedback events with weight_before/weight_after |
+| `/api/feedback/analyze` | POST | Logs every analysis run with full breakdown (roberta, groq, openrouter, weightedScore, state, raw responses) |
+| `/api/feedback/analyses` | GET | Recent analysis events |
+
+### Cognoscentae Ultrans — weighted voting
+- `useTrainingSession` now fetches weights on mount, collects per-agent raw scores (robertaMax, groqScore, openrouterMean), and computes a weighted score:
+  ```
+  weightedScore = Σ(agent.score × agent.weight) / Σ(weight)
+  ```
+- `markVerdict(statementId, fallacyId, 'correct'|'incorrect')` updates server weights, returns new weights, updates local `weights` state
+- Per-fallacy `✓` / `✗` buttons in the spectrograph call `markVerdict`
+
+### Confidence threshold update
+- `ROBERTA_THRESHOLD` is now 0.60 (up from 0.50) — free agents only triggered on stronger RoBERTa signals
+- `WORD_COUNT_CAP = 200` — free agents skipped on long statements
+
+### Free agents service fix
+- `free-agents.service` systemd `Environment=` line was overriding `PATH` to venv-only, breaking `subprocess.run(["curl", ...])` with `ENOENT`
+- Fixed by appending `/usr/bin:/bin` to `Environment="PATH=...:/usr/bin:/bin"`
+- Groq now returns real responses (was failing silently)
+
+### Rate limit fix
+- 100/min → 5000/min
+- `getRateLimitKey` now returns `${ip}|${urlPath}` (per-path keying) so the ABM firehose on `/api/ledger/entry` doesn't starve the user's analyze requests
+- Result: 0 429s in last 5 min (was hundreds)
+
+### OpenRouter status
+- DeepInfra and OpenRouter have been disabled in this commit history — Groq is the primary validator (per `9dfffb0 Disable unreliable OpenRouter/DeepInfra - Groq is primary validator`)
+- OpenRouter still appears in the `useTrainingSession` agent list for legacy reasons; will be re-evaluated
+
+### Mobile UI
+- Cognoscentae Ultrans collapsed from 3-column desktop layout to 1-column mobile
+- All dashboard panels scroll independently on mobile
+- Loading spinner + "ROUTING TO..." indicator during analysis

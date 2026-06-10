@@ -137,3 +137,33 @@ No server setup needed. Frontend uses `BrowserSimulation.ts` which:
 3. **Deploy to kylosarc.com/sovereign-mirror**
 4. **Test live state fetching**
 5. **Wire interactive controls** for bolt/grain parameters
+
+---
+
+## Session Log — June 2026
+
+### Build path resolution
+- Vite no longer fails from the `\wsl$\Ubuntu\...` UNC path. Build is now run via `wsl.exe -e bash -c "cd /home/retroporter/cup && PATH=/home/retroporter/.nvm/versions/node/v24.15.0/bin:/usr/bin:/bin npm run build"`. The WSL node at `/home/retroporter/.nvm/versions/node/v24.15.0/bin/` is the correct path (was previously documented as v20.20.2).
+
+### Production deployment: Hetzner (current)
+The app is now live on Hetzner at `http://178.156.135.222/` (not Cloudflare). systemd services:
+
+| Service | Port | Notes |
+|---------|------|-------|
+| `nginx` | 80 | Reverse proxy + static. Has exact-match `location = /validate` and `location = /classify` blocks (the earlier 301 issue is fixed) |
+| `express-api.service` | 3001 | Express serving `/api/*` (feedback, ledger, pgate). Backing file: `/opt/sovereign-mirror/index.js` |
+| `roberta-classifier.service` | 5002 | Python RoBERTa fallacy classifier |
+| `free-agents.service` | 5003 | Groq + OpenRouter multi-agent validator. systemd `Environment=` line appends `/usr/bin:/bin` so subprocess `curl` works (was failing with `ENOENT`) |
+| `simulation-abm.service` | 5001 | Mesa ABM |
+
+### Deploy procedure (now standard)
+1. `wsl.exe -e bash -c "cd /home/retroporter/cup && PATH=/home/retroporter/.nvm/versions/node/v24.15.0/bin:/usr/bin:/bin npm run build"`
+2. `wsl.exe -e bash -c "cd /home/retroporter/cup/dist && tar czf /tmp/dist.tar.gz ."`
+3. `wsl.exe -e scp -i /home/retroporter/.ssh/id_hetzner_server /tmp/dist.tar.gz root@178.156.135.222:/tmp/dist.tar.gz`
+4. `wsl.exe -e ssh -i /home/retroporter/.ssh/id_hetzner_server root@178.156.135.222 'rm -rf /opt/sovereign-mirror/dist/assets/* /opt/sovereign-mirror/dist/index.html && tar xzf /tmp/dist.tar.gz -C /opt/sovereign-mirror/dist/'`
+5. For server-side code changes: `powershell.exe -NoProfile scp -i "\\wsl\$/Ubuntu/home/retroporter/.ssh/id_hetzner_server" "\\wsl\$/Ubuntu/home/retroporter/cup/server/<file>" root@178.156.135.222:/opt/sovereign-mirror/<file>` then `systemctl restart express-api.service`
+
+### Vercel + WordPress
+- The WordPress iframe is hardcoded to `https://dist-alpha-topaz-27.vercel.app` (per current `WORDPRESS_INTEGRATION.md`)
+- Vercel CLI is installed (`Vercel CLI 54.4.1`) but not authenticated — push deferred
+- When ready: `cd dist && vercel --prod --yes` to redeploy with the latest bundle

@@ -82,3 +82,39 @@ npm test
 ```
 
 All gates have comprehensive test coverage in `*.test.ts` files.
+
+---
+
+## Session Log — June 2026
+
+### Five gates — verified pure
+All five gates remain pure functions:
+- `veracityGate(V_active, V_control): max(0, V_active - V_control)`
+- `pGate(nodeId, affirming, total): { triggered, quorumSize }` where `quorum = min(N, ⌈√N⌉ + 2)`
+- `inverionDivide(nodeId, reason): { action: 'remediate', nodeId, reason }` (NEVER `'delete'`)
+- `abolitionOfPain(currentPain, threshold): boolean`
+- `atrophyTimer(lastActivity, currentTime): boolean` (T_LIMIT = 86,400,000ms = 24h)
+
+### Verifications
+- No state mutations in any gate
+- No side effects (no I/O, no logging)
+- All inputs are typed as `number` or `string`, all outputs are typed
+- No `Date.now()` or `Math.random()` calls inside gates (deterministic given inputs)
+
+### Adaptive weight logic (NOT a gate)
+The new adaptive weighting system in `server/feedbackStore.js` is a *learning layer* on top of the gates, not a gate itself. The gates remain pure and deterministic; the learning layer is in the storage/feedback pipeline.
+
+### Constants actual
+```typescript
+GOLDEN_RATIO = 0.618
+THRESHOLD_ENTROPY = 0.07  // ±7.0%
+ATROPHY_T_LIMIT = 86400000
+ATROPHY_DECAY_RATE = 0.95
+CONFIRMATION_CYCLES = 7
+FALLACY_CRITICAL_THRESHOLD = 0.15
+ROBERTA_THRESHOLD = 0.60  // up from 0.50 in earlier docs
+WORD_COUNT_CAP = 200
+```
+
+### Atrophy decay
+Decay rate 0.95 per 24h period means a node atrophies to <1% of its starting value after ~145 days of inactivity (`0.95^145 ≈ 0.0006`). Confirmed in current code.
