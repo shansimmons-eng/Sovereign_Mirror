@@ -76,6 +76,11 @@ src/**/*.d.ts
 # Built files
 dist/
 
+# Yarn PnP (Yarn Berry)
+.yarn/
+.pnp.cjs
+.pnp.loader.cjs
+
 # Parcel cache
 .cache
 
