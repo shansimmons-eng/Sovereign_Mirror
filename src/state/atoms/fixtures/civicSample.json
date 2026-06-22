@@ -1,0 +1,38 @@
+{
+  "organizations": [
+    {
+      "id": "ocd-organization/00000000-0000-0000-0000-000000000001",
+      "name": "Austin City Council",
+      "classification": "legislature",
+      "jurisdictionId": "ocd-jurisdiction/country:us/state:tx/place:austin/government"
+    }
+  ],
+  "people": [
+    {
+      "id": "ocd-person/00000000-0000-0000-0000-000000000010",
+      "name": "Jane Rivera",
+      "partyName": "Independent",
+      "currentOrgId": "ocd-organization/00000000-0000-0000-0000-000000000001"
+    },
+    {
+      "id": "ocd-person/00000000-0000-0000-0000-000000000011",
+      "name": "Marcus Chen",
+      "partyName": "Independent",
+      "currentOrgId": "ocd-organization/00000000-0000-0000-0000-000000000001"
+    }
+  ],
+  "voteEvents": [
+    {
+      "id": "ocd-vote-event/00000000-0000-0000-0000-000000000100",
+      "motionText": "Approve Resolution 2026-014 on transit corridor funding",
+      "startDate": "2026-05-12",
+      "result": "pass",
+      "organizationId": "ocd-organization/00000000-0000-0000-0000-000000000001",
+      "voteCounts": [
+        { "option": "yes", "value": 7 },
+        { "option": "no", "value": 2 },
+        { "option": "abstain", "value": 0 }
+      ]
+    }
+  ]
+}
