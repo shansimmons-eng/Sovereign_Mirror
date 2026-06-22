@@ -1,10 +1,13 @@
+import { getDefaultStore } from 'jotai/vanilla';
 import { store } from '../ledger/store';
 import { logEvent, VeracityEventType } from '../ledger/slices/veracitySlice';
 import { triggerPhysicalization, PhysicalizationEventType } from '../ledger/slices/physicalizationSlice';
 import { veracityGate } from '../../logic/veracityGate';
+import { computeVeracityAgainstBaseline, CivicBaselineSource } from '../../logic/civicBaseline';
 import { GOLDEN_RATIO, THRESHOLD_ENTROPY } from '../../logic/types';
 import { useHUDStore } from '../stores/hudStore';
 import { subscribeToNode, notifyPGateRejection } from './subscribe';
+import { civicBaselineAtomFamily } from '../atoms/civicBaselineAtoms';
 
 const CONFIRMATION_CYCLES = 7;
 
@@ -44,6 +47,40 @@ export function syncVeracityToLedger(
       velocity,
       timestamp: Date.now(),
       causalChain: [`V_active=${veracityScore}`, `V_control=${control}`],
+    }));
+  }
+}
+
+/**
+ * Drives the Veracity Gate using an official civic baseline (Data.gov /
+ * World Bank) as V_control, comparing it against a live/active value.
+ * No-ops if no baseline has been loaded for the given region+source.
+ */
+export function syncCivicBaselineVeracityToLedger(
+  regionId: string,
+  source: CivicBaselineSource,
+  activeValue: number
+): void {
+  const baseline = getDefaultStore().get(civicBaselineAtomFamily(`${regionId}:${source}`));
+  if (!baseline) return;
+
+  const result = computeVeracityAgainstBaseline(activeValue, baseline);
+
+  if (result > 0) {
+    const eventType: VeracityEventType = 'VERACITY_GATE_CROSSED';
+    store.dispatch(logEvent({
+      id: generateEventId(),
+      nodeId: regionId,
+      eventType,
+      veracityScore: result,
+      velocity: 0,
+      timestamp: Date.now(),
+      causalChain: [
+        `V_active=${activeValue}`,
+        `V_control=${baseline.value}`,
+        `baseline_source=${baseline.source}`,
+        `baseline_indicator=${baseline.indicatorId}`,
+      ],
     }));
   }
 }

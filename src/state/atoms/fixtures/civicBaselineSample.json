@@ -1,0 +1,18 @@
+[
+  {
+    "regionId": "us-tx",
+    "indicatorId": "VA.EST",
+    "indicatorLabel": "Voice and Accountability",
+    "value": 1.1,
+    "source": "world_bank",
+    "asOf": "2025-01-01"
+  },
+  {
+    "regionId": "us-tx",
+    "indicatorId": "voter-turnout-2024",
+    "indicatorLabel": "Voter Turnout (%)",
+    "value": 54.3,
+    "source": "data_gov",
+    "asOf": "2024-11-05"
+  }
+]
