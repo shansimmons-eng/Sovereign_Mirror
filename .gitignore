@@ -1,0 +1,17 @@
+node_modules/
+dist/
+data/
+*.db
+*.bak.*
+__pycache__/
+*.pyc
+.venv/
+venv/
+*.run
+*.deb
+active_state.json
+deployment_artifacts/
+server/simulation/.cache/
+server/simulation/0
+server/simulation/Error
+server/simulation/source
