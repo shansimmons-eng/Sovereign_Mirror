@@ -1,6 +1,12 @@
 import { createServer } from 'node:http';
+import { readFileSync, existsSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import { dirname, join } from 'node:path';
 import { veracityGate, calculateQuorum, calculateAtrophyDecay, getThresholdWithEntropy } from './logic/kernel.js';
 import { getAllWeights, recordFeedback, applyVerdict, getRecentFeedback, recordAnalysis, getRecentAnalyses } from './feedbackStore.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 const PORT = 3001;
 const ALLOWED_ORIGINS = [
@@ -26,11 +32,110 @@ const SECURITY_HEADERS = {
   'Content-Security-Policy': "default-src 'none'; frame-ancestors 'none'",
 };
 
+const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
+const OR_MODEL_1 = 'meta-llama/llama-3.3-70b-instruct:free';
+const OR_MODEL_2 = 'qwen/qwen3-next-80b-a3b-instruct:free';
+const VALIDATE_TIMEOUT_MS = 15000;
+const FALLACY_SYSTEM_PROMPT = `You are a logical fallacy detection expert. Analyze the statement and determine if it contains a logical fallacy.
+
+Supported fallacies:
+- ad_hominem
+- false_dilemma
+- appeal_to_emotion
+- false_causality
+- circular_reasoning
+- hasty_generalization
+- strawman
+- slippery_slope
+
+Respond ONLY with valid JSON:
+{"detected": true/false, "fallacy_type": "type or null", "confidence": 0.0-1.0, "reasoning": "brief explanation"}`;
+
+function getOpenRouterKey() {
+  return process.env.OPENROUTER_API_KEY || process.env.FREE_OPENROUTER || process.env.GEN_OPENROUTER || null;
+}
+
+async function queryOR(text, modelId, apiKey) {
+  try {
+    const res = await fetch(OPENROUTER_URL, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+        'HTTP-Referer': 'https://kylosarc.org',
+      },
+      body: JSON.stringify({
+        model: modelId,
+        messages: [
+          { role: 'system', content: FALLACY_SYSTEM_PROMPT },
+          { role: 'user', content: text },
+        ],
+        max_tokens: 500,
+        temperature: 0.1,
+        stream: false,
+      }),
+      signal: AbortSignal.timeout(VALIDATE_TIMEOUT_MS),
+    });
+    if (!res.ok) {
+      console.warn(`[VALIDATE] ${modelId} returned ${res.status}`);
+      return null;
+    }
+    const data = await res.json();
+    const content = data?.choices?.[0]?.message?.content;
+    if (!content) return null;
+    const parsed = JSON.parse(content);
+    return {
+      detected: !!parsed.detected,
+      fallacy_type: parsed.fallacy_type || null,
+      confidence: typeof parsed.confidence === 'number' ? parsed.confidence : 0,
+      reasoning: parsed.reasoning || '',
+      model: modelId,
+    };
+  } catch (e) {
+    console.warn(`[VALIDATE] ${modelId} error: ${e.message}`);
+    return null;
+  }
+}
+
 const PLASMA_URL = 'https://services.swpc.noaa.gov/products/solar-wind/plasma-7-day.json';
 const MAGNET_URL = 'https://services.swpc.noaa.gov/products/solar-wind/mag-7-day.json';
 const RTSW_CACHE_TTL_MS = 30000;
 let _rtswCache = null;
 let _rtswCacheTime = 0;
+
+const FALLACY_DATA_PATH = join(__dirname, 'fallacy_data.json');
+let _fallacyDatasetCache = null;
+
+function loadFallacyDataset() {
+  if (_fallacyDatasetCache) return _fallacyDatasetCache;
+  if (!existsSync(FALLACY_DATA_PATH)) {
+    console.warn('[FALLACY] fallacy_data.json not found at', FALLACY_DATA_PATH);
+    return { entries: [], by_type: {}, total: 0, sources: [] };
+  }
+  try {
+    const raw = readFileSync(FALLACY_DATA_PATH, 'utf-8');
+    const data = JSON.parse(raw);
+    const entries = data.entries || [];
+    const by_type = {};
+    const sources = [];
+    const seenSources = new Set();
+    for (const entry of entries) {
+      const t = entry.fallacy_type;
+      if (!by_type[t]) by_type[t] = [];
+      by_type[t].push(entry);
+      if (entry.source && !seenSources.has(entry.source)) {
+        seenSources.add(entry.source);
+        sources.push(entry.source);
+      }
+    }
+    _fallacyDatasetCache = { entries, by_type, total: entries.length, sources };
+    console.log(`[FALLACY] Loaded ${entries.length} entries (${Object.keys(by_type).length} types, ${sources.length} sources)`);
+    return _fallacyDatasetCache;
+  } catch (e) {
+    console.error('[FALLACY] Failed to load fallacy_data.json:', e.message);
+    return { entries: [], by_type: {}, total: 0, sources: [] };
+  }
+}
 
 function getSafe(val, fallback) {
   const v = Number(val);
@@ -164,6 +269,69 @@ const server = createServer(async (req, res) => {
   if (url.pathname === '/api/health' && req.method === 'GET') {
     res.writeHead(200, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify({ status: 'TRUSTED_KERNEL_ONLINE', timestamp: Date.now() }));
+    return;
+  }
+
+  if (url.pathname === '/classify/fallacy-data' && req.method === 'GET') {
+    const dataset = loadFallacyDataset();
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify(dataset));
+    return;
+  }
+
+  if (url.pathname === '/validate' && req.method === 'POST') {
+    let body = '';
+    let size = 0;
+    req.on('data', chunk => {
+      size += chunk.length;
+      if (size > MAX_BODY_SIZE) { req.destroy(); return; }
+      body += chunk;
+    });
+    req.on('end', async () => {
+      try {
+        const { text } = JSON.parse(body);
+        if (!text || typeof text !== 'string') {
+          res.writeHead(400, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: 'text must be a non-empty string' }));
+          return;
+        }
+        const apiKey = getOpenRouterKey();
+        if (!apiKey) {
+          res.writeHead(503, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: 'No OpenRouter API key configured' }));
+          return;
+        }
+        const [r1, r2] = await Promise.all([
+          queryOR(text, OR_MODEL_1, apiKey),
+          queryOR(text, OR_MODEL_2, apiKey),
+        ]);
+        const results = [r1, r2].filter(Boolean);
+        const detectedCount = results.filter(r => r.detected).length;
+        const avgConfidence = results.length > 0
+          ? results.reduce((s, r) => s + r.confidence, 0) / results.length
+          : 0;
+        const consensus = {
+          detected: detectedCount > 0,
+          agents_detected: detectedCount,
+          agents_queried: 2,
+          reasoning: results.map(r => `${r.model}: ${r.reasoning}`).join(' | '),
+        };
+        const agents = {
+          openrouter: results.map(r => ({
+            detected: r.detected,
+            confidence: r.confidence,
+            reasoning: r.reasoning,
+            model: r.model,
+          })),
+        };
+        console.log(`[VALIDATE] "${text.substring(0, 50)}..." detected=${consensus.detected} (${detectedCount}/2)`);
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ text, consensus, agents }));
+      } catch (e) {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'Invalid request' }));
+      }
+    });
     return;
   }
 
@@ -417,7 +585,9 @@ server.listen(PORT, () => {
   console.log(`[TRUSTED_KERNEL] Server running on port ${PORT}`);
   console.log(`[TRUSTED_KERNEL] Using Node.js built-in HTTP (no express needed)`);
   console.log(`  GET  /api/rtsw/latest`);
+  console.log(`  GET  /classify/fallacy-data`);
   console.log(`  GET  /api/health`);
+  console.log(`  POST /validate`);
   console.log(`  POST /api/pgate/engage`);
   console.log(`  POST /api/veracity/calculate`);
   console.log(`  POST /api/quorum/calculate`);
