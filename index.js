@@ -669,6 +669,107 @@ const server = createServer(async (req, res) => {
     return;
   }
 
+  if (url.pathname === '/api/crypto/status' && req.method === 'GET') {
+    try {
+      const result = await sendCryptoRequest('status', {});
+      const r = getCryptoResult(result);
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ algorithms: r.algorithms, timestamp: Date.now() }));
+    } catch (e) {
+      res.writeHead(503, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: e.message }));
+    }
+    return;
+  }
+
+  function readCryptoBody(req, onBody, onError) {
+    let body = '';
+    let size = 0;
+    req.on('data', chunk => {
+      size += chunk.length;
+      if (size > MAX_BODY_SIZE) { req.destroy(); return; }
+      body += chunk;
+    });
+    req.on('end', () => {
+      if (req.destroyed) return;
+      try { onBody(JSON.parse(body)); }
+      catch { onError('Invalid JSON'); }
+    });
+  }
+
+  if (url.pathname === '/api/crypto/keypair' && req.method === 'POST') {
+    readCryptoBody(req, async (json) => {
+      try {
+        const result = await sendCryptoRequest('keypair', { algorithm: json.algorithm || 'mayo1' });
+        const r = getCryptoResult(result);
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ ...r, timestamp: Date.now() }));
+      } catch (e) {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: e.message }));
+      }
+    }, (err) => {
+      res.writeHead(400, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: err }));
+    });
+    return;
+  }
+
+  if (url.pathname === '/api/crypto/sign' && req.method === 'POST') {
+    readCryptoBody(req, async (json) => {
+      try {
+        if (!json.message || !json.secret_key) {
+          res.writeHead(400, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: 'message and secret_key required' }));
+          return;
+        }
+        const result = await sendCryptoRequest('sign', {
+          algorithm: json.algorithm || 'mayo1',
+          message: json.message,
+          secret_key: json.secret_key,
+        });
+        const r = getCryptoResult(result);
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ ...r, timestamp: Date.now() }));
+      } catch (e) {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: e.message }));
+      }
+    }, (err) => {
+      res.writeHead(400, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: err }));
+    });
+    return;
+  }
+
+  if (url.pathname === '/api/crypto/verify' && req.method === 'POST') {
+    readCryptoBody(req, async (json) => {
+      try {
+        if (!json.message || !json.signature || !json.public_key) {
+          res.writeHead(400, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: 'message, signature, and public_key required' }));
+          return;
+        }
+        const result = await sendCryptoRequest('verify', {
+          algorithm: json.algorithm || 'mayo1',
+          message: json.message,
+          signature: json.signature,
+          public_key: json.public_key,
+        });
+        const r = getCryptoResult(result);
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ valid: r.valid, timestamp: Date.now() }));
+      } catch (e) {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: e.message }));
+      }
+    }, (err) => {
+      res.writeHead(400, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: err }));
+    });
+    return;
+  }
+
   res.writeHead(404, { 'Content-Type': 'application/json' });
   res.end(JSON.stringify({ error: 'Not found' }));
 });
