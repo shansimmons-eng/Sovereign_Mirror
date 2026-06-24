@@ -35,12 +35,15 @@ function PhysicalizationEventRow({ event }: { event: PhysicalizationEvent }) {
     QUORUM_REACHED: 'QUORUM_YES',
     NODE_PHYSICALIZED: 'ZKP_VERIFIED',
     PHYSICALIZATION_REJECTED: 'P_GATE_REJECT',
+    CRYPTO_SIG_RECEIVED: 'QPADL_SIG',
   };
 
+  const isCrypto = event.eventType === 'CRYPTO_SIG_RECEIVED';
+  const tagColor = isCrypto ? 'text-healed-sage' : 'text-physical-rose';
   return (
     <div className="py-1 border-b border-white/5">
-      <span className="text-physical-rose">[AUDIT]</span>
-      <span className="text-physical-rose ml-2">{labels[event.eventType] || event.eventType}</span>
+      <span className={tagColor}>[AUDIT]</span>
+      <span className={`${tagColor} ml-2`}>{labels[event.eventType] || event.eventType}</span>
       <span className="text-white/40 ml-2">NODE_{event.nodeId.slice(0, 6)}</span>
       <span className="text-ultranetic-amber ml-auto">
         R={event.resonanceScore.toFixed(4)} Q={event.affirmingNodes}/{event.quorumSize}

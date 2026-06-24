@@ -3,6 +3,7 @@ import { VeracityLog } from '../hud/VeracityLog';
 import { useHUDStore } from '../../state/stores/hudStore';
 import { SystemicSliders } from './SystemicSliders';
 import { PGateButton } from './PGateButton';
+import { CryptoStatusPanel } from './CryptoStatusPanel';
 
 export function Dashboard() {
   const sunriseOpacity = useHUDStore((s) => s.sunriseOpacity);
@@ -31,6 +32,7 @@ export function Dashboard() {
         <div className="text-radiant-cream font-mono text-sm mb-4">NODE STATUS</div>
         <div className="flex-1">
           <NodeStatusPanel />
+          <CryptoStatusPanel />
         </div>
       </div>
 

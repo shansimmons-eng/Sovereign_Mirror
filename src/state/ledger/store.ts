@@ -1,11 +1,13 @@
 import { configureStore } from '@reduxjs/toolkit';
 import veracityReducer from './slices/veracitySlice';
 import physicalizationReducer from './slices/physicalizationSlice';
+import cryptoReducer from './slices/cryptoSlice';
 
 export const store = configureStore({
   reducer: {
     veracity: veracityReducer,
     physicalization: physicalizationReducer,
+    crypto: cryptoReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

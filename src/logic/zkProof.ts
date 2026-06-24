@@ -1,8 +1,14 @@
+import { cryptoSign, cryptoVerify, cryptoKeypair, CryptoKeypairResult } from '../services/apiService';
+import { store } from '../state/ledger/store';
+import { triggerPhysicalization } from '../state/ledger/slices/physicalizationSlice';
+
 export interface ZKProof {
   proofId: string;
   nodeId: string;
-  publicInputs: string[];
-  proofData: string[];
+  algorithm: string;
+  signature: string;
+  publicKey: string;
+  message: string;
   verificationResult: boolean;
   timestamp: number;
 }
@@ -11,7 +17,7 @@ export interface VeracityClaim {
   nodeId: string;
   claimedVeracity: number;
   claimedVelocity: number;
-  commitments: string[];
+  message?: string;
 }
 
 export interface VerificationResult {
@@ -20,33 +26,72 @@ export interface VerificationResult {
   error?: string;
 }
 
-export class ZKProofEngine {
+let keypairCache: Record<string, CryptoKeypairResult> = {};
+
+export class QPADLProofEngine {
+  private algorithm: string;
+
+  constructor(algorithm = 'mayo1') {
+    this.algorithm = algorithm;
+  }
+
+  private async ensureKeypair(): Promise<CryptoKeypairResult> {
+    if (keypairCache[this.algorithm]) return keypairCache[this.algorithm];
+    const result = await cryptoKeypair(this.algorithm);
+    if (!result.ok || !result.data) throw new Error(`keypair failed: ${result.error}`);
+    keypairCache[this.algorithm] = result.data;
+    return result.data;
+  }
+
   async generateProof(claim: VeracityClaim): Promise<ZKProof> {
-    const proofId = `ZKP_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const kp = await this.ensureKeypair();
+    const message = claim.message || `veracity:${claim.claimedVeracity}:${claim.claimedVelocity}:${claim.nodeId}:${Date.now()}`;
+    const msgB64 = btoa(message);
+    const signResult = await cryptoSign(this.algorithm, msgB64, kp.secret_key);
+    if (!signResult.ok || !signResult.data) throw new Error(`sign failed: ${signResult.error}`);
 
-    const commitments = this.commitToVeracity(claim.claimedVeracity, claim.nodeId);
-
-    const proofData = this.computeNonInteractiveProof(claim, commitments);
-
-    return {
-      proofId,
+    const proof: ZKProof = {
+      proofId: `QPADL_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       nodeId: claim.nodeId,
-      publicInputs: [claim.nodeId, claim.claimedVeracity.toFixed(6)],
-      proofData,
+      algorithm: this.algorithm,
+      signature: signResult.data.signature,
+      publicKey: kp.public_key,
+      message: msgB64,
       verificationResult: false,
       timestamp: Date.now(),
     };
+
+    store.dispatch(triggerPhysicalization({
+      id: proof.proofId,
+      nodeId: claim.nodeId,
+      eventType: 'CRYPTO_SIG_RECEIVED',
+      resonanceScore: claim.claimedVeracity,
+      threshold: 0,
+      quorumSize: 3,
+      affirmingNodes: 1,
+      timestamp: proof.timestamp,
+    }));
+
+    return proof;
   }
 
   async verifyProof(proof: ZKProof): Promise<VerificationResult> {
     try {
-      const isValid = this.verifyProofStructure(proof) &&
-                      this.verifyPublicInputs(proof.publicInputs);
+      const verifyResult = await cryptoVerify(
+        proof.algorithm,
+        proof.message,
+        proof.signature,
+        proof.publicKey,
+      );
+      if (!verifyResult.ok || !verifyResult.data) {
+        return { valid: false, proofId: proof.proofId, error: verifyResult.error };
+      }
+
+      proof.verificationResult = verifyResult.data.valid;
 
       return {
-        valid: isValid,
+        valid: verifyResult.data.valid,
         proofId: proof.proofId,
-        verificationResult: isValid,
       };
     } catch (error) {
       return {
@@ -57,39 +102,8 @@ export class ZKProofEngine {
     }
   }
 
-  private commitToVeracity(veracity: number, nodeId: string): string[] {
-    const blinding = Math.random().toString(36).substr(2, 16);
-    const commitment = this.hashValues(`${nodeId}:${veracity}:${blinding}`);
-    return [commitment, blinding];
-  }
-
-  private computeNonInteractiveProof(claim: VeracityClaim, commitments: string[]): string[] {
-    const challenge = this.hashValues(commitments.join(':'));
-    const response = this.hashValues(`${claim.nodeId}:${challenge}:${claim.claimedVelocity}`);
-
-    return [challenge, response, ...commitments];
-  }
-
-  private verifyProofStructure(proof: ZKProof): boolean {
-    return (
-      proof.proofId.startsWith('ZKP_') &&
-      proof.publicInputs.length >= 2 &&
-      proof.proofData.length >= 3
-    );
-  }
-
-  private verifyPublicInputs(inputs: string[]): boolean {
-    return inputs.every(input => input && input.length > 0);
-  }
-
-  private hashValues(value: string): string {
-    let hash = 0;
-    for (let i = 0; i < value.length; i++) {
-      const char = value.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
-      hash = hash & hash;
-    }
-    return Math.abs(hash).toString(16).padStart(8, '0');
+  static clearCache() {
+    keypairCache = {};
   }
 
   async batchVerifyProofs(proofs: ZKProof[]): Promise<{ valid: number; invalid: number }> {
@@ -101,4 +115,4 @@ export class ZKProofEngine {
   }
 }
 
-export const zkProofEngine = new ZKProofEngine();
+export const zkProofEngine = new QPADLProofEngine();
