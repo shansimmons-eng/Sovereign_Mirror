@@ -48,24 +48,39 @@ try {
 if (!CRYPTO_ARGS || !Array.isArray(CRYPTO_ARGS) || CRYPTO_ARGS.length === 0) {
   CRYPTO_ARGS = [];
 }
-const CRYPTO_MAX_RESTARTS = 5;
+const CRYPTO_MAX_RESTARTS = 10;
+const CRYPTO_RESTART_BASE_DELAY = 2000;
+const CRYPTO_RESTART_MAX_DELAY = 60000;
+const CRYPTO_RESET_INTERVAL = 300000;
 let cryptoProc = null;
 let cryptoReady = false;
 let cryptoReqId = 1;
 let cryptoPending = new Map();
 const CRYPTO_PENDING_MAX = 256;
 let cryptoRestartCount = 0;
+let cryptoLastSuccess = Date.now();
+let cryptoRestartDelay = CRYPTO_RESTART_BASE_DELAY;
 
 function startCryptoServer() {
   if (cryptoRestartCount >= CRYPTO_MAX_RESTARTS) {
-    console.error('[CRYPTO] Max restarts reached, giving up');
-    cryptoReady = false;
-    return;
+    const timeSinceLastSuccess = Date.now() - cryptoLastSuccess;
+    if (timeSinceLastSuccess >= CRYPTO_RESET_INTERVAL) {
+      cryptoRestartCount = 0;
+      cryptoRestartDelay = CRYPTO_RESTART_BASE_DELAY;
+      console.log('[CRYPTO] Restart counter reset after ' + (timeSinceLastSuccess / 1000) + 's of stable uptime');
+    } else {
+      console.error('[CRYPTO] Max restarts reached, giving up');
+      cryptoReady = false;
+      return;
+    }
   }
   cryptoProc = spawn(CRYPTO_BIN, CRYPTO_ARGS, {
     stdio: ['pipe', 'pipe', 'inherit'],
   });
   cryptoRestartCount++;
+  const currentDelay = cryptoRestartDelay;
+  cryptoRestartDelay = Math.min(cryptoRestartDelay * 2, CRYPTO_RESTART_MAX_DELAY);
+  console.log('[CRYPTO] Starting server attempt ' + cryptoRestartCount + '/' + CRYPTO_MAX_RESTARTS + ' (delay: ' + currentDelay + 'ms)');
   const rl = createInterface({ input: cryptoProc.stdout });
   rl.on('line', (line) => {
     try {
@@ -74,6 +89,7 @@ function startCryptoServer() {
       if (id != null && cryptoPending.has(id)) {
         const { resolve } = cryptoPending.get(id);
         cryptoPending.delete(id);
+        cryptoLastSuccess = Date.now();
         resolve(msg);
       }
     } catch { /* ignore malformed lines */ }
@@ -87,7 +103,7 @@ function startCryptoServer() {
     cryptoReady = false;
     cryptoPending.forEach(({ reject }) => reject(new Error('crypto server exited')));
     cryptoPending.clear();
-    setTimeout(startCryptoServer, 2000);
+    setTimeout(startCryptoServer, currentDelay);
   });
   cryptoReady = true;
 }
