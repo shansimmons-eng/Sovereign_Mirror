@@ -1,6 +1,4 @@
 import { createServer } from 'node:http';
-import { spawn } from 'node:child_process';
-import { createInterface } from 'node:readline';
 import { readFileSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
@@ -33,96 +31,6 @@ const SECURITY_HEADERS = {
   'Referrer-Policy': 'strict-origin-when-cross-origin',
   'Content-Security-Policy': "default-src 'none'; frame-ancestors 'none'",
 };
-
-
-// --- QPADL Crypto Subprocess ---
-const CRYPTO_BIN = process.env.CRYPTO_SERVER_BIN || '/opt/sovereign-mirror/target/release/kylos-crypto-server';
-let CRYPTO_ARGS;
-try {
-  CRYPTO_ARGS = process.env.CRYPTO_SERVER_ARGS
-    ? JSON.parse(process.env.CRYPTO_SERVER_ARGS)
-    : null;
-} catch {
-  CRYPTO_ARGS = null;
-}
-if (!CRYPTO_ARGS || !Array.isArray(CRYPTO_ARGS) || CRYPTO_ARGS.length === 0) {
-  CRYPTO_ARGS = [];
-}
-const CRYPTO_MAX_RESTARTS = 5;
-let cryptoProc = null;
-let cryptoReady = false;
-let cryptoReqId = 1;
-let cryptoPending = new Map();
-const CRYPTO_PENDING_MAX = 256;
-let cryptoRestartCount = 0;
-
-function startCryptoServer() {
-  if (cryptoRestartCount >= CRYPTO_MAX_RESTARTS) {
-    console.error('[CRYPTO] Max restarts reached, giving up');
-    cryptoReady = false;
-    return;
-  }
-  cryptoProc = spawn(CRYPTO_BIN, CRYPTO_ARGS, {
-    stdio: ['pipe', 'pipe', 'inherit'],
-  });
-  cryptoRestartCount++;
-  const rl = createInterface({ input: cryptoProc.stdout });
-  rl.on('line', (line) => {
-    try {
-      const msg = JSON.parse(line);
-      const id = msg.id;
-      if (id != null && cryptoPending.has(id)) {
-        const { resolve } = cryptoPending.get(id);
-        cryptoPending.delete(id);
-        resolve(msg);
-      }
-    } catch { /* ignore malformed lines */ }
-  });
-  cryptoProc.on('error', (err) => {
-    console.error('[CRYPTO] Server error:', err.message);
-    cryptoReady = false;
-  });
-  cryptoProc.on('exit', (code) => {
-    console.error('[CRYPTO] Server exited (' + code + '), restarting in 2s');
-    cryptoReady = false;
-    cryptoPending.forEach(({ reject }) => reject(new Error('crypto server exited')));
-    cryptoPending.clear();
-    setTimeout(startCryptoServer, 2000);
-  });
-  cryptoReady = true;
-}
-
-function sendCryptoRequest(method, params) {
-  return new Promise((resolve, reject) => {
-    if (!cryptoProc || !cryptoProc.stdin.writable) {
-      reject(new Error('crypto server not available'));
-      return;
-    }
-    if (cryptoPending.size >= CRYPTO_PENDING_MAX) {
-      reject(new Error('crypto server overloaded'));
-      return;
-    }
-    const id = cryptoReqId++;
-    cryptoPending.set(id, { resolve, reject });
-    const request = JSON.stringify({ id, method, params }) + '\n';
-    cryptoProc.stdin.write(request);
-    setTimeout(() => {
-      if (cryptoPending.has(id)) {
-        cryptoPending.delete(id);
-        reject(new Error('crypto request timeout'));
-      }
-    }, 30000);
-  });
-}
-
-function getCryptoResult(result) {
-  if (!result || result.error) throw new Error((result && result.error) || 'crypto server error');
-  if (!result.result) throw new Error('crypto server returned empty result');
-  return result.result;
-}
-
-startCryptoServer();
-
 
 const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
 const OR_MODEL_1 = 'meta-llama/llama-3.3-70b-instruct:free';
@@ -673,29 +581,10 @@ const server = createServer(async (req, res) => {
   res.end(JSON.stringify({ error: 'Not found' }));
 });
 
-
-function shutdown() {
-  console.log('[TRUSTED_KERNEL] Shutting down...');
-  if (cryptoProc) {
-    cryptoProc.removeAllListeners('exit');
-    cryptoProc.stdin.end();
-    const timeout = setTimeout(() => cryptoProc.kill(), 3000);
-    cryptoProc.on('exit', () => clearTimeout(timeout));
-  }
-  server.close(() => process.exit(0));
-}
-
-process.on('SIGINT', shutdown);
-process.on('SIGTERM', shutdown);
-
 server.listen(PORT, () => {
   console.log(`[TRUSTED_KERNEL] Server running on port ${PORT}`);
   console.log(`[TRUSTED_KERNEL] Using Node.js built-in HTTP (no express needed)`);
   console.log(`  GET  /api/rtsw/latest`);
-  console.log(`  GET  /api/crypto/status`);
-  console.log(`  POST /api/crypto/keypair`);
-  console.log(`  POST /api/crypto/sign`);
-  console.log(`  POST /api/crypto/verify`);
   console.log(`  GET  /classify/fallacy-data`);
   console.log(`  GET  /api/health`);
   console.log(`  POST /validate`);
