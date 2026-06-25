@@ -1,0 +1,3 @@
+[submodule "kylos-qpadl"]
+	path = kylos-qpadl
+	url = https://github.com/shansimmons-eng/kylos-qpadl.git

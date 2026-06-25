@@ -58,6 +58,7 @@ typings/
 # Secrets & credentials
 .env
 .env.*
+!.env.example
 *.pem
 *.key
 *.crt

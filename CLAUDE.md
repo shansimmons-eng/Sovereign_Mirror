@@ -74,3 +74,8 @@ A separate fallacy-detection training UI, built against its own engine: `engines
 
 ## Repo hygiene notes
 The working tree has large generated/backup artifacts at the root (`backup/`, `backup_manual*/`, `*.tar.gz`, `dist/`, `cloudflared`, SSH keys like `id_hetzner_server`) — these are not part of the app's source tree; don't treat them as canonical when searching for current implementations, and never commit secrets/keys from them. `.gitignore` already excludes most of these patterns.
+
+As of 2026-06-25, also be aware of:
+- `kylos-qpadl/` is a separate real project (`github.com/shansimmons-eng/kylos-qpadl`, post-quantum signatures in Rust) checked out inside this working tree. It's tracked as a git submodule (see `.gitmodules`) — don't expect its contents to show up in this repo's own commits.
+- `server/simulation/` had its Python venv deleted at some point, which silently broke three systemd services on Hetzner that all share it (`free-agents`, `simulation-abm`, `roberta-classifier`) — only one actually crash-looped, the other two kept running on stale in-memory processes until restarted. If you're debugging a "works locally, broken on server" issue, check `venv/bin/python` actually exists there first.
+- See `ENVIRONMENT.md` for the current state of API keys/secrets and which are load-bearing vs optional.
