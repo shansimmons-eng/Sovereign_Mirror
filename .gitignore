@@ -64,6 +64,7 @@ typings/
 *.crt
 secrets/
 config/local.json
+server/data/
 
 # SSH keys
 id_*

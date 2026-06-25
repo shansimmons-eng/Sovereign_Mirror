@@ -219,3 +219,89 @@ export async function checkQuorum(activeNodes: number, affirmingNodes: number): 
   const quorum = Math.min(activeNodes, Math.ceil(Math.sqrt(activeNodes)) + 2);
   return ok({ quorum, reached: affirmingNodes >= quorum });
 }
+
+// --- QPADL Crypto API ---
+
+export interface CryptoAlgorithmInfo {
+  id: string;
+  level: number;
+  enabled: boolean;
+  oqs_name: string;
+}
+
+interface CryptoStatusResponse {
+  algorithms: CryptoAlgorithmInfo[];
+  timestamp: number;
+}
+
+function validateCryptoStatus(v: unknown): CryptoStatusResponse | null {
+  if (typeof v !== 'object' || v === null) return null;
+  const o = v as Record<string, unknown>;
+  if (!Array.isArray(o.algorithms)) return null;
+  if (typeof o.timestamp !== 'number') return null;
+  return o as unknown as CryptoStatusResponse;
+}
+
+export async function fetchCryptoStatus(): Promise<Result<CryptoAlgorithmInfo[]>> {
+  const result = await get<CryptoStatusResponse>('/crypto/status', validateCryptoStatus);
+  if (result.ok && result.data) return ok(result.data.algorithms);
+  return err(result.error || 'unknown error');
+}
+
+export interface CryptoKeypairResult {
+  algorithm: string;
+  level: number;
+  public_key: string;
+  secret_key: string;
+  timestamp: number;
+}
+
+function validateCryptoKeypair(v: unknown): CryptoKeypairResult | null {
+  if (typeof v !== 'object' || v === null) return null;
+  const o = v as Record<string, unknown>;
+  if (typeof o.algorithm !== 'string') return null;
+  if (typeof o.level !== 'number') return null;
+  if (typeof o.public_key !== 'string') return null;
+  if (typeof o.secret_key !== 'string') return null;
+  return o as unknown as CryptoKeypairResult;
+}
+
+export async function cryptoKeypair(algorithm?: string): Promise<Result<CryptoKeypairResult>> {
+  return post<CryptoKeypairResult>('/crypto/keypair', { algorithm: algorithm || 'mayo1' }, validateCryptoKeypair);
+}
+
+export interface CryptoSignResult {
+  algorithm: string;
+  level: number;
+  signature: string;
+  timestamp: number;
+}
+
+function validateCryptoSign(v: unknown): CryptoSignResult | null {
+  if (typeof v !== 'object' || v === null) return null;
+  const o = v as Record<string, unknown>;
+  if (typeof o.algorithm !== 'string') return null;
+  if (typeof o.level !== 'number') return null;
+  if (typeof o.signature !== 'string') return null;
+  return o as unknown as CryptoSignResult;
+}
+
+export async function cryptoSign(algorithm: string, message: string, secretKey: string): Promise<Result<CryptoSignResult>> {
+  return post<CryptoSignResult>('/crypto/sign', { algorithm, message, secret_key: secretKey }, validateCryptoSign);
+}
+
+export interface CryptoVerifyResult {
+  valid: boolean;
+  timestamp: number;
+}
+
+function validateCryptoVerify(v: unknown): CryptoVerifyResult | null {
+  if (typeof v !== 'object' || v === null) return null;
+  const o = v as Record<string, unknown>;
+  if (typeof o.valid !== 'boolean') return null;
+  return o as unknown as CryptoVerifyResult;
+}
+
+export async function cryptoVerify(algorithm: string, message: string, signature: string, publicKey: string): Promise<Result<CryptoVerifyResult>> {
+  return post<CryptoVerifyResult>('/crypto/verify', { algorithm, message, signature, public_key: publicKey }, validateCryptoVerify);
+}

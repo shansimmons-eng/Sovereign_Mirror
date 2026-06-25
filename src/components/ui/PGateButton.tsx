@@ -2,12 +2,13 @@ import { useState } from 'react';
 import { useHUDStore } from '../../state/stores/hudStore';
 import { useNodeStore } from '../../state/stores/nodeStore';
 import { engagePGate } from '../../services/apiService';
+import { zkProofEngine } from '../../logic/zkProof';
 
 interface PGateButtonProps {
   nodeId?: string;
 }
 
-export function PGateButton(_props: PGateButtonProps) {
+export function PGateButton(props: PGateButtonProps) {
   const effectiveTickRate = useHUDStore((s) => s.effectiveTickRate);
   const flux = useNodeStore((s) => s.flux);
   const syncStatus = useNodeStore((s) => s.syncStatus);
@@ -18,6 +19,21 @@ export function PGateButton(_props: PGateButtonProps) {
   const handleEngage = async () => {
     const targetLevel = flux > 0 ? flux : 0.75;
     const result = await engagePGate('resonance', targetLevel);
+
+    if (result.ok && result.data?.canEngage) {
+      try {
+        const proof = await zkProofEngine.generateProof({
+          nodeId: props.nodeId || 'NODE_001',
+          claimedVeracity: targetLevel,
+          claimedVelocity: flux * 0.1,
+        });
+        const verifyResult = await zkProofEngine.verifyProof(proof);
+        console.log('[QPADL] Signature proof:', proof.proofId, 'valid:', verifyResult.valid);
+      } catch (e) {
+        console.error('[QPADL] Proof generation failed:', e);
+      }
+    }
+
     console.log('[PGATE] Engagement result:', result);
   };
 

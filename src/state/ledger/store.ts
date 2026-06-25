@@ -1,6 +1,7 @@
 import { configureStore, createAction, type PayloadAction } from '@reduxjs/toolkit';
 import veracityReducer, { type VeracityEvent } from './slices/veracitySlice';
 import physicalizationReducer, { type PhysicalizationEvent } from './slices/physicalizationSlice';
+import cryptoReducer from './slices/cryptoSlice';
 import { ledgerPersistMiddleware } from '../middleware/ledgerPersist';
 import { loadLedger, type LedgerEntry } from './ledgerThunks';
 
@@ -10,6 +11,7 @@ export const store = configureStore({
   reducer: {
     veracity: veracityReducer,
     physicalization: physicalizationReducer,
+    crypto: cryptoReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

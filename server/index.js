@@ -1,6 +1,96 @@
 import { createServer } from 'node:http';
+import { spawn } from 'node:child_process';
+import { createInterface } from 'node:readline';
 import { veracityGate, calculateQuorum, calculateAtrophyDecay, getThresholdWithEntropy } from './logic/kernel.js';
 import { getAllWeights, recordFeedback, applyVerdict, getRecentFeedback, recordAnalysis, getRecentAnalyses } from './feedbackStore.js';
+
+const CRYPTO_BIN = process.env.CRYPTO_SERVER_BIN || 'wsl.exe';
+let CRYPTO_ARGS;
+try {
+  CRYPTO_ARGS = process.env.CRYPTO_SERVER_ARGS
+    ? JSON.parse(process.env.CRYPTO_SERVER_ARGS)
+    : ['/home/retroporter/cup/kylos-qpadl/target/release/kylos-crypto-server'];
+} catch {
+  CRYPTO_ARGS = ['/home/retroporter/cup/kylos-qpadl/target/release/kylos-crypto-server'];
+}
+if (!Array.isArray(CRYPTO_ARGS) || CRYPTO_ARGS.length === 0) {
+  CRYPTO_ARGS = ['/home/retroporter/cup/kylos-qpadl/target/release/kylos-crypto-server'];
+}
+const CRYPTO_MAX_RESTARTS = 5;
+let cryptoProc = null;
+let cryptoReady = false;
+let cryptoReqId = 1;
+let cryptoPending = new Map();
+const CRYPTO_PENDING_MAX = 256;
+let cryptoRestartCount = 0;
+
+function startCryptoServer() {
+  if (cryptoRestartCount >= CRYPTO_MAX_RESTARTS) {
+    console.error('[CRYPTO] Max restarts reached, giving up');
+    cryptoReady = false;
+    return;
+  }
+
+  cryptoProc = spawn(CRYPTO_BIN, CRYPTO_ARGS, {
+    stdio: ['pipe', 'pipe', 'inherit'],
+    windowsHide: true,
+  });
+
+  cryptoRestartCount++;
+
+  const rl = createInterface({ input: cryptoProc.stdout });
+  rl.on('line', (line) => {
+    try {
+      const msg = JSON.parse(line);
+      const id = msg.id;
+      if (id != null && cryptoPending.has(id)) {
+        const { resolve } = cryptoPending.get(id);
+        cryptoPending.delete(id);
+        resolve(msg);
+      }
+    } catch { /* ignore malformed lines */ }
+  });
+
+  cryptoProc.on('error', (err) => {
+    console.error('[CRYPTO] Server error:', err.message);
+    cryptoReady = false;
+  });
+
+  cryptoProc.on('exit', (code) => {
+    console.error(`[CRYPTO] Server exited (${code}), restarting in 2s`);
+    cryptoReady = false;
+    cryptoPending.forEach(({ reject }) => reject(new Error('crypto server exited')));
+    cryptoPending.clear();
+    setTimeout(startCryptoServer, 2000);
+  });
+
+  cryptoReady = true;
+}
+
+function sendCryptoRequest(method, params) {
+  return new Promise((resolve, reject) => {
+    if (!cryptoProc || !cryptoProc.stdin.writable) {
+      reject(new Error('crypto server not available'));
+      return;
+    }
+    if (cryptoPending.size >= CRYPTO_PENDING_MAX) {
+      reject(new Error('crypto server overloaded'));
+      return;
+    }
+    const id = cryptoReqId++;
+    cryptoPending.set(id, { resolve, reject });
+    const request = JSON.stringify({ id, method, params }) + '\n';
+    cryptoProc.stdin.write(request);
+    setTimeout(() => {
+      if (cryptoPending.has(id)) {
+        cryptoPending.delete(id);
+        reject(new Error('crypto request timeout'));
+      }
+    }, 30000);
+  });
+}
+
+startCryptoServer();
 
 const PORT = 3001;
 const ALLOWED_ORIGINS = [
@@ -26,8 +116,8 @@ const SECURITY_HEADERS = {
   'Content-Security-Policy': "default-src 'none'; frame-ancestors 'none'",
 };
 
-const PLASMA_URL = 'https://services.swpc.noaa.gov/products/solar-wind/plasma-7-day.json';
-const MAGNET_URL = 'https://services.swpc.noaa.gov/products/solar-wind/mag-7-day.json';
+const PLASMA_URL = process.env.NOAA_PLASMA_URL || 'https://services.swpc.noaa.gov/products/solar-wind/plasma-7-day.json';
+const MAGNET_URL = process.env.NOAA_MAGNET_URL || 'https://services.swpc.noaa.gov/products/solar-wind/mag-7-day.json';
 const RTSW_CACHE_TTL_MS = 30000;
 let _rtswCache = null;
 let _rtswCacheTime = 0;
@@ -35,6 +125,14 @@ let _rtswCacheTime = 0;
 function getSafe(val, fallback) {
   const v = Number(val);
   return (v !== null && v !== undefined && isFinite(v) && v > -900) ? v : fallback;
+}
+
+function validateNOAAResponse(plasma, mag) {
+  if (!Array.isArray(plasma) || !Array.isArray(mag)) return false;
+  const lp = plasma[plasma.length - 1];
+  const lm = mag[mag.length - 1];
+  if (!lp || !lm || typeof lp !== 'object' || typeof lm !== 'object') return false;
+  return true;
 }
 
 async function fetchRTSWFromNOAA() {
@@ -45,8 +143,9 @@ async function fetchRTSWFromNOAA() {
     ]);
     if (!plasmaRes.ok || !magRes.ok) throw new Error('NOAA fetch failed');
     const [plasma, mag] = await Promise.all([plasmaRes.json(), magRes.json()]);
-    const lp = plasma[plasma.length - 1] || {};
-    const lm = mag[mag.length - 1] || {};
+    if (!validateNOAAResponse(plasma, mag)) throw new Error('NOAA response schema mismatch');
+    const lp = plasma[plasma.length - 1];
+    const lm = mag[mag.length - 1];
     return {
       speed: getSafe(lp.speed, 400),
       density: getSafe(lp.density, 10),
@@ -188,6 +287,7 @@ const server = createServer(async (req, res) => {
       body += chunk;
     });
     req.on('end', () => {
+      if (req.destroyed) return;
       try {
         const { mode, level } = JSON.parse(body);
 
@@ -240,6 +340,7 @@ const server = createServer(async (req, res) => {
       body += chunk;
     });
     req.on('end', () => {
+      if (req.destroyed) return;
       try {
         const { active, control } = JSON.parse(body);
         const activeErr = validateNumber(active, 'active');
@@ -269,6 +370,7 @@ const server = createServer(async (req, res) => {
       body += chunk;
     });
     req.on('end', () => {
+      if (req.destroyed) return;
       try {
         const { activeNodes, affirmingNodes } = JSON.parse(body);
         const nodesErr = validateNumber(activeNodes, 'activeNodes');
@@ -306,6 +408,7 @@ const server = createServer(async (req, res) => {
       body += chunk;
     });
     req.on('end', () => {
+      if (req.destroyed) return;
       try {
         const { virtualResonance, elapsedMs } = JSON.parse(body);
         const vrErr = validateNumber(virtualResonance, 'virtualResonance');
@@ -352,6 +455,7 @@ const server = createServer(async (req, res) => {
       body += chunk;
     });
     req.on('end', () => {
+      if (req.destroyed) return;
       try {
         const { statementId, fallacyId, text, verdict, agentScores } = JSON.parse(body);
         if (!verdict || !['correct', 'incorrect'].includes(verdict)) {
@@ -389,6 +493,7 @@ const server = createServer(async (req, res) => {
       body += chunk;
     });
     req.on('end', () => {
+      if (req.destroyed) return;
       try {
         const payload = JSON.parse(body);
         recordAnalysis(payload);
@@ -409,9 +514,132 @@ const server = createServer(async (req, res) => {
     return;
   }
 
+  // --- QPADL Crypto endpoints ---
+
+  function getCryptoResult(result) {
+    if (!result || result.error) throw new Error((result && result.error) || 'crypto server error');
+    if (!result.result) throw new Error('crypto server returned empty result');
+    return result.result;
+  }
+
+  if (url.pathname === '/api/crypto/status' && req.method === 'GET') {
+    try {
+      const result = await sendCryptoRequest('status', {});
+      const r = getCryptoResult(result);
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ algorithms: r.algorithms, timestamp: Date.now() }));
+    } catch (e) {
+      res.writeHead(503, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: e.message }));
+    }
+    return;
+  }
+
+  function readCryptoBody(req, onBody, onError) {
+    let body = '';
+    let size = 0;
+    req.on('data', chunk => {
+      size += chunk.length;
+      if (size > MAX_BODY_SIZE) { req.destroy(); return; }
+      body += chunk;
+    });
+    req.on('end', () => {
+      if (req.destroyed) return;
+      try { onBody(JSON.parse(body)); }
+      catch { onError('Invalid JSON'); }
+    });
+  }
+
+  if (url.pathname === '/api/crypto/keypair' && req.method === 'POST') {
+    readCryptoBody(req, async (json) => {
+      try {
+        const result = await sendCryptoRequest('keypair', { algorithm: json.algorithm || 'mayo1' });
+        const r = getCryptoResult(result);
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ ...r, timestamp: Date.now() }));
+      } catch (e) {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: e.message }));
+      }
+    }, (err) => {
+      res.writeHead(400, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: err }));
+    });
+    return;
+  }
+
+  if (url.pathname === '/api/crypto/sign' && req.method === 'POST') {
+    readCryptoBody(req, async (json) => {
+      try {
+        if (!json.message || !json.secret_key) {
+          res.writeHead(400, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: 'message and secret_key required' }));
+          return;
+        }
+        const result = await sendCryptoRequest('sign', {
+          algorithm: json.algorithm || 'mayo1',
+          message: json.message,
+          secret_key: json.secret_key,
+        });
+        const r = getCryptoResult(result);
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ ...r, timestamp: Date.now() }));
+      } catch (e) {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: e.message }));
+      }
+    }, (err) => {
+      res.writeHead(400, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: err }));
+    });
+    return;
+  }
+
+  if (url.pathname === '/api/crypto/verify' && req.method === 'POST') {
+    readCryptoBody(req, async (json) => {
+      try {
+        if (!json.message || !json.signature || !json.public_key) {
+          res.writeHead(400, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: 'message, signature, and public_key required' }));
+          return;
+        }
+        const result = await sendCryptoRequest('verify', {
+          algorithm: json.algorithm || 'mayo1',
+          message: json.message,
+          signature: json.signature,
+          public_key: json.public_key,
+        });
+        const r = getCryptoResult(result);
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ valid: r.valid, timestamp: Date.now() }));
+      } catch (e) {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: e.message }));
+      }
+    }, (err) => {
+      res.writeHead(400, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: err }));
+    });
+    return;
+  }
+
   res.writeHead(404, { 'Content-Type': 'application/json' });
   res.end(JSON.stringify({ error: 'Not found' }));
 });
+
+function shutdown() {
+  console.log('[TRUSTED_KERNEL] Shutting down...');
+  if (cryptoProc) {
+    cryptoProc.removeAllListeners('exit');
+    cryptoProc.stdin.end();
+    const timeout = setTimeout(() => cryptoProc.kill(), 3000);
+    cryptoProc.on('exit', () => clearTimeout(timeout));
+  }
+  server.close(() => process.exit(0));
+}
+
+process.on('SIGINT', shutdown);
+process.on('SIGTERM', shutdown);
 
 server.listen(PORT, () => {
   console.log(`[TRUSTED_KERNEL] Server running on port ${PORT}`);
@@ -428,4 +656,8 @@ server.listen(PORT, () => {
   console.log(`  GET  /api/feedback/history`);
   console.log(`  POST /api/feedback/analyze`);
   console.log(`  GET  /api/feedback/analyses`);
+  console.log(`  GET  /api/crypto/status`);
+  console.log(`  POST /api/crypto/keypair`);
+  console.log(`  POST /api/crypto/sign`);
+  console.log(`  POST /api/crypto/verify`);
 });

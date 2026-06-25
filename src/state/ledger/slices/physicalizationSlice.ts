@@ -7,7 +7,8 @@ export type PhysicalizationEventType =
   | 'P_GATE_TRIGGERED'
   | 'QUORUM_REACHED'
   | 'NODE_PHYSICALIZED'
-  | 'PHYSICALIZATION_REJECTED';
+  | 'PHYSICALIZATION_REJECTED'
+  | 'CRYPTO_SIG_RECEIVED';
 
 export interface PhysicalizationEvent {
   id: string;

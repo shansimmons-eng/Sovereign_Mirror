@@ -34,13 +34,16 @@ function PhysicalizationEventRow({ event }: { event: PhysicalizationEvent }) {
     QUORUM_REACHED: 'QUORUM_YES',
     NODE_PHYSICALIZED: 'ZKP_VERIFIED',
     PHYSICALIZATION_REJECTED: 'P_GATE_REJECT',
+    CRYPTO_SIG_RECEIVED: 'QPADL_SIG',
   };
+
+  const isCrypto = event.eventType === 'CRYPTO_SIG_RECEIVED';
 
   return (
     <div className="grid grid-cols-12 gap-1 md:gap-2 text-on-surface-variant group hover:bg-white/5 p-0.5 md:p-1 transition-colors text-[9px] md:text-[11px]">
       <div className="col-span-3 font-data-mono truncate">{formatTimestamp(event.timestamp)}</div>
       <div className="col-span-2 font-data-mono text-ignition-white">#0x{event.nodeId.slice(0, 4)}</div>
-      <div className="col-span-5 font-data-mono truncate">{labels[event.eventType] || event.eventType}</div>
+      <div className={`col-span-5 font-data-mono truncate ${isCrypto ? 'text-healed-sage' : ''}`}>{labels[event.eventType] || event.eventType}</div>
       <div className="col-span-2 text-right font-data-mono">
         <span className={event.affirmingNodes >= event.quorumSize ? 'text-solar-amber' : 'text-veracity-gate-bypass'}>
           Q={event.affirmingNodes}/{event.quorumSize}

@@ -5,7 +5,7 @@ import { useHUDStore } from '../../state/stores/hudStore';
 import { useNodeStore } from '../../state/stores/nodeStore';
 import { SystemicSliders } from './SystemicSliders';
 import { PGateButton } from './PGateButton';
-import { QuantumCryptoPanel } from './QuantumCryptoPanel';
+import { CryptoStatusPanel } from './CryptoStatusPanel';
 import { CognoscentaeUltrans } from '../../../training/src/interface/CognoscentaeUltrans';
 
 type NavSection = 'analytics' | 'grain' | 'bolt' | 'architecture' | 'training';
@@ -177,7 +177,7 @@ export function Dashboard() {
               {activeSection === 'architecture' && (
                 <>
                   <QuantumAlignmentPanel />
-                  <QuantumCryptoPanel />
+                  <CryptoStatusPanel />
                 </>
               )}
               {activeSection === 'training' && (
