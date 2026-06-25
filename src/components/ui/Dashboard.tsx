@@ -5,6 +5,7 @@ import { useHUDStore } from '../../state/stores/hudStore';
 import { useNodeStore } from '../../state/stores/nodeStore';
 import { SystemicSliders } from './SystemicSliders';
 import { PGateButton } from './PGateButton';
+import { QuantumCryptoPanel } from './QuantumCryptoPanel';
 import { CognoscentaeUltrans } from '../../../training/src/interface/CognoscentaeUltrans';
 
 type NavSection = 'analytics' | 'grain' | 'bolt' | 'architecture' | 'training';
@@ -173,7 +174,12 @@ export function Dashboard() {
 
               {activeSection === 'grain' && <TrajectoryMatrixPanel />}
               {activeSection === 'bolt' && <FluxDensityPanel />}
-              {activeSection === 'architecture' && <QuantumAlignmentPanel />}
+              {activeSection === 'architecture' && (
+                <>
+                  <QuantumAlignmentPanel />
+                  <QuantumCryptoPanel />
+                </>
+              )}
               {activeSection === 'training' && (
                 <div className="col-span-12 backdrop-blur-2xl border p-2 md:p-4 rounded-lg cui-wrapper" style={{ backgroundColor: 'rgba(10, 10, 10, 0.6)', borderColor: 'rgba(255, 255, 255, 0.1)' }}>
                   <div className="text-[10px] md:text-[11px] mb-2 md:mb-3 pb-2 border-b flex justify-between items-center" style={{ color: '#FFB300', borderColor: 'rgba(255, 255, 255, 0.1)' }}>
