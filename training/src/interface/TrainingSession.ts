@@ -5,14 +5,12 @@ import { ManifoldDeformer, SemanticBridge } from '../cluster/GravityWell';
 import { FALLACY_CRITICAL_THRESHOLD } from '../types';
 
 const ROBERTA_ENDPOINT = '/classify/classify-single';
-const FREE_AGENTS_ENDPOINT = '/validate/validate';
+const FREE_AGENTS_ENDPOINT = '/validate';
 const FEEDBACK_WEIGHTS_ENDPOINT = '/api/feedback/weights';
 const FEEDBACK_ANALYZE_ENDPOINT = '/api/feedback/analyze';
 const FEEDBACK_VERDICT_ENDPOINT = '/api/feedback';
 const USE_ROBERTA = true;
 const USE_FREE_AGENTS = true;
-const ROBERTA_THRESHOLD = 0.60;
-const WORD_COUNT_CAP = 200;
 
 const DEFAULT_WEIGHTS = { roberta: 1.0, groq: 1.0, openrouter: 1.0 };
 
@@ -131,97 +129,127 @@ export function useTrainingSession({ nodeId, onFrameCreated }: TrainingSessionPr
     let robertaResults: Array<{mappedLabel: string, confidence: number}> = [];
     let robertaFallaciesForLog: Array<{ id: string; score: number }> = [];
 
-    if (USE_ROBERTA) {
-      try {
-        const response = await fetch(ROBERTA_ENDPOINT, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ text: rawInput }),
-        });
-        if (response.ok) {
-          const data = await response.json();
-          robertaRaw = data;
-          if (data.fallacies && Array.isArray(data.fallacies)) {
-            robertaResults = data.fallacies;
-            for (const fallacy of robertaResults) {
-              maxConfidence = Math.max(maxConfidence, fallacy.confidence);
-              robertaFallaciesForLog.push({ id: fallacy.mappedLabel, score: fallacy.confidence });
-              detectedFallacies.push({
-                fallacyId: fallacy.mappedLabel,
-                confidenceScore: fallacy.confidence,
-                validationProof: btoa(`roberta:${fallacy.mappedLabel}:${fallacy.confidence}:${Date.now()}`),
-              });
-            }
-          }
-        }
-      } catch {}
-    }
-
-    const wordCount = rawInput.trim().split(/\s+/).length;
     let freeAgentValidation: StatementLog['freeAgentValidation'] = null;
     let freeAgentsRaw: unknown = null;
     let groqScore: AgentScore | null = null;
     const openrouterScores: AgentScore[] = [];
 
-    if (USE_FREE_AGENTS && robertaResults.length > 0 && wordCount <= WORD_COUNT_CAP && maxConfidence >= ROBERTA_THRESHOLD) {
-      try {
-        const response = await fetch(FREE_AGENTS_ENDPOINT, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ text: rawInput }),
-        });
-        if (response.ok) {
-          const data = await response.json();
-          freeAgentsRaw = data;
-          const consensus = data.consensus;
-          if (consensus) {
-            freeAgentValidation = {
-              detected: consensus.detected,
-              reason: `${consensus.agents_detected}/${consensus.agents_queried} agents agree. ${consensus.reasoning}`,
-              agent: `${consensus.agents_queried} agents`,
-            };
+    // INSTANT: client-side regex fallback runs synchronously before any network
+    const contextualAnalysis = analyzeFallaciesContextual(rawInput);
+    for (const detection of contextualAnalysis.detections) {
+      maxConfidence = Math.max(maxConfidence, detection.confidence);
+      robertaFallaciesForLog.push({ id: detection.fallacyId, score: detection.confidence });
+      detectedFallacies.push({
+        fallacyId: detection.fallacyId,
+        confidenceScore: detection.confidence,
+        validationProof: btoa(`${detection.fallacyId}:${detection.confidence}:${Date.now()}:${rawInput.substring(0, 50)}`),
+      });
+    }
+    setDetectedFallacies(detectedFallacies);
+
+    // BACKGROUND: API calls with tight timeouts — don't block UI
+    const classifyPromise = USE_ROBERTA
+      ? (async () => {
+          try {
+            const controller = new AbortController();
+            const tid = setTimeout(() => controller.abort(), 800);
+            const response = await fetch(ROBERTA_ENDPOINT, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ text: rawInput }),
+              signal: controller.signal,
+            });
+            clearTimeout(tid);
+            return response.ok ? await response.json() : null;
+          } catch {
+            return null;
           }
-          const agents = data.agents || {};
-          if (agents.groq) {
-            const g = agents.groq;
-            groqScore = {
-              agent: 'groq',
-              detected: !!g.detected,
-              confidence: typeof g.confidence === 'number' ? g.confidence : 0,
-              score: g.detected ? Math.min(1, Math.max(0, (g.confidence ?? 0))) : (1 - Math.min(1, Math.max(0, (g.confidence ?? 0)))),
-              reasoning: g.reasoning || '',
-              model: g.model || '',
-              error: g.error,
-            };
+        })()
+      : Promise.resolve(null);
+
+    const agentsPromise = USE_FREE_AGENTS
+      ? (async () => {
+          try {
+            const controller = new AbortController();
+            const tid = setTimeout(() => controller.abort(), 800);
+            const response = await fetch(FREE_AGENTS_ENDPOINT, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ text: rawInput }),
+              signal: controller.signal,
+            });
+            clearTimeout(tid);
+            return response.ok ? await response.json() : null;
+          } catch {
+            return null;
           }
-          if (Array.isArray(agents.openrouter)) {
-            for (const o of agents.openrouter) {
-              openrouterScores.push({
-                agent: 'openrouter',
-                detected: !!o.detected,
-                confidence: typeof o.confidence === 'number' ? o.confidence : 0,
-                score: o.detected ? Math.min(1, Math.max(0, (o.confidence ?? 0))) : (1 - Math.min(1, Math.max(0, (o.confidence ?? 0)))),
-                reasoning: o.reasoning || '',
-                model: o.model || '',
-                error: o.error,
-              });
-            }
-          }
+        })()
+      : Promise.resolve(null);
+
+    // Wait for APIs (max 800ms) then overlay on top of regex results
+    const [robertaData, freeAgentsData] = await Promise.all([classifyPromise, agentsPromise]);
+
+    if (robertaData) {
+      robertaRaw = robertaData;
+      if (robertaData.fallacies && Array.isArray(robertaData.fallacies)) {
+        robertaResults = robertaData.fallacies;
+        maxConfidence = 0;
+        robertaFallaciesForLog = [];
+        detectedFallacies.length = 0;
+        for (const fallacy of robertaResults) {
+          maxConfidence = Math.max(maxConfidence, fallacy.confidence);
+          robertaFallaciesForLog.push({ id: fallacy.mappedLabel, score: fallacy.confidence });
+          detectedFallacies.push({
+            fallacyId: fallacy.mappedLabel,
+            confidenceScore: fallacy.confidence,
+            validationProof: btoa(`roberta:${fallacy.mappedLabel}:${fallacy.confidence}:${Date.now()}`),
+          });
         }
-      } catch {}
+        setDetectedFallacies([...detectedFallacies]);
+      }
     }
 
-    if (robertaResults.length === 0) {
-      const analysis = analyzeFallaciesContextual(rawInput);
-      for (const detection of analysis.detections) {
-        maxConfidence = Math.max(maxConfidence, detection.confidence);
-        robertaFallaciesForLog.push({ id: detection.fallacyId, score: detection.confidence });
-        detectedFallacies.push({
-          fallacyId: detection.fallacyId,
-          confidenceScore: detection.confidence,
-          validationProof: btoa(`${detection.fallacyId}:${detection.confidence}:${Date.now()}:${rawInput.substring(0, 50)}`),
-        });
+    if (freeAgentsData) {
+      freeAgentsRaw = freeAgentsData;
+      const consensus = freeAgentsData.consensus;
+      if (consensus) {
+        freeAgentValidation = {
+          detected: consensus.detected,
+          reason: `${consensus.agents_detected}/${consensus.agents_queried} agents agree. ${consensus.reasoning}`,
+          agent: `${consensus.agents_queried} agents`,
+        };
       }
+      const agents = freeAgentsData.agents || {};
+      if (agents.groq) {
+        const g = agents.groq;
+        groqScore = {
+          agent: 'groq',
+          detected: !!g.detected,
+          confidence: typeof g.confidence === 'number' ? g.confidence : 0,
+          score: g.detected ? Math.min(1, Math.max(0, (g.confidence ?? 0))) : (1 - Math.min(1, Math.max(0, (g.confidence ?? 0)))),
+          reasoning: g.reasoning || '',
+          model: g.model || '',
+          error: g.error,
+        };
+      }
+      if (Array.isArray(agents.openrouter)) {
+        for (const o of agents.openrouter) {
+          openrouterScores.push({
+            agent: 'openrouter',
+            detected: !!o.detected,
+            confidence: typeof o.confidence === 'number' ? o.confidence : 0,
+            score: o.detected ? Math.min(1, Math.max(0, (o.confidence ?? 0))) : (1 - Math.min(1, Math.max(0, (o.confidence ?? 0)))),
+            reasoning: o.reasoning || '',
+            model: o.model || '',
+            error: o.error,
+          });
+        }
+      }
+    }
+
+    // If RoBERTa responded, overlay its findings; otherwise keep regex results
+    if (!robertaData) {
+      // keep regex results from above
     }
 
     setDetectedFallacies(detectedFallacies);
@@ -234,7 +262,7 @@ export function useTrainingSession({ nodeId, onFrameCreated }: TrainingSessionPr
       : null;
 
     const contributors: Array<{ name: string; score: number; weight: number }> = [];
-    contributors.push({ name: 'roberta', score: robertaScore, weight: w('roberta') });
+    if (robertaScore > 0 || robertaResults.length > 0) contributors.push({ name: 'roberta', score: robertaScore, weight: w('roberta') });
     if (groqNumeric !== null) contributors.push({ name: 'groq', score: groqNumeric, weight: w('groq') });
     if (openrouterMean !== null) contributors.push({ name: 'openrouter', score: openrouterMean, weight: w('openrouter') });
 

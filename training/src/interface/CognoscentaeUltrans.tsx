@@ -1,12 +1,19 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { InverionState, FallacyVector } from '../types';
 import { useTrainingSession } from './TrainingSession';
 import { FALLACY_CRITICAL_THRESHOLD } from '../types';
+import { loadFallacyDataset, findMatchingFallacy, FallacyDataset } from '../engines/FallacyDataset';
 
 export function CognoscentaeUltrans() {
   const [inputText, setInputText] = useState('');
   const [refactorText, setRefactorText] = useState('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [fallacyDataset, setFallacyDataset] = useState<FallacyDataset | null>(null);
+  const [rebuttalSuggestion, setRebuttalSuggestion] = useState<string | null>(null);
+
+  useEffect(() => {
+    loadFallacyDataset().then(setFallacyDataset);
+  }, []);
 
   const handleFrameCreated = useCallback((_frame: { detectedFallacies: FallacyVector[]; inverionState: InverionState; radicalVeracityPassed: boolean }, _rawInput: string) => {
     // Frame creation handled via statementLog
@@ -25,6 +32,23 @@ export function CognoscentaeUltrans() {
     triggerIntercept,
     resolveIntercept,
   } = useTrainingSession({ nodeId: 'NODE_001', onFrameCreated: handleFrameCreated });
+
+  useEffect(() => {
+    if (!fallacyDataset || !lastBreakdown || detectedFallacies.length === 0) {
+      setRebuttalSuggestion(null);
+      return;
+    }
+    const highest = detectedFallacies.reduce((a, b) =>
+      a.confidenceScore > b.confidenceScore ? a : b
+    );
+    const typeMatch = fallacyDataset.by_type[highest.fallacyId]?.[0];
+    if (typeMatch) {
+      setRebuttalSuggestion(typeMatch.response);
+    } else {
+      const textMatch = findMatchingFallacy(lastBreakdown.text, fallacyDataset);
+      setRebuttalSuggestion(textMatch?.response ?? null);
+    }
+  }, [fallacyDataset, lastBreakdown, detectedFallacies]);
 
   const handleAnalyze = async () => {
     if (inputText.trim() && !isAnalyzing) {
@@ -182,6 +206,17 @@ export function CognoscentaeUltrans() {
               </div>
             )}
           </div>
+          {rebuttalSuggestion && (
+            <div className="rebuttal-panel" style={{ marginTop: '8px', padding: '6px 8px', background: 'rgba(46,125,50,0.1)', border: '1px solid rgba(46,125,50,0.35)', borderRadius: '4px' }}>
+              <div style={{ color: '#2e7d32', fontSize: '9px', marginBottom: '3px', fontFamily: 'monospace', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <span>↻</span>
+                <span>SUGGESTED REFRAME</span>
+              </div>
+              <div style={{ color: '#c4c7c8', fontSize: '11px', fontFamily: 'monospace', lineHeight: '1.4' }}>
+                {rebuttalSuggestion}
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="divider">

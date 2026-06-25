@@ -27,16 +27,9 @@ OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
 OPENROUTER_MODELS_URL = "https://openrouter.ai/api/v1/models"
 DEEPINFRA_URL = "https://api.deepinfra.com/v1/openai/chat/completions"
 
-# Preferred free models - queried concurrently
+# Preferred free models - queried serially (single model avoids slow dynamic fallback)
 PREFERRED_FREE_MODELS = [
-    # OpenRouter free models - unreliable in WSL, kept for non-WSL deployments
-    # "openai/gpt-oss-120b:free",
-    # "nvidia/nemotron-3-super-120b-a12b:free",
-    # "moonshotai/kimi-k2.6:free",
-    # "qwen/qwen3-next-80b-a3b-instruct:free",
-    # "z-ai/glm-4.5-air:free",
-    # "nousresearch/hermes-3-llama-3.1-405b:free",
-    # "meta-llama/llama-3.3-70b-instruct:free",
+    "meta-llama/llama-3.3-70b-instruct:free",
 ]
 
 SYSTEM_PROMPT = """You are a logical fallacy detection expert. Analyze the statement and determine if it contains a logical fallacy.
@@ -129,7 +122,7 @@ def _query_openrouter_model(model: str, text: str, key: str) -> AgentResult:
             },
             method="POST",
         )
-        with urllib.request.urlopen(req, timeout=15) as response:
+        with urllib.request.urlopen(req, timeout=8) as response:
             response_text = response.read().decode("utf-8")
     except Exception:
         # Fallback: use curl subprocess (works even when WSL urllib DNS fails)
@@ -141,7 +134,7 @@ def _query_openrouter_model(model: str, text: str, key: str) -> AgentResult:
                     "curl",
                     "-s",
                     "--max-time",
-                    "20",
+                    "10",
                     "-X",
                     "POST",
                     OPENROUTER_URL,
@@ -154,7 +147,7 @@ def _query_openrouter_model(model: str, text: str, key: str) -> AgentResult:
                 ],
                 capture_output=True,
                 text=True,
-                timeout=25,
+                timeout=12,
             )
             if result.returncode == 0 and result.stdout:
                 response_text = result.stdout
@@ -285,17 +278,6 @@ def query_openrouter_concurrent(text: str) -> list[AgentResult]:
         result = _query_openrouter_model(model, text, key)
         results.append(result)
 
-    # If all preferred models failed, fetch dynamic list and try those serially
-    if all(r.error for r in results):
-        dynamic_models = _fetch_dynamic_free_models(key)
-        if dynamic_models:
-            dynamic_results = [
-                _query_openrouter_model(m, text, key) for m in dynamic_models
-            ]
-            successes = [r for r in dynamic_results if not r.error]
-            if successes:
-                return successes
-
     return results
 
 
@@ -336,7 +318,7 @@ def query_groq(text: str) -> AgentResult:
                 "curl",
                 "-s",
                 "--max-time",
-                "20",
+                "10",
                 "-X",
                 "POST",
                 GROQ_URL,
@@ -349,7 +331,7 @@ def query_groq(text: str) -> AgentResult:
             ],
             capture_output=True,
             text=True,
-            timeout=25,
+            timeout=12,
         )
         if result.returncode != 0 or not result.stdout:
             return AgentResult(
@@ -442,7 +424,7 @@ def query_deepinfra(text: str) -> AgentResult:
                 "curl",
                 "-s",
                 "--max-time",
-                "20",
+                "10",
                 "-X",
                 "POST",
                 DEEPINFRA_URL,
@@ -455,7 +437,7 @@ def query_deepinfra(text: str) -> AgentResult:
             ],
             capture_output=True,
             text=True,
-            timeout=25,
+            timeout=12,
         )
         if result.returncode != 0 or not result.stdout.strip():
             return AgentResult(
@@ -559,14 +541,15 @@ def validate():
     if len(text.strip()) < 5:
         return jsonify({"error": "Text too short"}), 400
 
-    # Run groq and deepinfra concurrently, openrouter serially after
-    with ThreadPoolExecutor(max_workers=2) as executor:
+    # Run all three agents concurrently
+    with ThreadPoolExecutor(max_workers=3) as executor:
         groq_future = executor.submit(query_groq, text)
         deepinfra_future = executor.submit(query_deepinfra, text)
+        openrouter_future = executor.submit(query_openrouter_concurrent, text)
 
     groq_result = groq_future.result()
     deepinfra_result = deepinfra_future.result()
-    openrouter_results = query_openrouter_concurrent(text)
+    openrouter_results = openrouter_future.result()
 
     all_results = [groq_result, deepinfra_result] + openrouter_results
     consensus = compute_consensus(all_results)
@@ -630,13 +613,14 @@ def main():
     if args.text:
         print(f"Analyzing: {args.text}\n")
 
-        with ThreadPoolExecutor(max_workers=2) as executor:
+        with ThreadPoolExecutor(max_workers=3) as executor:
             groq_future = executor.submit(query_groq, args.text)
             deepinfra_future = executor.submit(query_deepinfra, args.text)
+            openrouter_future = executor.submit(query_openrouter_concurrent, args.text)
 
         groq_result = groq_future.result()
         deepinfra_result = deepinfra_future.result()
-        openrouter_results = query_openrouter_concurrent(args.text)
+        openrouter_results = openrouter_future.result()
 
         print("--- Groq ---")
         print(f"Detected: {groq_result.detected}")

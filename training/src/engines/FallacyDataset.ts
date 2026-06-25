@@ -17,6 +17,7 @@ export interface FallacyDataset {
 const DATASET_URL = '/classify/fallacy-data';
 
 let cachedDataset: FallacyDataset | null = null;
+const entryWordSets = new Map<FallacyEntry, Set<string>>();
 
 export async function loadFallacyDataset(): Promise<FallacyDataset> {
   if (cachedDataset) return cachedDataset;
@@ -25,6 +26,9 @@ export async function loadFallacyDataset(): Promise<FallacyDataset> {
     const response = await fetch(DATASET_URL);
     if (response.ok) {
       cachedDataset = await response.json();
+      for (const entry of cachedDataset!.entries) {
+        entryWordSets.set(entry, new Set(entry.text.toLowerCase().split(/\s+/)));
+      }
       return cachedDataset!;
     }
   } catch {
@@ -35,16 +39,18 @@ export async function loadFallacyDataset(): Promise<FallacyDataset> {
 }
 
 export function findMatchingFallacy(input: string, dataset: FallacyDataset): FallacyEntry | null {
-  const inputLower = input.toLowerCase();
+  const inputWords = new Set(input.toLowerCase().split(/\s+/));
   
   for (const entry of dataset.entries) {
-    const entryWords = entry.text.toLowerCase().split(/\s+/);
-    const inputWords = inputLower.split(/\s+/);
+    const entryWords = entryWordSets.get(entry);
+    if (!entryWords || entryWords.size === 0) continue;
     
-    const matchCount = entryWords.filter(w => inputWords.includes(w)).length;
-    const matchRatio = matchCount / entryWords.length;
+    let matchCount = 0;
+    for (const word of entryWords) {
+      if (inputWords.has(word)) matchCount++;
+    }
     
-    if (matchRatio > 0.6) {
+    if (matchCount / entryWords.size > 0.6) {
       return entry;
     }
   }
