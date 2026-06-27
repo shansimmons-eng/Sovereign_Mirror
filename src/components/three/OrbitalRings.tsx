@@ -5,6 +5,7 @@ import * as THREE from 'three';
 interface ConcentricRingProps {
   inverionAlpha: number;
   temperature: number;
+  ecoHealth: number;
 }
 
 interface RingLayer {
@@ -27,7 +28,21 @@ const RING_LAYERS: RingLayer[] = [
 
 const PARTICLE_COUNT_PER_RING = 32;
 
-export function ConcentricRings({ inverionAlpha, temperature }: ConcentricRingProps) {
+const ECO_COLOR_STRESSED = new THREE.Color('#c0392b');
+const ECO_COLOR_NEUTRAL  = new THREE.Color('#FF8F00');
+const ECO_COLOR_HEALTHY  = new THREE.Color('#7fba6a');
+
+function ecoRingColor(health: number): THREE.Color {
+  const c = new THREE.Color();
+  if (health >= 0.5) {
+    c.lerpColors(ECO_COLOR_NEUTRAL, ECO_COLOR_HEALTHY, (health - 0.5) * 2);
+  } else {
+    c.lerpColors(ECO_COLOR_STRESSED, ECO_COLOR_NEUTRAL, health * 2);
+  }
+  return c;
+}
+
+export function ConcentricRings({ inverionAlpha, temperature, ecoHealth }: ConcentricRingProps) {
   const ringRefs = useRef<(THREE.Group | null)[]>([]);
   const spokeRefs = useRef<(THREE.Group | null)[]>([]);
   const barbellRef = useRef<THREE.Group>(null!);
@@ -65,9 +80,19 @@ export function ConcentricRings({ inverionAlpha, temperature }: ConcentricRingPr
     const t = timeRef.current;
 
     // Each ring layer rotates at its own speed (alternating direction)
+    // Outermost ring (index 0) shifts color with ecoHealth
+    const outerColor = ecoRingColor(ecoHealth);
     RING_LAYERS.forEach((ring, i) => {
       if (ringRefs.current[i]) {
         ringRefs.current[i]!.rotation.z = t * ring.speed;
+        if (i === 0) {
+          ringRefs.current[i]!.traverse((child) => {
+            if ((child as THREE.Mesh).isMesh) {
+              const mat = (child as THREE.Mesh).material as THREE.MeshBasicMaterial;
+              if (mat?.color) mat.color.copy(outerColor);
+            }
+          });
+        }
       }
       if (spokeRefs.current[i]) {
         spokeRefs.current[i]!.rotation.z = t * ring.spokeSpeed;

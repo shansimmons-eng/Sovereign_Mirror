@@ -6,7 +6,7 @@ import { useNodeStore } from '../../state/stores/nodeStore';
 import { SystemicSliders } from './SystemicSliders';
 import { PGateButton } from './PGateButton';
 import { CryptoStatusPanel } from './CryptoStatusPanel';
-import { CognoscentaeUltrans } from '../../../training/src/interface/CognoscentaeUltrans';
+import { EcologyMap } from './EcologyMap';
 
 type NavSection = 'analytics' | 'grain' | 'bolt' | 'architecture' | 'training';
 
@@ -178,17 +178,20 @@ export function Dashboard() {
                 <>
                   <QuantumAlignmentPanel />
                   <CryptoStatusPanel />
+                  <div className="backdrop-blur-2xl border p-2 md:p-4 rounded-lg" style={{ backgroundColor: 'rgba(10, 10, 10, 0.6)', borderColor: 'rgba(255, 255, 255, 0.1)' }}>
+                    <EcologyMap />
+                  </div>
                 </>
               )}
               {activeSection === 'training' && (
-                <div className="col-span-12 backdrop-blur-2xl border p-2 md:p-4 rounded-lg cui-wrapper" style={{ backgroundColor: 'rgba(10, 10, 10, 0.6)', borderColor: 'rgba(255, 255, 255, 0.1)' }}>
+                <div className="col-span-12 backdrop-blur-2xl border p-2 md:p-4 rounded-lg" style={{ backgroundColor: 'rgba(10, 10, 10, 0.6)', borderColor: 'rgba(255, 255, 255, 0.1)' }}>
                   <div className="text-[10px] md:text-[11px] mb-2 md:mb-3 pb-2 border-b flex justify-between items-center" style={{ color: '#FFB300', borderColor: 'rgba(255, 255, 255, 0.1)' }}>
                     <span>COGNOSCENTAE ULTRANS</span>
                     <span className="text-[8px] opacity-50">PSYCHOLOGY</span>
                   </div>
-                  <div className="cui-wrapper-inner">
-                    <CognoscentaeUltrans />
-                  </div>
+                  <a href="https://kylosarc.com/training/intellectual_veracity/" target="_blank" rel="noopener noreferrer" style={{ color: 'rgba(255,183,0,0.6)', fontSize: '0.75rem', fontFamily: 'monospace', textDecoration: 'none' }}>
+                    OPEN TRAINING MODULE →
+                  </a>
                 </div>
               )}
 

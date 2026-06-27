@@ -8,11 +8,13 @@ interface HUDState {
   effectiveTickRate: number;
   globalStabilityScore: number;
   lowestNodeResonance: number;
+  ecoHealth: number;
   setTemperature: (t: number) => void;
   setNoiseFilter: (n: number) => void;
   updateSunriseOpacity: () => void;
   updateTickRate: () => void;
   updateGlobalStability: (nodes: Array<{ resonanceScore: number }>) => void;
+  setEcoHealth: (h: number) => void;
 }
 
 const BASE_TICK_RATE = 400;
@@ -25,6 +27,7 @@ export const useHUDStore = create<HUDState>((set, get) => ({
   effectiveTickRate: BASE_TICK_RATE,
   globalStabilityScore: 0,
   lowestNodeResonance: 0,
+  ecoHealth: 0.75,
   setTemperature: (t) => {
     // Validate and clamp input to prevent NaN/Infinity propagation
     if (!isFinite(t)) return;
@@ -65,5 +68,9 @@ export const useHUDStore = create<HUDState>((set, get) => ({
       globalStabilityScore: stability,
       lowestNodeResonance: lowest,
     });
+  },
+  setEcoHealth: (h) => {
+    if (!isFinite(h)) return;
+    set({ ecoHealth: Math.max(0, Math.min(1, h)) });
   },
 }));

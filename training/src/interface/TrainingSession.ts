@@ -4,11 +4,14 @@ import { SlidingWindowBuffer } from '../cluster/SlidingWindowBuffer';
 import { ManifoldDeformer, SemanticBridge } from '../cluster/GravityWell';
 import { FALLACY_CRITICAL_THRESHOLD } from '../types';
 
-const ROBERTA_ENDPOINT = '/classify/classify-single';
-const FREE_AGENTS_ENDPOINT = '/validate';
-const FEEDBACK_WEIGHTS_ENDPOINT = '/api/feedback/weights';
-const FEEDBACK_ANALYZE_ENDPOINT = '/api/feedback/analyze';
-const FEEDBACK_VERDICT_ENDPOINT = '/api/feedback';
+const API_BASE = (): string => (typeof window !== 'undefined' && window.__kylosApiBase) ? window.__kylosApiBase : '';
+const ROBERTA_ENDPOINT = () => `${API_BASE()}/classify/classify-single`;
+const FREE_AGENTS_ENDPOINT = () => `${API_BASE()}/validate`;
+const FEEDBACK_WEIGHTS_ENDPOINT = () => `${API_BASE()}/api/feedback/weights`;
+const FEEDBACK_ANALYZE_ENDPOINT = () => `${API_BASE()}/api/feedback/analyze`;
+const FEEDBACK_VERDICT_ENDPOINT = () => `${API_BASE()}/api/feedback`;
+const HISTORY_ENDPOINT = () => `${API_BASE()}/api/feedback/analyses`;
+const LS_KEY = 'kylos:statementLog';
 const USE_ROBERTA = true;
 const USE_FREE_AGENTS = true;
 
@@ -52,6 +55,37 @@ interface StatementLog {
   refactored?: string;
 }
 
+function tryParse<T>(json: unknown, fallback: T): T {
+  try { return JSON.parse(json as string) as T; } catch { return fallback; }
+}
+
+function dbRowsToLog(rows: Record<string, unknown>[]): StatementLog[] {
+  return rows.flatMap((row) => {
+    if (!row.statement_id || !row.text) return [];
+    const robertaFallacies = tryParse<Array<{ id: string; score: number }>>(row.roberta_fallacies, []);
+    const fallacies: FallacyVector[] = robertaFallacies.map(f => ({
+      fallacyId: f.id,
+      confidenceScore: f.score,
+      validationProof: '',
+    }));
+    const s = row.state as string;
+    const inverionState =
+      s === 'SUBJECTIVE_NOISE' ? InverionState.SUBJECTIVE_NOISE :
+      s === 'TRANSITIONAL'     ? InverionState.TRANSITIONAL :
+      s === 'OBJECTIVE_REALITY'? InverionState.OBJECTIVE_REALITY :
+      InverionState.UNSPECIFIED;
+    const weightedScore = typeof row.weighted_score === 'number' ? row.weighted_score : 0;
+    return [{
+      id: row.statement_id as string,
+      text: row.text as string,
+      timestamp: typeof row.created_at === 'number' ? row.created_at : Date.now(),
+      fallacies,
+      inverionState,
+      radicalVeracityPassed: weightedScore < FALLACY_CRITICAL_THRESHOLD,
+    }];
+  });
+}
+
 interface TrainingSessionProps {
   nodeId: string;
   onFrameCreated?: (frame: { detectedFallacies: FallacyVector[]; inverionState: InverionState; radicalVeracityPassed: boolean }, rawInput: string) => void;
@@ -89,7 +123,7 @@ export function useTrainingSession({ nodeId, onFrameCreated }: TrainingSessionPr
     let cancelled = false;
     (async () => {
       try {
-        const res = await fetch(FEEDBACK_WEIGHTS_ENDPOINT);
+        const res = await fetch(FEEDBACK_WEIGHTS_ENDPOINT());
         if (!res.ok) return;
         const data = await res.json();
         if (cancelled) return;
@@ -104,6 +138,45 @@ export function useTrainingSession({ nodeId, onFrameCreated }: TrainingSessionPr
     })();
     return () => { cancelled = true; };
   }, []);
+
+  // Hydrate statementLog: localStorage first (instant), then server (authoritative merge)
+  useEffect(() => {
+    try {
+      const cached = localStorage.getItem(LS_KEY);
+      if (cached) {
+        const parsed = JSON.parse(cached) as StatementLog[];
+        if (Array.isArray(parsed) && parsed.length > 0) setStatementLog(parsed);
+      }
+    } catch {}
+
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch(`${HISTORY_ENDPOINT()}?limit=50`);
+        if (!res.ok || cancelled) return;
+        const data = await res.json();
+        if (!data?.events?.length) return;
+        const fromServer = dbRowsToLog(data.events as Record<string, unknown>[]);
+        if (cancelled) return;
+        setStatementLog(prev => {
+          const seen = new Set(prev.map(e => e.id));
+          const merged = [...prev];
+          for (const entry of fromServer) {
+            if (!seen.has(entry.id)) { merged.push(entry); seen.add(entry.id); }
+          }
+          return merged.sort((a, b) => b.timestamp - a.timestamp).slice(0, 50);
+        });
+      } catch {}
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
+  // Persist statementLog to localStorage on every change
+  useEffect(() => {
+    if (statementLog.length > 0) {
+      try { localStorage.setItem(LS_KEY, JSON.stringify(statementLog.slice(0, 50))); } catch {}
+    }
+  }, [statementLog]);
 
   // Stable refs - not recreated on every render
   const slidingWindowRef = useRef(new SlidingWindowBuffer(512, 0.5));
@@ -153,7 +226,7 @@ export function useTrainingSession({ nodeId, onFrameCreated }: TrainingSessionPr
           try {
             const controller = new AbortController();
             const tid = setTimeout(() => controller.abort(), 800);
-            const response = await fetch(ROBERTA_ENDPOINT, {
+            const response = await fetch(ROBERTA_ENDPOINT(), {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ text: rawInput }),
@@ -172,7 +245,7 @@ export function useTrainingSession({ nodeId, onFrameCreated }: TrainingSessionPr
           try {
             const controller = new AbortController();
             const tid = setTimeout(() => controller.abort(), 800);
-            const response = await fetch(FREE_AGENTS_ENDPOINT, {
+            const response = await fetch(FREE_AGENTS_ENDPOINT(), {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ text: rawInput }),
@@ -305,7 +378,7 @@ export function useTrainingSession({ nodeId, onFrameCreated }: TrainingSessionPr
       verdictMap[`openrouter:${o.model || 'unknown'}`] = { detected: o.detected, confidence: o.confidence, model: o.model };
     }
 
-    fetch(FEEDBACK_ANALYZE_ENDPOINT, {
+    fetch(FEEDBACK_ANALYZE_ENDPOINT(), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -376,7 +449,7 @@ export function useTrainingSession({ nodeId, onFrameCreated }: TrainingSessionPr
     }
 
     try {
-      const res = await fetch(FEEDBACK_VERDICT_ENDPOINT, {
+      const res = await fetch(FEEDBACK_VERDICT_ENDPOINT(), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ statementId, fallacyId, text: breakdown.text, verdict, agentScores }),
@@ -437,6 +510,7 @@ interface SessionMetrics {
     setDetectedFallacies([]);
     setStatementLog([]);
     setInterceptActive(false);
+    try { localStorage.removeItem(LS_KEY); } catch {}
     setInverionState(InverionState.OBJECTIVE_REALITY);
     slidingWindowRef.current.reset();
     semanticBridgeRef.current.reset();

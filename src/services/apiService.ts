@@ -305,3 +305,22 @@ function validateCryptoVerify(v: unknown): CryptoVerifyResult | null {
 export async function cryptoVerify(algorithm: string, message: string, signature: string, publicKey: string): Promise<Result<CryptoVerifyResult>> {
   return post<CryptoVerifyResult>('/crypto/verify', { algorithm, message, signature, public_key: publicKey }, validateCryptoVerify);
 }
+
+export interface EcologyData {
+  ecoHealth: number;
+  temperatureAnomaly: number;
+  source: string;
+  timestamp: number;
+}
+
+function validateEcology(v: unknown): EcologyData | null {
+  if (typeof v !== 'object' || v === null) return null;
+  const o = v as Record<string, unknown>;
+  if (typeof o.ecoHealth !== 'number' || !isFinite(o.ecoHealth)) return null;
+  if (typeof o.temperatureAnomaly !== 'number' || !isFinite(o.temperatureAnomaly)) return null;
+  return o as unknown as EcologyData;
+}
+
+export async function fetchEcologyData(): Promise<Result<EcologyData>> {
+  return get<EcologyData>('/ecology/latest', validateEcology);
+}

@@ -2,6 +2,7 @@ import { useSelector } from 'react-redux';
 import { RootState } from '../../state/ledger/store';
 import { VeracityEvent } from '../../state/ledger/slices/veracitySlice';
 import { PhysicalizationEvent } from '../../state/ledger/slices/physicalizationSlice';
+import { EcologyEvent } from '../../state/ledger/slices/ecologySlice';
 
 function formatTimestamp(ts: number): string {
   return new Date(ts).toISOString().replace('T', ' ').slice(0, -1);
@@ -53,11 +54,37 @@ function PhysicalizationEventRow({ event }: { event: PhysicalizationEvent }) {
   );
 }
 
+function EcologyEventRow({ event }: { event: EcologyEvent }) {
+  const labels: Record<string, string> = {
+    ECO_READING_RECEIVED: 'ECO_INIT',
+    ECO_THRESHOLD_BREACH: 'ECO_ALERT',
+  };
+  const isAlert = event.eventType === 'ECO_THRESHOLD_BREACH';
+  const sign = event.temperatureAnomaly >= 0 ? '+' : '';
+  return (
+    <div className="grid grid-cols-12 gap-1 md:gap-2 text-on-surface-variant group hover:bg-white/5 p-0.5 md:p-1 transition-colors text-[9px] md:text-[11px]">
+      <div className="col-span-3 font-data-mono truncate">{formatTimestamp(event.timestamp)}</div>
+      <div className="col-span-2 font-data-mono" style={{ color: 'rgba(255,255,255,0.4)' }}>PLANET</div>
+      <div className={`col-span-5 font-data-mono truncate ${isAlert ? 'text-deprecated-rust' : 'text-healed-sage'}`}>
+        {labels[event.eventType] || event.eventType}
+      </div>
+      <div className="col-span-2 text-right font-data-mono" style={{ color: isAlert ? '#c0392b' : '#7fba6a' }}>
+        {sign}{event.temperatureAnomaly.toFixed(1)}°
+      </div>
+    </div>
+  );
+}
+
 export function VeracityLog() {
   const veracityEvents = useSelector((state: RootState) => state.veracity.events);
   const physicalizationEvents = useSelector((state: RootState) => state.physicalization.events);
+  const ecologyEvents = useSelector((state: RootState) => state.ecology.events);
 
-  const allEvents = [...veracityEvents, ...physicalizationEvents]
+  const allEvents = [
+    ...veracityEvents.map(e => ({ ...e, _kind: 'veracity' as const })),
+    ...physicalizationEvents.map(e => ({ ...e, _kind: 'physicalization' as const })),
+    ...ecologyEvents.map(e => ({ ...e, _kind: 'ecology' as const })),
+  ]
     .sort((a, b) => b.timestamp - a.timestamp)
     .slice(0, 30);
 
@@ -82,8 +109,11 @@ export function VeracityLog() {
               <div className="col-span-2 text-right">STATUS</div>
             </div>
             {allEvents.map((event, i) => {
-              if ('veracityScore' in event) {
+              if (event._kind === 'veracity') {
                 return <VeracityEventRow key={event.id || i} event={event} />;
+              }
+              if (event._kind === 'ecology') {
+                return <EcologyEventRow key={event.id || i} event={event} />;
               }
               return <PhysicalizationEventRow key={event.id || i} event={event} />;
             })}

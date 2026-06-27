@@ -19,5 +19,10 @@ export default defineConfig({
   },
   server: {
     port: 3000,
+    proxy: {
+      '/api': 'http://localhost:3001',
+      '/classify': 'http://localhost:3001',
+      '/validate': 'http://localhost:3001',
+    },
   },
 });

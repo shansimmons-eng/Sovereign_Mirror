@@ -19,13 +19,17 @@ function sortLayers(layers: CryptoLayerStatus[]): CryptoLayerStatus[] {
   return LAYER_ORDER.map(id => map.get(id)).filter((l): l is CryptoLayerStatus => l != null);
 }
 
+const REFRESH_MS = 30_000;
+const RETRY_MS = 10_000;
+
 export function CryptoStatusPanel() {
   const dispatch = useDispatch();
   const { layers, lastUpdated, loading, error } = useSelector((state: RootState) => state.crypto);
 
   useEffect(() => {
     const now = Date.now();
-    if (lastUpdated > 0 && now - lastUpdated < 30000) return;
+    if (lastUpdated > 0 && now - lastUpdated < REFRESH_MS) return;
+
     dispatch(setCryptoLoading());
     fetchCryptoStatus().then(result => {
       if (result.ok && result.data) {
@@ -35,6 +39,23 @@ export function CryptoStatusPanel() {
       }
     });
   }, [dispatch, lastUpdated]);
+
+  // Retry after RETRY_MS whenever an error is set and we have no data yet.
+  // Once we have layers, the normal 30s refresh cycle takes over.
+  useEffect(() => {
+    if (!error) return;
+    const t = setTimeout(() => {
+      dispatch(setCryptoLoading());
+      fetchCryptoStatus().then(result => {
+        if (result.ok && result.data) {
+          dispatch(setCryptoStatus(result.data));
+        } else {
+          dispatch(setCryptoError(result.error || 'fetch failed'));
+        }
+      });
+    }, RETRY_MS);
+    return () => clearTimeout(t);
+  }, [dispatch, error]);
 
   const sorted = sortLayers(layers);
 

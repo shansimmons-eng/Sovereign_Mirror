@@ -224,6 +224,82 @@ function loadFallacyDataset() {
 const PLASMA_URL = process.env.NOAA_PLASMA_URL || 'https://services.swpc.noaa.gov/products/solar-wind/plasma-7-day.json';
 const MAGNET_URL = process.env.NOAA_MAGNET_URL || 'https://services.swpc.noaa.gov/products/solar-wind/mag-7-day.json';
 const RTSW_CACHE_TTL_MS = 30000;
+
+const ECO_API_BASE = process.env.ECO_API_URL || 'https://api.open-meteo.com/v1/forecast';
+const ECO_CACHE_TTL_MS = 300000; // 5 minutes — climate signal changes slowly
+const ECO_TIMEOUT_MS = 8000;
+// Three latitudinal reference points; Arctic and Antarctic weighted 2x (amplified warming signal)
+// Baseline: pre-industrial 1850-1900 approximation, derived by subtracting IPCC AR6 zone warming
+// offsets from 1991-2020 ERA5 ocean surface means (Arctic -2.0°C, Equatorial -0.7°C, Southern -1.0°C)
+// This anchors the anomaly to the honest pre-industrial floor rather than the already-warmed WMO normal
+const ECO_REFERENCE_POINTS = [
+  {
+    lat: 70, lon: 0, weight: 2, // Greenland Sea (Arctic ocean)
+    // 1991-2020: [-5,-6,-5,-2,2,5,8,8,4,0,-3,-4] minus 2.0°C Arctic amplification offset
+    monthlyNormals: [-7, -8, -7, -4, 0, 3, 6, 6, 2, -2, -5, -6],
+  },
+  {
+    lat: 0, lon: 0, weight: 1, // Gulf of Guinea (equatorial Atlantic)
+    // 1991-2020: [26,26.5,26.5,26,25.5,24.5,23.5,23,23.5,24.5,25.5,25.5] minus 0.7°C tropical offset
+    monthlyNormals: [25.3, 25.8, 25.8, 25.3, 24.8, 23.8, 22.8, 22.3, 22.8, 23.8, 24.8, 24.8],
+  },
+  {
+    lat: -60, lon: 0, weight: 2, // Southern Ocean (60°S — ocean, not ice sheet)
+    // 1991-2020: [1,0,-2,-4,-6,-7,-8,-8,-6,-4,-1,0] minus 1.0°C Southern Ocean offset
+    monthlyNormals: [0.0, -1.0, -3.0, -5.0, -7.0, -8.0, -9.0, -9.0, -7.0, -5.0, -2.0, -1.0],
+  },
+];
+const ECO_MAX_ANOMALY_C = 6.0; // +6°C above pre-industrial normal → ecoHealth = 0
+let _ecoCache = null;
+let _ecoCacheTime = 0;
+
+async function fetchEcologyPoint(lat, lon) {
+  const url = `${ECO_API_BASE}?latitude=${lat}&longitude=${lon}&daily=temperature_2m_mean&temperature_unit=celsius&timezone=UTC&past_days=7&forecast_days=0`;
+  const res = await fetch(url, {
+    headers: { 'User-Agent': 'SovereignMirror/1.0' },
+    signal: AbortSignal.timeout(ECO_TIMEOUT_MS),
+  });
+  if (!res.ok) throw new Error(`open-meteo ${res.status}`);
+  const data = await res.json();
+  const temps = (data.daily?.temperature_2m_mean || []).filter(t => t != null);
+  if (!temps.length) throw new Error('no temperature data');
+  return temps.reduce((a, b) => a + b, 0) / temps.length;
+}
+
+async function fetchEcologyData() {
+  const results = await Promise.all(
+    ECO_REFERENCE_POINTS.map(p => fetchEcologyPoint(p.lat, p.lon))
+  );
+  const month = new Date().getMonth(); // 0-11
+  let totalWeight = 0;
+  let weightedAnomalySum = 0;
+  ECO_REFERENCE_POINTS.forEach((ref, i) => {
+    const anomaly = results[i] - ref.monthlyNormals[month];
+    weightedAnomalySum += anomaly * ref.weight;
+    totalWeight += ref.weight;
+  });
+  const temperatureAnomaly = weightedAnomalySum / totalWeight;
+  const ecoHealth = Math.max(0, Math.min(1, 1 - temperatureAnomaly / ECO_MAX_ANOMALY_C));
+  return {
+    ecoHealth,
+    temperatureAnomaly: Math.round(temperatureAnomaly * 100) / 100,
+    source: 'Open-Meteo · baseline 1850-1900 (IPCC AR6)',
+    timestamp: Date.now(),
+  };
+}
+
+async function getEcology() {
+  const now = Date.now();
+  if (_ecoCache && now - _ecoCacheTime < ECO_CACHE_TTL_MS) return _ecoCache;
+  try {
+    const data = await fetchEcologyData();
+    _ecoCache = data;
+    _ecoCacheTime = now;
+  } catch (e) {
+    console.warn('[ECO] Fetch failed:', e.message);
+  }
+  return _ecoCache;
+}
 let _rtswCache = null;
 let _rtswCacheTime = 0;
 
@@ -232,12 +308,18 @@ function getSafe(val, fallback) {
   return (v !== null && v !== undefined && isFinite(v) && v > -900) ? v : fallback;
 }
 
-function validateNOAAResponse(plasma, mag) {
-  if (!Array.isArray(plasma) || !Array.isArray(mag)) return false;
-  const lp = plasma[plasma.length - 1];
-  const lm = mag[mag.length - 1];
-  if (!lp || !lm || typeof lp !== 'object' || typeof lm !== 'object') return false;
-  return true;
+// NOAA SWPC switched to array-of-arrays format: [[headers], [row], ...]
+// This normalises both formats (objects or arrays) to a plain named-property object.
+function parseNOAARow(data) {
+  if (!Array.isArray(data) || data.length < 2) return null;
+  const last = data[data.length - 1];
+  if (!last) return null;
+  if (!Array.isArray(last)) return last; // already an object-per-row format
+  const headers = data[0];
+  if (!Array.isArray(headers) || headers.length !== last.length) return null;
+  const obj = {};
+  headers.forEach((key, i) => { obj[key] = last[i]; });
+  return obj;
 }
 
 async function fetchRTSWFromNOAA() {
@@ -246,23 +328,25 @@ async function fetchRTSWFromNOAA() {
       fetch(PLASMA_URL, { headers: { 'User-Agent': 'SovereignMirror/1.0' }, signal: AbortSignal.timeout(8000) }),
       fetch(MAGNET_URL, { headers: { 'User-Agent': 'SovereignMirror/1.0' }, signal: AbortSignal.timeout(8000) })
     ]);
-    if (!plasmaRes.ok || !magRes.ok) throw new Error('NOAA fetch failed');
+    if (!plasmaRes.ok || !magRes.ok) throw new Error(`NOAA HTTP ${plasmaRes.status}/${magRes.status}`);
     const [plasma, mag] = await Promise.all([plasmaRes.json(), magRes.json()]);
-    if (!validateNOAAResponse(plasma, mag)) throw new Error('NOAA response schema mismatch');
-    const lp = plasma[plasma.length - 1];
-    const lm = mag[mag.length - 1];
+    const lp = parseNOAARow(plasma);
+    const lm = parseNOAARow(mag);
+    if (!lp || !lm) throw new Error('NOAA response schema unrecognised');
+    // NOAA uses bx_gsm/by_gsm/bz_gsm; fall back to bx_gse/by_gse/bz_gse or plain bx/by/bz
     return {
-      speed: getSafe(lp.speed, 400),
-      density: getSafe(lp.density, 10),
-      temperature: getSafe(lp.temperature, 100000),
-      bx: getSafe(lm.bx, 0),
-      by: getSafe(lm.by, 0),
-      bz: getSafe(lm.bz, 0),
+      speed: getSafe(lp.speed ?? lp.bulk_speed, 400),
+      density: getSafe(lp.density ?? lp.proton_density, 10),
+      temperature: getSafe(lp.temperature ?? lp.ion_temperature, 100000),
+      bx: getSafe(lm.bx_gsm ?? lm.bx_gse ?? lm.bx, 0),
+      by: getSafe(lm.by_gsm ?? lm.by_gse ?? lm.by, 0),
+      bz: getSafe(lm.bz_gsm ?? lm.bz_gse ?? lm.bz, 0),
       bt: getSafe(lm.bt, 0),
       timestamp: Date.now(),
       source: 'NOAA SWPC',
     };
   } catch (e) {
+    console.warn('[RTSW] fetch failed, will serve stale cache:', e.message);
     return null;
   }
 }
@@ -443,6 +527,18 @@ const server = createServer(async (req, res) => {
     } else {
       res.writeHead(503, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify({ error: 'NOAA unavailable' }));
+    }
+    return;
+  }
+
+  if (url.pathname === '/api/ecology/latest' && req.method === 'GET') {
+    const eco = await getEcology();
+    if (eco) {
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify(eco));
+    } else {
+      res.writeHead(503, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: 'Ecology data unavailable' }));
     }
     return;
   }

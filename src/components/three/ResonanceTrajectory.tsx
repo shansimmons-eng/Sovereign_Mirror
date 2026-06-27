@@ -2,10 +2,13 @@ import { useRef, useMemo, useEffect, useState } from 'react';
 import { Canvas, useFrame, extend } from '@react-three/fiber';
 import * as THREE from 'three';
 import { EffectComposer, Bloom } from '@react-three/postprocessing';
+import { useDispatch } from 'react-redux';
 import { useHUDStore } from '../../state/stores/hudStore';
 import { useNodeStore } from '../../state/stores/nodeStore';
 import { ConcentricRings } from './OrbitalRings';
 import { getVisualPayload, type VisualPayload } from '../../mirror/core/CryptoWrapper';
+import { logEcologyEvent } from '../../state/ledger/slices/ecologySlice';
+import { AppDispatch } from '../../state/ledger/store';
 
 // Particle count - balance between visual density and performance
 // Reduced from 5000 to improve frame rates on lower-end devices
@@ -23,23 +26,45 @@ const getSafe = (val: number, fallback: number): number => {
 
 const DEFAULT_RTSW = { speed: 450, density: 15, temperature: 100000, bx: 0, by: 0, bz: -5, bt: 5 };
 
+// Normalises NOAA's array-of-arrays format [[headers],[row]] and legacy object-per-row format.
+function parseNOAARow(data: unknown[]): Record<string, unknown> | null {
+  if (!Array.isArray(data) || data.length < 2) return null;
+  const last = data[data.length - 1];
+  if (!last) return null;
+  if (!Array.isArray(last)) return last as Record<string, unknown>;
+  const headers = data[0] as unknown[];
+  if (!Array.isArray(headers) || headers.length !== last.length) return null;
+  const obj: Record<string, unknown> = {};
+  (headers as string[]).forEach((key, i) => { obj[key] = last[i]; });
+  return obj;
+}
+
+function safeNum(val: unknown, fallback: number): number {
+  const v = Number(val);
+  return isFinite(v) && v > -900 ? v : fallback;
+}
+
 async function fetchNOAAData() {
   try {
     const [plasmaRes, magRes] = await Promise.all([
       fetch(PLASMA_URL, { headers: { 'User-Agent': 'SovereignMirror/1.0' }, signal: AbortSignal.timeout(8000) }),
       fetch(MAGNET_URL, { headers: { 'User-Agent': 'SovereignMirror/1.0' }, signal: AbortSignal.timeout(8000) })
     ]);
-    if (!plasmaRes.ok || !magRes.ok) throw new Error('NOAA fetch failed');
+    if (!plasmaRes.ok || !magRes.ok) return null;
     const [plasma, mag] = await Promise.all([plasmaRes.json(), magRes.json()]);
-    const lp = plasma[plasma.length - 1] || {};
-    const lm = mag[mag.length - 1] || {};
+    const lp = parseNOAARow(plasma as unknown[]);
+    const lm = parseNOAARow(mag as unknown[]);
+    if (!lp || !lm) return null;
     return {
-      speed: lp.speed ?? 400,
-      density: lp.density ?? 10,
-      temperature: lp.temperature ?? 100000,
-      bx: lm.bx ?? 0, by: lm.by ?? 0, bz: lm.bz ?? 0, bt: lm.bt ?? 0,
+      speed: safeNum(lp.speed ?? lp.bulk_speed, 400),
+      density: safeNum(lp.density ?? lp.proton_density, 10),
+      temperature: safeNum(lp.temperature ?? lp.ion_temperature, 100000),
+      bx: safeNum(lm.bx_gsm ?? lm.bx_gse ?? lm.bx, 0),
+      by: safeNum(lm.by_gsm ?? lm.by_gse ?? lm.by, 0),
+      bz: safeNum(lm.bz_gsm ?? lm.bz_gse ?? lm.bz, 0),
+      bt: safeNum(lm.bt, 0),
     };
-  } catch (e) {
+  } catch {
     return null;
   }
 }
@@ -613,10 +638,49 @@ function DecayBloomEffect({ inverionAlpha }: { inverionAlpha: number }) {
   );
 }
 
+const ECO_POLL_MS = 300_000;
+const ECO_DISTRESS_THRESHOLD = 0.5;
+
 export function ResonanceTrajectory() {
+  const dispatch = useDispatch<AppDispatch>();
   const inverionAlpha = useNodeStore((s) => s.flux);
   const temperature = useHUDStore((s) => s.temperature);
+  const ecoHealth = useHUDStore((s) => s.ecoHealth);
+  const setEcoHealth = useHUDStore((s) => s.setEcoHealth);
   const isDecayed = inverionAlpha < DECAY_THRESHOLD;
+  const prevEcoHealth = useRef<number | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function pollEco() {
+      try {
+        const res = await fetch('/api/ecology/latest', { signal: AbortSignal.timeout(8000) });
+        if (!res.ok) return;
+        const data = await res.json();
+        if (cancelled) return;
+        const h: unknown = data.ecoHealth;
+        const a: unknown = data.temperatureAnomaly;
+        if (typeof h !== 'number' || !isFinite(h)) return;
+        setEcoHealth(h);
+        const prev = prevEcoHealth.current;
+        const isFirst = prev === null;
+        const crossedDistress = prev !== null && prev >= ECO_DISTRESS_THRESHOLD && h < ECO_DISTRESS_THRESHOLD;
+        if (isFirst || crossedDistress) {
+          dispatch(logEcologyEvent({
+            id: `ECO_${Date.now()}`,
+            eventType: isFirst ? 'ECO_READING_RECEIVED' : 'ECO_THRESHOLD_BREACH',
+            ecoHealth: h,
+            temperatureAnomaly: typeof a === 'number' && isFinite(a) ? a : 0,
+            timestamp: Date.now(),
+          }));
+        }
+        prevEcoHealth.current = h;
+      } catch { /* leave last known value */ }
+    }
+    pollEco();
+    const id = setInterval(pollEco, ECO_POLL_MS);
+    return () => { cancelled = true; clearInterval(id); };
+  }, [dispatch, setEcoHealth]);
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -665,7 +729,7 @@ export function ResonanceTrajectory() {
            distance={isDecayed ? 3 : 6}
          />
          <KineticQuads />
-         <ConcentricRings inverionAlpha={inverionAlpha} temperature={temperature} />
+         <ConcentricRings inverionAlpha={inverionAlpha} temperature={temperature} ecoHealth={ecoHealth} />
          <StarField />
          <IgnitionCore inverionAlpha={inverionAlpha} />
          <CameraRig />

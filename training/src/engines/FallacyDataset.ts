@@ -14,7 +14,7 @@ export interface FallacyDataset {
   sources: string[];
 }
 
-const DATASET_URL = '/classify/fallacy-data';
+const DATASET_URL = () => `${(typeof window !== 'undefined' && window.__kylosApiBase) ? window.__kylosApiBase : ''}/classify/fallacy-data`;
 
 let cachedDataset: FallacyDataset | null = null;
 const entryWordSets = new Map<FallacyEntry, Set<string>>();
@@ -23,7 +23,7 @@ export async function loadFallacyDataset(): Promise<FallacyDataset> {
   if (cachedDataset) return cachedDataset;
   
   try {
-    const response = await fetch(DATASET_URL);
+    const response = await fetch(DATASET_URL());
     if (response.ok) {
       cachedDataset = await response.json();
       for (const entry of cachedDataset!.entries) {
