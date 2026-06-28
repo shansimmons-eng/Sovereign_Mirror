@@ -1,0 +1,773 @@
+/* ============================================
+   KYLOS ARC DESIGN SYSTEM - Tokens
+   ============================================ */
+
+:root {
+  /* Primary */
+  --primary: #b90538;
+  --primary-container: #dc2c4f;
+  --on-primary: #ffffff;
+  --on-primary-container: #fffbff;
+
+  /* Secondary */
+  --secondary: #FDE68A;
+  --secondary-container: #FCD34D;
+  --on-secondary: #111c2d;
+  --on-secondary-container: #111c2d;
+
+  /* Tertiary */
+  --tertiary: #6e5e0d;
+  --tertiary-container: #bfab56;
+  --on-tertiary: #ffffff;
+  --on-tertiary-container: #4b3f00;
+
+  /* Surface */
+  --surface: #f9f9ff;
+  --surface-dim: #cfdaf2;
+  --surface-bright: #f9f9ff;
+  --surface-container-lowest: #ffffff;
+  --surface-container-low: #f0f3ff;
+  --surface-container: #e7eeff;
+  --surface-container-high: #dee8ff;
+  --surface-container-highest: #d8e3fb;
+  --surface-variant: #d8e3fb;
+  --on-surface: #111c2d;
+  --on-surface-variant: #5b4041;
+
+  /* Background */
+  --background: #f9f9ff;
+  --on-background: #111c2d;
+
+  /* Outline */
+  --outline: #8f6f71;
+  --outline-variant: #e3bdbf;
+  --border-subtle: rgba(148, 163, 184, 0.2);
+
+  /* Error */
+  --error: #ba1a1a;
+  --error-container: #ffdad6;
+  --on-error: #ffffff;
+  --on-error-container: #93000a;
+
+  /* Inverse */
+  --inverse-surface: #263143;
+  --inverse-on-surface: #ecf1ff;
+  --inverse-primary: #ffb2b7;
+
+  /* Border Radius */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-full: 9999px;
+
+  /* Typography */
+  --font-display: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+
+/* ============================================
+   KYLOS ARC DESIGN SYSTEM - Base
+   ============================================ */
+
+* {
+  box-sizing: border-box;
+}
+
+body.kylos-page {
+  background-color: var(--background);
+  color: var(--on-background);
+  margin: 0;
+  padding: 0;
+}
+
+body.kylos-page h1,
+body.kylos-page h2,
+body.kylos-page h3,
+body.kylos-page h4 {
+  color: var(--on-surface);
+  margin: 0;
+}
+
+/* ============================================
+   KYLOS ARC DESIGN SYSTEM - Animations
+   ============================================ */
+
+.kx-pulse {
+  animation: kxpulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes kxpulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(1.15); }
+}
+
+/* ============================================
+   KYLOS ARC DESIGN SYSTEM - Noise Overlay
+   ============================================ */
+
+.kx-noise {
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  opacity: 0.04;
+  pointer-events: none;
+}
+
+/* ============================================
+   KYLOS ARC DESIGN SYSTEM - Typography
+   ============================================ */
+
+.kx-display {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 44px;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.kx-h1 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 32px;
+  line-height: 1.2;
+}
+
+.kx-h2 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 24px;
+  line-height: 1.3;
+}
+
+.kx-h3 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 18px;
+  line-height: 1.4;
+}
+
+.kx-body-lg {
+  font-family: var(--font-body);
+  font-size: 18px;
+  line-height: 1.6;
+}
+
+.kx-body {
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+.kx-body-sm {
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.kx-label {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+/* ============================================
+   KYLOS ARC DESIGN SYSTEM - Badge
+   ============================================ */
+
+.kx-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: var(--radius-full);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  border: 1px solid;
+}
+
+.kx-badge--tertiary {
+  background: color-mix(in srgb, var(--tertiary-container) 20%, transparent);
+  color: var(--on-tertiary-container);
+  border-color: color-mix(in srgb, var(--tertiary-container) 40%, transparent);
+}
+
+.kx-badge--secondary {
+  background: var(--secondary);
+  color: var(--on-secondary);
+  border-color: var(--secondary);
+}
+
+.kx-badge--primary {
+  background: color-mix(in srgb, var(--primary) 20%, transparent);
+  color: var(--primary);
+  border-color: color-mix(in srgb, var(--primary) 40%, transparent);
+}
+
+/* ============================================
+   KYLOS ARC DESIGN SYSTEM - Card
+   ============================================ */
+
+.kx-card {
+  background: var(--surface-container-lowest);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+}
+
+.kx-card--glass {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+
+.kx-card--glow {
+  box-shadow: 0 4px 24px rgba(185, 5, 56, 0.15);
+}
+
+.kx-card--glow:hover {
+  box-shadow: 0 8px 40px rgba(185, 5, 56, 0.25);
+}
+
+/* ============================================
+   KYLOS ARC DESIGN SYSTEM - Button
+   ============================================ */
+
+.kx-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 15px 30px;
+  background: linear-gradient(45deg, var(--primary), var(--primary));
+  color: #ffffff !important;
+  font-size: 14px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  border-radius: 10px;
+  cursor: pointer;
+  position: relative;
+  transition: box-shadow 0.3s, transform 0.3s;
+  user-select: none;
+  border: none;
+  font-family: var(--font-body);
+  text-decoration: none;
+  overflow: hidden;
+}
+
+.kx-btn * {
+  color: #ffffff !important;
+}
+
+.kx-btn:hover {
+  color: #ffffff !important;
+}
+
+.kx-btn:hover * {
+  color: #ffffff !important;
+}
+
+.kx-btn::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.1);
+  transform: translateY(100%) rotateX(90deg);
+  transition: transform 0.3s ease-in-out;
+}
+
+.kx-btn:hover::before {
+  transform: translateY(0) rotateX(0);
+}
+
+.kx-btn:hover {
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+  transform: scale(1.05);
+}
+
+.kx-btn:active {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  transform: scale(0.95);
+}
+
+.kx-btn:disabled {
+  pointer-events: none;
+  opacity: 0.65;
+  color: #ffffff;
+  background: #94a3b8;
+  box-shadow: none;
+}
+
+.kx-btn:disabled::before {
+  display: none;
+}
+
+/* Primary button (red) */
+.kx-btn--primary {
+  background: linear-gradient(45deg, #F43F5E, #F43F5E);
+}
+
+.kx-btn--primary:hover {
+  background: linear-gradient(45deg, #dc2626, #dc2626);
+  box-shadow: 0 8px 20px rgba(244, 63, 94, 0.4);
+}
+
+/* Secondary button */
+.kx-btn--secondary {
+  background: linear-gradient(45deg, #F43F5E, #F43F5E);
+}
+
+.kx-btn--secondary::before {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.kx-btn--secondary:hover {
+  background: linear-gradient(45deg, #dc2626, #dc2626);
+  box-shadow: 0 8px 20px rgba(244, 63, 94, 0.4);
+}
+
+/* Ghost button */
+.kx-btn--ghost {
+  background: transparent;
+  color: var(--on-surface-variant);
+}
+
+.kx-btn--ghost::before {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.kx-btn--ghost:hover {
+  background: var(--surface-container-high);
+}
+
+/* Full width */
+.kx-btn--full {
+  width: 100%;
+}
+
+/* Amber button (for briefing/video) */
+.kx-btn--amber {
+  background: linear-gradient(45deg, #405ef5, #405ef5);
+}
+
+.kx-btn--amber::before {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.kx-btn--amber:hover {
+  box-shadow: 0 8px 16px rgba(64, 94, 245, 0.4);
+  transform: scale(1.05);
+}
+
+/* ============================================
+   KYLOS ARC DESIGN SYSTEM - StatBar
+   ============================================ */
+
+.kx-statbar {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.kx-statbar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.kx-statbar-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--on-surface-variant);
+}
+
+.kx-statbar-value {
+  font-size: 13px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+}
+
+.kx-statbar-track {
+  height: 6px;
+  border-radius: var(--radius-full);
+  background: var(--surface-container-high);
+  overflow: hidden;
+}
+
+.kx-statbar-fill {
+  height: 100%;
+  border-radius: var(--radius-full);
+  transition: width 0.5s ease;
+}
+
+.kx-statbar-fill--error {
+  background: var(--error);
+}
+
+.kx-statbar-fill--tertiary {
+  background: var(--tertiary);
+}
+
+.kx-statbar-fill--primary {
+  background: var(--primary);
+}
+
+.kx-statbar-fill--secondary {
+  background: var(--secondary);
+}
+
+/* ============================================
+   KYLOS ARC DESIGN SYSTEM - Progress
+   ============================================ */
+
+.kx-progress-gradient {
+  background: linear-gradient(90deg, #405EF5 0%, #F43F5E 100%);
+}
+
+/* ============================================
+   KYLOS ARC DESIGN SYSTEM - Toolkit Item
+   ============================================ */
+
+.kx-toolkit {
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 16px;
+}
+
+.kx-toolkit-icon {
+  font-size: 22px;
+  padding: 8px;
+  border-radius: var(--radius-sm);
+  display: inline-block;
+}
+
+.kx-toolkit-icon--primary {
+  color: var(--primary);
+  background: color-mix(in srgb, var(--primary) 10%, transparent);
+}
+
+.kx-toolkit-icon--secondary {
+  color: var(--secondary);
+  background: color-mix(in srgb, var(--secondary) 10%, transparent);
+}
+
+/* ============================================
+   KYLOS ARC DESIGN SYSTEM - Layout
+   ============================================ */
+
+.kx-layout {
+  display: flex;
+  min-height: calc(100vh - 200px);
+}
+
+.kx-main {
+  flex: 1;
+  min-width: 0;
+  max-width: 1280px;
+  margin: 0 auto;
+  width: 100%;
+  padding: 24px 24px 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  position: relative;
+  overflow: hidden;
+}
+
+.kx-bento {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  gap: 24px;
+  align-items: start;
+}
+
+/* ============================================
+   KYLOS ARC DESIGN SYSTEM - Sidebar
+   ============================================ */
+
+.kx-sidebar {
+  width: 256px;
+  flex-shrink: 0;
+  background: var(--surface-container);
+  border-right: 1px solid var(--outline-variant);
+  overflow-y: auto;
+  height: calc(100vh - 80px);
+  position: sticky;
+  top: 80px;
+}
+
+.kx-sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  text-decoration: none;
+  color: var(--on-surface-variant);
+  transition: all 0.2s;
+  border-left: 3px solid transparent;
+}
+
+.kx-sidebar-link:hover {
+  color: var(--on-surface);
+  background: var(--surface-container-high);
+}
+
+.kx-sidebar-link.active {
+  background: color-mix(in srgb, var(--primary) 12%, transparent);
+  border-left-color: var(--primary);
+  font-weight: 600;
+  color: var(--on-surface);
+}
+
+.kx-sidebar-icon {
+  font-size: 20px;
+  width: 24px;
+  text-align: center;
+  line-height: 1;
+}
+
+.kx-sidebar-icon-img {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.kx-sidebar-label {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+/* ============================================
+   KYLOS ARC DESIGN SYSTEM - Card Grid (Hub)
+   ============================================ */
+
+.kx-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 24px;
+}
+
+/* ============================================
+   KYLOS ARC DESIGN SYSTEM - Responsive
+   ============================================ */
+
+@media (max-width: 1024px) {
+  .kx-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .kx-bento {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .kx-sidebar {
+    display: none;
+  }
+  .kx-grid {
+    grid-template-columns: 1fr;
+  }
+  .kx-main {
+    padding: 16px;
+  }
+  .kx-display {
+    font-size: 32px;
+  }
+  .kx-pillar-badge {
+    font-size: 18px !important;
+    padding: 5px 12px !important;
+  }
+  .kx-score-section {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .kx-badge-row {
+    gap: 4px;
+  }
+  .kx-badge-item {
+    width: 36px !important;
+    height: 36px !important;
+  }
+  .kx-score-box {
+    width: 100%;
+  }
+}
+
+/* ============================================
+   KYLOS ARC DESIGN SYSTEM - Interactive Exercises
+   ============================================ */
+
+.kx-flip-container {
+  perspective: 1000px;
+}
+
+.kx-flip-inner {
+  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-style: preserve-3d;
+}
+
+.kx-flip-inner.kx-flipped {
+  transform: rotateY(180deg);
+}
+
+.kx-flip-front,
+.kx-flip-back {
+  backface-visibility: hidden;
+}
+
+.kx-flip-back {
+  transform: rotateY(180deg);
+}
+
+.kx-drop-zone {
+  transition: all 0.3s ease;
+}
+
+.kx-drop-zone.kx-drop-over {
+  border-color: var(--primary) !important;
+  background: rgba(185, 5, 56, 0.08);
+}
+
+.kx-chip:hover {
+  transform: scale(1.05);
+}
+
+.kx-chip:active {
+  cursor: grabbing;
+  transform: scale(0.95);
+}
+
+.kx-pulse-success {
+  animation: kxPulseSuccess 1.5s infinite;
+}
+
+@keyframes kxPulseSuccess {
+  0% { box-shadow: 0 0 0 0 rgba(185, 5, 56, 0.4); }
+  70% { box-shadow: 0 0 0 20px rgba(185, 5, 56, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(185, 5, 56, 0); }
+}
+
+.kx-cal-btn {
+  width: 100%;
+  text-align: left;
+  padding: 16px 20px;
+  background: linear-gradient(45deg, #F43F5E, #F43F5E);
+  border: 1px solid #F43F5E;
+  border-radius: var(--radius-md);
+  font-weight: 700;
+  font-size: 13px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #ffffff;
+  position: relative;
+  overflow: hidden;
+}
+
+.kx-cal-btn::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.1);
+  transform: translateY(100%) rotateX(90deg);
+  transition: transform 0.3s ease-in-out;
+}
+
+.kx-cal-btn:hover::before {
+  transform: translateY(0) rotateX(0);
+}
+
+.kx-cal-btn:hover {
+  color: #FDE68A;
+  background: linear-gradient(45deg, #F43F5E, #F43F5E);
+  box-shadow: 0 8px 20px rgba(244, 63, 94, 0.4);
+  transform: scale(1.02);
+}
+
+.kx-cal-btn:hover .dashicons {
+  color: #FDE68A !important;
+  opacity: 1 !important;
+}
+
+.kx-cal-active {
+  background: linear-gradient(45deg, #F43F5E, #F43F5E) !important;
+  color: #FDE68A !important;
+  border-color: #F43F5E !important;
+}
+
+.kx-cal-active .dashicons {
+  color: #FDE68A !important;
+  opacity: 1 !important;
+}
+
+.kx-toast {
+  position: fixed;
+  top: 100px;
+  right: 32px;
+  z-index: 100;
+  transform: translateX(150%);
+  transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: var(--radius-lg);
+  padding: 16px 20px;
+  max-width: 320px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.kx-toast-visible {
+  transform: translateX(0);
+}
+
+.kx-statbar-fill {
+  transition: width 0.5s ease;
+}
+
+/* ============================================
+   Badge System - Sequential Unlock
+   ============================================ */
+.kx-badge-row {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.kx-badge-item {
+  transition: opacity 0.4s ease, border-color 0.4s ease, transform 0.3s ease;
+}
+
+.kx-badge-item:hover {
+  transform: scale(1.1);
+  z-index: 2;
+}
+
+@keyframes kx-badge-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
