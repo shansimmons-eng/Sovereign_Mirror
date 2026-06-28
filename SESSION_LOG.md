@@ -680,3 +680,399 @@ a5acf77 Document master/main reconciliation in CLAUDE.md
 
 **Open questions / next steps:** <!-- fill in -->
 
+
+---
+
+## Session: 2026-06-27 12:08 CDT
+
+**Branch:** `main`
+
+**Diff summary:**  1 file changed, 2 insertions(+), 2 deletions(-)
+
+**Recent commits:**
+```
+5ae9db1 Add planetary ecology layer + training module scaffold
+a5acf77 Document master/main reconciliation in CLAUDE.md
+02f4a97 Restore OpenRouter /validate endpoint + training UI work, reconciled with crypto port
+649a736 Port master's QPADL crypto hardening into main
+49d956d Repo housekeeping: secrets template, kylos-qpadl submodule, CLAUDE.md notes
+```
+
+**Files in play:** `dist/index.html training/Wordpress/ training/package-lock.json `
+
+**Open questions / next steps:** <!-- fill in -->
+
+
+---
+
+## Session: 2026-06-27 19:33 CDT
+
+**Branch:** `main`
+
+**Diff summary:**  2 files changed, 24 insertions(+), 2 deletions(-)
+
+**Recent commits:**
+```
+5ae9db1 Add planetary ecology layer + training module scaffold
+a5acf77 Document master/main reconciliation in CLAUDE.md
+02f4a97 Restore OpenRouter /validate endpoint + training UI work, reconciled with crypto port
+649a736 Port master's QPADL crypto hardening into main
+49d956d Repo housekeeping: secrets template, kylos-qpadl submodule, CLAUDE.md notes
+```
+
+**Files in play:** `SESSION_LOG.md dist/index.html training/Wordpress/ training/package-lock.json `
+
+**Open questions / next steps:** <!-- fill in -->
+
+
+---
+
+## Session: 2026-06-27 19:36 CDT
+
+**Branch:** `main`
+
+**Diff summary:**  5 files changed, 50 insertions(+), 6 deletions(-)
+
+**Recent commits:**
+```
+5ae9db1 Add planetary ecology layer + training module scaffold
+a5acf77 Document master/main reconciliation in CLAUDE.md
+02f4a97 Restore OpenRouter /validate endpoint + training UI work, reconciled with crypto port
+649a736 Port master's QPADL crypto hardening into main
+49d956d Repo housekeeping: secrets template, kylos-qpadl submodule, CLAUDE.md notes
+```
+
+**Files in play:** `SESSION_LOG.md dist/index.html training/src/modules/Module2.tsx training/src/modules/Module3.tsx training/src/router/ModuleRouter.tsx training/Wordpress/ training/package-lock.json `
+
+**Open questions / next steps:** <!-- fill in -->
+
+
+---
+
+## Session: 2026-06-27 19:39 CDT
+
+**Branch:** `main`
+
+**Diff summary:**  5 files changed, 72 insertions(+), 6 deletions(-)
+
+**Recent commits:**
+```
+5ae9db1 Add planetary ecology layer + training module scaffold
+a5acf77 Document master/main reconciliation in CLAUDE.md
+02f4a97 Restore OpenRouter /validate endpoint + training UI work, reconciled with crypto port
+649a736 Port master's QPADL crypto hardening into main
+49d956d Repo housekeeping: secrets template, kylos-qpadl submodule, CLAUDE.md notes
+```
+
+**Files in play:** `SESSION_LOG.md dist/index.html training/src/modules/Module2.tsx training/src/modules/Module3.tsx training/src/router/ModuleRouter.tsx training/Wordpress/ training/package-lock.json `
+
+**Open questions / next steps:** <!-- fill in -->
+
+
+---
+
+## Session: 2026-06-27 19:39 CDT
+
+**Branch:** `main`
+
+**Diff summary:**  5 files changed, 94 insertions(+), 6 deletions(-)
+
+**Recent commits:**
+```
+5ae9db1 Add planetary ecology layer + training module scaffold
+a5acf77 Document master/main reconciliation in CLAUDE.md
+02f4a97 Restore OpenRouter /validate endpoint + training UI work, reconciled with crypto port
+649a736 Port master's QPADL crypto hardening into main
+49d956d Repo housekeeping: secrets template, kylos-qpadl submodule, CLAUDE.md notes
+```
+
+**Files in play:** `SESSION_LOG.md dist/index.html training/src/modules/Module2.tsx training/src/modules/Module3.tsx training/src/router/ModuleRouter.tsx training/Wordpress/ training/package-lock.json `
+
+**Open questions / next steps:** <!-- fill in -->
+
+
+---
+
+## Session: 2026-06-27 19:42 CDT
+
+**Branch:** `main`
+
+**Diff summary:**  12 files changed, 149 insertions(+), 21 deletions(-)
+
+**Recent commits:**
+```
+5ae9db1 Add planetary ecology layer + training module scaffold
+a5acf77 Document master/main reconciliation in CLAUDE.md
+02f4a97 Restore OpenRouter /validate endpoint + training UI work, reconciled with crypto port
+649a736 Port master's QPADL crypto hardening into main
+49d956d Repo housekeeping: secrets template, kylos-qpadl submodule, CLAUDE.md notes
+```
+
+**Files in play:** `CLAUDE.md SESSION_LOG.md dist/index.html training/src/modules/Module2.tsx training/src/modules/Module3.tsx training/src/modules/Module4.tsx training/src/modules/Module5.tsx training/src/modules/Module6.tsx training/src/modules/Module7.tsx training/src/modules/Module8.tsx training/src/modules/Module9.tsx training/src/router/ModuleRouter.tsx training/Wordpress/ training/package-lock.json `
+
+**Open questions / next steps:** <!-- fill in -->
+
+
+---
+
+## Session: 2026-06-27 19:58 CDT
+
+**Branch:** `main`
+
+**Diff summary:**  12 files changed, 171 insertions(+), 21 deletions(-)
+
+**Recent commits:**
+```
+5ae9db1 Add planetary ecology layer + training module scaffold
+a5acf77 Document master/main reconciliation in CLAUDE.md
+02f4a97 Restore OpenRouter /validate endpoint + training UI work, reconciled with crypto port
+649a736 Port master's QPADL crypto hardening into main
+49d956d Repo housekeeping: secrets template, kylos-qpadl submodule, CLAUDE.md notes
+```
+
+**Files in play:** `CLAUDE.md SESSION_LOG.md dist/index.html training/src/modules/Module2.tsx training/src/modules/Module3.tsx training/src/modules/Module4.tsx training/src/modules/Module5.tsx training/src/modules/Module6.tsx training/src/modules/Module7.tsx training/src/modules/Module8.tsx training/src/modules/Module9.tsx training/src/router/ModuleRouter.tsx training/Wordpress/ training/package-lock.json `
+
+**Open questions / next steps:** <!-- fill in -->
+
+
+---
+
+## Session: 2026-06-27 20:11 CDT
+
+**Branch:** `main`
+
+**Diff summary:**  16 files changed, 328 insertions(+), 33 deletions(-)
+
+**Recent commits:**
+```
+5ae9db1 Add planetary ecology layer + training module scaffold
+a5acf77 Document master/main reconciliation in CLAUDE.md
+02f4a97 Restore OpenRouter /validate endpoint + training UI work, reconciled with crypto port
+649a736 Port master's QPADL crypto hardening into main
+49d956d Repo housekeeping: secrets template, kylos-qpadl submodule, CLAUDE.md notes
+```
+
+**Files in play:** `CLAUDE.md SESSION_LOG.md dist/index.html server/index.js src/components/three/OrbitalRings.tsx training/src/interface/CognoscentaeUltrans.tsx training/src/interface/TrainingSession.ts training/src/modules/Module2.tsx training/src/modules/Module3.tsx training/src/modules/Module4.tsx training/src/modules/Module5.tsx training/src/modules/Module6.tsx training/src/modules/Module7.tsx training/src/modules/Module8.tsx training/src/modules/Module9.tsx training/src/router/ModuleRouter.tsx training/Wordpress/ training/package-lock.json `
+
+**Open questions / next steps:** <!-- fill in -->
+
+
+---
+
+## Session: 2026-06-27 20:12 CDT
+
+**Branch:** `main`
+
+**Diff summary:**  16 files changed, 350 insertions(+), 33 deletions(-)
+
+**Recent commits:**
+```
+5ae9db1 Add planetary ecology layer + training module scaffold
+a5acf77 Document master/main reconciliation in CLAUDE.md
+02f4a97 Restore OpenRouter /validate endpoint + training UI work, reconciled with crypto port
+649a736 Port master's QPADL crypto hardening into main
+49d956d Repo housekeeping: secrets template, kylos-qpadl submodule, CLAUDE.md notes
+```
+
+**Files in play:** `CLAUDE.md SESSION_LOG.md dist/index.html server/index.js src/components/three/OrbitalRings.tsx training/src/interface/CognoscentaeUltrans.tsx training/src/interface/TrainingSession.ts training/src/modules/Module2.tsx training/src/modules/Module3.tsx training/src/modules/Module4.tsx training/src/modules/Module5.tsx training/src/modules/Module6.tsx training/src/modules/Module7.tsx training/src/modules/Module8.tsx training/src/modules/Module9.tsx training/src/router/ModuleRouter.tsx training/Wordpress/ training/package-lock.json `
+
+**Open questions / next steps:** <!-- fill in -->
+
+
+---
+
+## Session: 2026-06-27 20:16 CDT
+
+**Branch:** `main`
+
+**Diff summary:**  17 files changed, 418 insertions(+), 37 deletions(-)
+
+**Recent commits:**
+```
+5ae9db1 Add planetary ecology layer + training module scaffold
+a5acf77 Document master/main reconciliation in CLAUDE.md
+02f4a97 Restore OpenRouter /validate endpoint + training UI work, reconciled with crypto port
+649a736 Port master's QPADL crypto hardening into main
+49d956d Repo housekeeping: secrets template, kylos-qpadl submodule, CLAUDE.md notes
+```
+
+**Files in play:** `CLAUDE.md SESSION_LOG.md dist/index.html server/feedbackStore.js server/index.js src/components/three/OrbitalRings.tsx training/src/interface/CognoscentaeUltrans.tsx training/src/interface/TrainingSession.ts training/src/modules/Module2.tsx training/src/modules/Module3.tsx training/src/modules/Module4.tsx training/src/modules/Module5.tsx training/src/modules/Module6.tsx training/src/modules/Module7.tsx training/src/modules/Module8.tsx training/src/modules/Module9.tsx training/src/router/ModuleRouter.tsx training/Wordpress/ training/package-lock.json `
+
+**Open questions / next steps:** <!-- fill in -->
+
+
+---
+
+## Session: 2026-06-27 20:18 CDT
+
+**Branch:** `main`
+
+**Diff summary:**  17 files changed, 440 insertions(+), 37 deletions(-)
+
+**Recent commits:**
+```
+5ae9db1 Add planetary ecology layer + training module scaffold
+a5acf77 Document master/main reconciliation in CLAUDE.md
+02f4a97 Restore OpenRouter /validate endpoint + training UI work, reconciled with crypto port
+649a736 Port master's QPADL crypto hardening into main
+49d956d Repo housekeeping: secrets template, kylos-qpadl submodule, CLAUDE.md notes
+```
+
+**Files in play:** `CLAUDE.md SESSION_LOG.md dist/index.html server/feedbackStore.js server/index.js src/components/three/OrbitalRings.tsx training/src/interface/CognoscentaeUltrans.tsx training/src/interface/TrainingSession.ts training/src/modules/Module2.tsx training/src/modules/Module3.tsx training/src/modules/Module4.tsx training/src/modules/Module5.tsx training/src/modules/Module6.tsx training/src/modules/Module7.tsx training/src/modules/Module8.tsx training/src/modules/Module9.tsx training/src/router/ModuleRouter.tsx training/Wordpress/ training/package-lock.json `
+
+**Open questions / next steps:** <!-- fill in -->
+
+
+---
+
+## Session: 2026-06-27 20:20 CDT
+
+**Branch:** `main`
+
+**Diff summary:**  17 files changed, 462 insertions(+), 37 deletions(-)
+
+**Recent commits:**
+```
+5ae9db1 Add planetary ecology layer + training module scaffold
+a5acf77 Document master/main reconciliation in CLAUDE.md
+02f4a97 Restore OpenRouter /validate endpoint + training UI work, reconciled with crypto port
+649a736 Port master's QPADL crypto hardening into main
+49d956d Repo housekeeping: secrets template, kylos-qpadl submodule, CLAUDE.md notes
+```
+
+**Files in play:** `CLAUDE.md SESSION_LOG.md dist/index.html server/feedbackStore.js server/index.js src/components/three/OrbitalRings.tsx training/src/interface/CognoscentaeUltrans.tsx training/src/interface/TrainingSession.ts training/src/modules/Module2.tsx training/src/modules/Module3.tsx training/src/modules/Module4.tsx training/src/modules/Module5.tsx training/src/modules/Module6.tsx training/src/modules/Module7.tsx training/src/modules/Module8.tsx training/src/modules/Module9.tsx training/src/router/ModuleRouter.tsx training/Wordpress/ training/package-lock.json `
+
+**Open questions / next steps:** <!-- fill in -->
+
+
+---
+
+## Session: 2026-06-27 20:25 CDT
+
+**Branch:** `main`
+
+**Diff summary:**  17 files changed, 484 insertions(+), 37 deletions(-)
+
+**Recent commits:**
+```
+5ae9db1 Add planetary ecology layer + training module scaffold
+a5acf77 Document master/main reconciliation in CLAUDE.md
+02f4a97 Restore OpenRouter /validate endpoint + training UI work, reconciled with crypto port
+649a736 Port master's QPADL crypto hardening into main
+49d956d Repo housekeeping: secrets template, kylos-qpadl submodule, CLAUDE.md notes
+```
+
+**Files in play:** `CLAUDE.md SESSION_LOG.md dist/index.html server/feedbackStore.js server/index.js src/components/three/OrbitalRings.tsx training/src/interface/CognoscentaeUltrans.tsx training/src/interface/TrainingSession.ts training/src/modules/Module2.tsx training/src/modules/Module3.tsx training/src/modules/Module4.tsx training/src/modules/Module5.tsx training/src/modules/Module6.tsx training/src/modules/Module7.tsx training/src/modules/Module8.tsx training/src/modules/Module9.tsx training/src/router/ModuleRouter.tsx training/Wordpress/ training/package-lock.json `
+
+**Open questions / next steps:** <!-- fill in -->
+
+
+---
+
+## Session: 2026-06-27 20:29 CDT
+
+**Branch:** `main`
+
+**Diff summary:**  17 files changed, 506 insertions(+), 37 deletions(-)
+
+**Recent commits:**
+```
+5ae9db1 Add planetary ecology layer + training module scaffold
+a5acf77 Document master/main reconciliation in CLAUDE.md
+02f4a97 Restore OpenRouter /validate endpoint + training UI work, reconciled with crypto port
+649a736 Port master's QPADL crypto hardening into main
+49d956d Repo housekeeping: secrets template, kylos-qpadl submodule, CLAUDE.md notes
+```
+
+**Files in play:** `CLAUDE.md SESSION_LOG.md dist/index.html server/feedbackStore.js server/index.js src/components/three/OrbitalRings.tsx training/src/interface/CognoscentaeUltrans.tsx training/src/interface/TrainingSession.ts training/src/modules/Module2.tsx training/src/modules/Module3.tsx training/src/modules/Module4.tsx training/src/modules/Module5.tsx training/src/modules/Module6.tsx training/src/modules/Module7.tsx training/src/modules/Module8.tsx training/src/modules/Module9.tsx training/src/router/ModuleRouter.tsx training/Wordpress/ training/package-lock.json `
+
+**Open questions / next steps:** <!-- fill in -->
+
+
+---
+
+## Session: 2026-06-27 20:31 CDT
+
+**Branch:** `main`
+
+**Diff summary:**  17 files changed, 528 insertions(+), 37 deletions(-)
+
+**Recent commits:**
+```
+5ae9db1 Add planetary ecology layer + training module scaffold
+a5acf77 Document master/main reconciliation in CLAUDE.md
+02f4a97 Restore OpenRouter /validate endpoint + training UI work, reconciled with crypto port
+649a736 Port master's QPADL crypto hardening into main
+49d956d Repo housekeeping: secrets template, kylos-qpadl submodule, CLAUDE.md notes
+```
+
+**Files in play:** `CLAUDE.md SESSION_LOG.md dist/index.html server/feedbackStore.js server/index.js src/components/three/OrbitalRings.tsx training/src/interface/CognoscentaeUltrans.tsx training/src/interface/TrainingSession.ts training/src/modules/Module2.tsx training/src/modules/Module3.tsx training/src/modules/Module4.tsx training/src/modules/Module5.tsx training/src/modules/Module6.tsx training/src/modules/Module7.tsx training/src/modules/Module8.tsx training/src/modules/Module9.tsx training/src/router/ModuleRouter.tsx training/Wordpress/ training/package-lock.json `
+
+**Open questions / next steps:** <!-- fill in -->
+
+
+---
+
+## Session: 2026-06-27 21:47 CDT
+
+**Branch:** `main`
+
+**Diff summary:**  17 files changed, 550 insertions(+), 37 deletions(-)
+
+**Recent commits:**
+```
+5ae9db1 Add planetary ecology layer + training module scaffold
+a5acf77 Document master/main reconciliation in CLAUDE.md
+02f4a97 Restore OpenRouter /validate endpoint + training UI work, reconciled with crypto port
+649a736 Port master's QPADL crypto hardening into main
+49d956d Repo housekeeping: secrets template, kylos-qpadl submodule, CLAUDE.md notes
+```
+
+**Files in play:** `CLAUDE.md SESSION_LOG.md dist/index.html server/feedbackStore.js server/index.js src/components/three/OrbitalRings.tsx training/src/interface/CognoscentaeUltrans.tsx training/src/interface/TrainingSession.ts training/src/modules/Module2.tsx training/src/modules/Module3.tsx training/src/modules/Module4.tsx training/src/modules/Module5.tsx training/src/modules/Module6.tsx training/src/modules/Module7.tsx training/src/modules/Module8.tsx training/src/modules/Module9.tsx training/src/router/ModuleRouter.tsx training/Wordpress/ training/package-lock.json `
+
+**Open questions / next steps:** <!-- fill in -->
+
+
+---
+
+## Session: 2026-06-27 21:53 CDT
+
+**Branch:** `main`
+
+**Diff summary:**  17 files changed, 572 insertions(+), 37 deletions(-)
+
+**Recent commits:**
+```
+5ae9db1 Add planetary ecology layer + training module scaffold
+a5acf77 Document master/main reconciliation in CLAUDE.md
+02f4a97 Restore OpenRouter /validate endpoint + training UI work, reconciled with crypto port
+649a736 Port master's QPADL crypto hardening into main
+49d956d Repo housekeeping: secrets template, kylos-qpadl submodule, CLAUDE.md notes
+```
+
+**Files in play:** `CLAUDE.md SESSION_LOG.md dist/index.html server/feedbackStore.js server/index.js src/components/three/OrbitalRings.tsx training/src/interface/CognoscentaeUltrans.tsx training/src/interface/TrainingSession.ts training/src/modules/Module2.tsx training/src/modules/Module3.tsx training/src/modules/Module4.tsx training/src/modules/Module5.tsx training/src/modules/Module6.tsx training/src/modules/Module7.tsx training/src/modules/Module8.tsx training/src/modules/Module9.tsx training/src/router/ModuleRouter.tsx training/Wordpress/ training/package-lock.json `
+
+**Open questions / next steps:** <!-- fill in -->
+
+
+---
+
+## Session: 2026-06-27 21:58 CDT
+
+**Branch:** `main`
+
+**Diff summary:**  17 files changed, 999 insertions(+), 38 deletions(-)
+
+**Recent commits:**
+```
+5ae9db1 Add planetary ecology layer + training module scaffold
+a5acf77 Document master/main reconciliation in CLAUDE.md
+02f4a97 Restore OpenRouter /validate endpoint + training UI work, reconciled with crypto port
+649a736 Port master's QPADL crypto hardening into main
+49d956d Repo housekeeping: secrets template, kylos-qpadl submodule, CLAUDE.md notes
+```
+
+**Files in play:** `CLAUDE.md SESSION_LOG.md dist/index.html server/feedbackStore.js server/index.js src/components/three/OrbitalRings.tsx training/src/interface/CognoscentaeUltrans.tsx training/src/interface/TrainingSession.ts training/src/modules/Module2.tsx training/src/modules/Module3.tsx training/src/modules/Module4.tsx training/src/modules/Module5.tsx training/src/modules/Module6.tsx training/src/modules/Module7.tsx training/src/modules/Module8.tsx training/src/modules/Module9.tsx training/src/router/ModuleRouter.tsx training/Wordpress/ training/package-lock.json `
+
+**Open questions / next steps:** <!-- fill in -->
+

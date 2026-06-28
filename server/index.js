@@ -126,6 +126,42 @@ const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
 const OR_MODEL_1 = 'meta-llama/llama-3.3-70b-instruct:free';
 const OR_MODEL_2 = 'qwen/qwen3-next-80b-a3b-instruct:free';
 const VALIDATE_TIMEOUT_MS = 15000;
+
+const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
+const GROQ_REFRAME_MODEL = 'llama-3.3-70b-versatile';
+const REFRAME_TIMEOUT_MS = 12000;
+const REFRAME_SYSTEM_PROMPT = `You are a clarity editor. The user has submitted a statement that may contain logical fallacies or faulty reasoning. Rewrite the statement to be more accurate, fair, and logically sound — preserving the core intent while removing fallacious elements. Return only the rewritten statement, with no preamble, explanation, or quotation marks.`;
+
+function getGroqKey() {
+  return process.env.GROQ_API_KEY || null;
+}
+
+async function queryGroqReframe(text) {
+  const key = getGroqKey();
+  if (!key) return null;
+  try {
+    const res = await fetch(GROQ_API_URL, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${key}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: GROQ_REFRAME_MODEL,
+        messages: [
+          { role: 'system', content: REFRAME_SYSTEM_PROMPT },
+          { role: 'user', content: text },
+        ],
+        max_tokens: 200,
+        temperature: 0.3,
+      }),
+      signal: AbortSignal.timeout(REFRAME_TIMEOUT_MS),
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    const content = data?.choices?.[0]?.message?.content?.trim();
+    return content ? { reframe: content, model: GROQ_REFRAME_MODEL } : null;
+  } catch {
+    return null;
+  }
+}
 const FALLACY_SYSTEM_PROMPT = `You are a logical fallacy detection expert. Analyze the statement and determine if it contains a logical fallacy.
 
 Supported fallacies:
@@ -723,9 +759,9 @@ const server = createServer(async (req, res) => {
       if (req.destroyed) return;
       try {
         const { statementId, fallacyId, text, verdict, agentScores } = JSON.parse(body);
-        if (!verdict || !['correct', 'incorrect'].includes(verdict)) {
+        if (!verdict || !['correct', 'incorrect', 'false_negative'].includes(verdict)) {
           res.writeHead(400, { 'Content-Type': 'application/json' });
-          res.end(JSON.stringify({ error: 'verdict must be "correct" or "incorrect"' }));
+          res.end(JSON.stringify({ error: 'verdict must be "correct", "incorrect", or "false_negative"' }));
           return;
         }
         const before = getAllWeights();
@@ -776,6 +812,136 @@ const server = createServer(async (req, res) => {
     const limit = Math.min(parseInt(url.searchParams.get('limit') || '50', 10), 500);
     res.writeHead(200, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify({ events: getRecentAnalyses(limit), timestamp: Date.now() }));
+    return;
+  }
+
+  if (url.pathname === '/api/pillar2/evaluate' && req.method === 'POST') {
+    const PILLAR2_QUESTIONS = {
+      q1: {
+        question: 'How do you figure out if you are right in an argument?',
+        rubric: `Surface: The respondent stays within the frame of "figuring out they're right" — presenting evidence, making their case, noting when the other person can't respond. The goal of winning is unexamined.
+Developing: Some awareness that winning isn't the only goal, or mentions listening to the other side, but doesn't fully reframe the question.
+Deep: Recognizes the question contains a trap. "Figuring out you're right" is the wrong frame entirely. A deep answer involves seeking disconfirmation, checking one's own reasoning for errors, being genuinely willing to be wrong, and understanding that the goal is to arrive at truth — not to win. The deepest answers note that you can only really know you're right by trying hard to prove yourself wrong first.`,
+      },
+      q2: {
+        question: 'What is the distinction between jealousy and envy?',
+        rubric: `Surface: Conflates the two, reverses them, or gives only a vague sense that they differ.
+Developing: Knows they're distinct and gestures at the difference but misses the structural architecture.
+Deep: Identifies that jealousy is fundamentally relational and requires three people — you, the person you fear losing, and the third party threatening that bond. It is natural, not ideal, but workable through attenuation. Envy requires only two people and an object — it is learned, not natural, destructive, and has a documented escalation path toward ill-will and sometimes far worse (historically: sabotage, elimination of the person who has the thing). The structural key is the triad vs. dyad-plus-object distinction.`,
+      },
+      q3: {
+        question: 'Is the Golden Rule the best framework for navigating ethical dilemmas? If not, what is better?',
+        rubric: `Surface: Endorses the Golden Rule without qualification.
+Developing: Identifies a limitation — treating others as you want to be treated can be projection, since others may want different things.
+Deep: Identifies the Platinum Rule (treat others as they want to be treated) or equivalent reframing. Understands that the Golden Rule, while a useful starting heuristic, is limited by the assumption that others share your preferences. Better frameworks center the other person's actual desires and wellbeing. The deepest answers also note that even the Platinum Rule requires the epistemic humility to actually ask — rather than assume you know what others want.`,
+      },
+      q4: {
+        question: 'Is it acceptable to be silent when someone is telling you something that is important to them?',
+        rubric: `Surface: No — silence seems like dismissal or indifference.
+Developing: Sometimes silence is fine, or you don't always need an answer ready.
+Deep: Silence can be the deepest form of presence. Active listening is a gift. The compulsion to respond is often about the listener's own discomfort, not the speaker's need. Not everything requires a fix, a comment, or a verbal signal of engagement. Presence without performance is a mark of high relational intelligence. The deepest answers recognize that speaking too quickly often forecloses the other person's process rather than supporting it.`,
+      },
+    };
+
+    let body = '';
+    let size = 0;
+    req.on('data', chunk => {
+      size += chunk.length;
+      if (size > MAX_BODY_SIZE) { req.destroy(); return; }
+      body += chunk;
+    });
+    req.on('end', async () => {
+      if (req.destroyed) return;
+      try {
+        const { questionId, response } = JSON.parse(body);
+        const q = PILLAR2_QUESTIONS[questionId];
+        if (!q || !response || typeof response !== 'string' || response.trim().length === 0) {
+          res.writeHead(400, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: 'questionId and response required' }));
+          return;
+        }
+        const key = getGroqKey();
+        if (!key) {
+          res.writeHead(503, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: 'Evaluation service unavailable' }));
+          return;
+        }
+        const systemPrompt = `You are an evaluator for a philosophical training module on Relational Integrity. A student has responded to the following question. Evaluate the depth of their thinking honestly but generously.
+
+QUESTION: ${q.question}
+
+DEPTH RUBRIC:
+${q.rubric}
+
+Evaluate the student's response against this rubric. Return ONLY valid JSON with no preamble:
+{"depth": "surface" or "developing" or "deep", "reflection": "2-4 sentences that surface what the question was really probing, acknowledge what the student got right, and gently name what they may have missed — be honest without being harsh"}`;
+
+        try {
+          const groqRes = await fetch(GROQ_API_URL, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${key}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              model: GROQ_REFRAME_MODEL,
+              messages: [
+                { role: 'system', content: systemPrompt },
+                { role: 'user', content: response.trim() },
+              ],
+              max_tokens: 300,
+              temperature: 0.4,
+            }),
+            signal: AbortSignal.timeout(REFRAME_TIMEOUT_MS),
+          });
+          if (!groqRes.ok) throw new Error(`groq ${groqRes.status}`);
+          const data = await groqRes.json();
+          const content = data?.choices?.[0]?.message?.content?.trim();
+          if (!content) throw new Error('empty response');
+          const parsed = JSON.parse(content);
+          if (!parsed.depth || !parsed.reflection) throw new Error('malformed response');
+          console.log(`[PILLAR2] q=${questionId} depth=${parsed.depth}`);
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ depth: parsed.depth, reflection: parsed.reflection }));
+        } catch (e) {
+          res.writeHead(502, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: 'Evaluation failed', detail: e.message }));
+        }
+      } catch {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'Invalid request' }));
+      }
+    });
+    return;
+  }
+
+  if (url.pathname === '/api/reframe' && req.method === 'POST') {
+    let body = '';
+    let size = 0;
+    req.on('data', chunk => {
+      size += chunk.length;
+      if (size > MAX_BODY_SIZE) { req.destroy(); return; }
+      body += chunk;
+    });
+    req.on('end', async () => {
+      if (req.destroyed) return;
+      try {
+        const { text } = JSON.parse(body);
+        if (!text || typeof text !== 'string' || text.trim().length === 0) {
+          res.writeHead(400, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: 'text must be a non-empty string' }));
+          return;
+        }
+        const result = await queryGroqReframe(text.trim());
+        if (result) {
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify(result));
+        } else {
+          res.writeHead(503, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: 'Reframe service unavailable' }));
+        }
+      } catch {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'Invalid request' }));
+      }
+    });
     return;
   }
 
@@ -923,6 +1089,8 @@ server.listen(PORT, () => {
   console.log(`  GET  /api/feedback/history`);
   console.log(`  POST /api/feedback/analyze`);
   console.log(`  GET  /api/feedback/analyses`);
+  console.log(`  POST /api/reframe`);
+  console.log(`  POST /api/pillar2/evaluate`);
   console.log(`  GET  /api/crypto/status`);
   console.log(`  POST /api/crypto/keypair`);
   console.log(`  POST /api/crypto/sign`);

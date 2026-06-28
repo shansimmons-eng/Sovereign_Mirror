@@ -1,4 +1,4 @@
 import { ModuleStub } from './ModuleStub';
 export default function Module9() {
-  return <ModuleStub pillar={9} title="Ecological Sovereignty" subtitle="Governance Anchored to Planetary Health" description="The final pillar grounds the entire framework in ecological reality. Governance decisions are evaluated against pre-industrial baselines (1850–1900, IPCC AR6). A system that votes against its own planetary conditions cannot sustain itself. This module connects the Sovereign Mirror's ecoHealth signal to the ledger as a constraint on what can be ratified." />;
+  return <ModuleStub pillar={9} title="The Flourishing Metric" subtitle="Multi-Capital Accounting · Wellbeing Indices · Anti-Fragility" description="Holistic outcome measurement closes the loop. A governance system that cannot measure flourishing cannot produce it. This module builds the capacity to evaluate decisions against multi-capital accounts — financial, ecological, social, epistemic — and to design for anti-fragility: systems that grow stronger under stress rather than merely surviving it." />;
 }

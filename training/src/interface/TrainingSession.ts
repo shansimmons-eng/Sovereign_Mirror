@@ -11,6 +11,10 @@ const FEEDBACK_WEIGHTS_ENDPOINT = () => `${API_BASE()}/api/feedback/weights`;
 const FEEDBACK_ANALYZE_ENDPOINT = () => `${API_BASE()}/api/feedback/analyze`;
 const FEEDBACK_VERDICT_ENDPOINT = () => `${API_BASE()}/api/feedback`;
 const HISTORY_ENDPOINT = () => `${API_BASE()}/api/feedback/analyses`;
+const REFRAME_ENDPOINT = () => `${API_BASE()}/api/reframe`;
+
+// Absolute-term patterns that bypass dampening regardless of word count
+const ABSOLUTE_BYPASS_RE = /\b(all|every|always|never|none|no one|nobody|everyone|everybody|nothing|anything|anyone)\b/i;
 const LS_KEY = 'kylos:statementLog';
 const USE_ROBERTA = true;
 const USE_FREE_AGENTS = true;
@@ -189,7 +193,8 @@ export function useTrainingSession({ nodeId, onFrameCreated }: TrainingSessionPr
     const semanticBridge = semanticBridgeRef.current;
     const startedAt = Date.now();
 
-    if (rawInput.trim().split(/\s+/).length < 2) {
+    const wordCount = rawInput.trim().split(/\s+/).length;
+    if (wordCount < 4) {
       setDetectedFallacies([]);
       return semanticBridge.processLLMOutput([], 1);
     }
@@ -341,7 +346,14 @@ export function useTrainingSession({ nodeId, onFrameCreated }: TrainingSessionPr
 
     const totalWeight = contributors.reduce((s, c) => s + c.weight, 0) || 1;
     const weightedScore = contributors.reduce((s, c) => s + c.score * c.weight, 0) / totalWeight;
-    const safeScore = Math.min(1, Math.max(0, isFinite(weightedScore) ? weightedScore : 0));
+    const rawScore = Math.min(1, Math.max(0, isFinite(weightedScore) ? weightedScore : 0));
+    // Dampen short inputs unless they contain absolute-generalization language
+    const hasAbsolute = ABSOLUTE_BYPASS_RE.test(rawInput);
+    const dampener = hasAbsolute ? 1.0
+      : wordCount < 7  ? 0.65
+      : wordCount < 12 ? 0.85
+      : 1.0;
+    const safeScore = Math.min(1, rawScore * dampener);
 
     const state = safeScore >= FALLACY_CRITICAL_THRESHOLD
       ? InverionState.SUBJECTIVE_NOISE
@@ -505,6 +517,48 @@ interface SessionMetrics {
     }));
   }, []);
 
+  const markFalseNegative = useCallback(async (statementId: string) => {
+    const breakdown = statementLog.find(e => e.id === statementId)?.breakdown ?? lastBreakdown;
+    if (!breakdown) return;
+    const agentScores: Record<string, { detected: boolean; confidence: number; model?: string }> = {};
+    agentScores.roberta = { detected: false, confidence: 0 };
+    if (breakdown.groq) agentScores.groq = { detected: false, confidence: 0, model: breakdown.groq.model };
+    for (const o of breakdown.openrouter) {
+      agentScores[`openrouter:${o.model || 'unknown'}`] = { detected: false, confidence: 0, model: o.model };
+    }
+    try {
+      const res = await fetch(FEEDBACK_VERDICT_ENDPOINT(), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ statementId, fallacyId: 'MISSED', text: breakdown.text, verdict: 'false_negative', agentScores }),
+      });
+      if (!res.ok) return;
+      const data = await res.json();
+      if (data?.weights) {
+        const w: Record<string, number> = { ...DEFAULT_WEIGHTS };
+        for (const [k, v] of Object.entries(data.weights)) {
+          if (typeof (v as { weight: number }).weight === 'number') w[k] = (v as { weight: number }).weight;
+        }
+        setWeights(w);
+      }
+    } catch {}
+  }, [statementLog, lastBreakdown]);
+
+  const reframeStatement = useCallback(async (text: string): Promise<string | null> => {
+    try {
+      const res = await fetch(REFRAME_ENDPOINT(), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text }),
+      });
+      if (!res.ok) return null;
+      const data = await res.json() as { reframe?: string };
+      return typeof data.reframe === 'string' ? data.reframe : null;
+    } catch {
+      return null;
+    }
+  }, []);
+
   const resetSession = useCallback(() => {
     setRefactoredInput('');
     setDetectedFallacies([]);
@@ -527,9 +581,11 @@ interface SessionMetrics {
     lastBreakdown,
     analyzeInput,
     markVerdict,
+    markFalseNegative,
     triggerIntercept,
     resolveIntercept,
     resetSession,
+    reframeStatement,
   };
 }
 

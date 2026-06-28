@@ -121,7 +121,10 @@ export function applyVerdict({ verdict, agentScores }) {
       else if (verdict === 'correct' && !s.detected) next = Math.max(MIN_W, current - DELTA);
       else if (verdict === 'incorrect' && s.detected) next = Math.max(MIN_W, current - DELTA);
       else if (verdict === 'incorrect' && !s.detected) next = Math.min(MAX_W, current + DELTA);
-      const correctDelta = verdict === 'correct' ? 1 : 0;
+      // false_negative: analyzer missed a real fallacy — boost agents that didn't fire
+      else if (verdict === 'false_negative' && !s.detected) next = Math.min(MAX_W, current + DELTA);
+      else if (verdict === 'false_negative' && s.detected) next = Math.max(MIN_W, current - DELTA);
+      const correctDelta = (verdict === 'correct' || verdict === 'false_negative') ? 1 : 0;
       const incorrectDelta = verdict === 'incorrect' ? 1 : 0;
       update.run(next, correctDelta, incorrectDelta, Date.now(), agent);
     }

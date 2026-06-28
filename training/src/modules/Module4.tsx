@@ -1,4 +1,4 @@
 import { ModuleStub } from './ModuleStub';
 export default function Module4() {
-  return <ModuleStub pillar={4} title="Boltzmann Temperature" subtitle="Measuring Epistemic Entropy in a System" description="Every deliberative system has a temperature — the degree of disorder in its information state. This module introduces the Boltzmann analogy applied to governance: how to read entropy in a discourse, and when high temperature signals productive chaos vs. epistemic collapse." />;
+  return <ModuleStub pillar={4} title="Technological Fluency" subtitle="AI Alignment · Systems Architecture · Exponential Tooling" description="Strategic technology adoption in an era of exponential change. This module develops the capacity to evaluate tools, architectures, and AI systems critically — not as a consumer but as a designer. Participants learn to read systems for alignment, failure modes, and leverage points before deploying technology in governance contexts." />;
 }

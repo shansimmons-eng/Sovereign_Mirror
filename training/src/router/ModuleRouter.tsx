@@ -10,15 +10,15 @@ import Module8 from '../modules/Module8';
 import Module9 from '../modules/Module9';
 
 const MODULE_META: Record<string, { short: string; live: boolean }> = {
-  '1': { short: 'DARWINIAN GHOST',  live: true  },
-  '2': { short: 'WEFE NEXUS',       live: false },
-  '3': { short: 'SPECTROGRAPH',     live: false },
-  '4': { short: 'BOLTZMANN',        live: false },
-  '5': { short: 'INVERION DIVIDE',  live: false },
-  '6': { short: 'TOMBSTONE',        live: false },
-  '7': { short: 'RESONANCE',        live: false },
-  '8': { short: 'P-GATE',           live: false },
-  '9': { short: 'SOVEREIGNTY',      live: false },
+  '1': { short: 'INT. VERACITY',    live: true  },
+  '2': { short: 'REL. INTEGRITY',   live: true  },
+  '3': { short: 'ENV. STEWARDSHIP', live: false },
+  '4': { short: 'TECH. FLUENCY',    live: false },
+  '5': { short: 'PHYSIO. OPTIM.',   live: false },
+  '6': { short: 'TEMPORAL DISC.',   live: false },
+  '7': { short: 'CREATIVE SYNTH.',  live: false },
+  '8': { short: 'COLLAB. GOV.',     live: false },
+  '9': { short: 'FLOURISHING',      live: false },
 };
 
 const moduleMap: Record<string, () => JSX.Element> = {

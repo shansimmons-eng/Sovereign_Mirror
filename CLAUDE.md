@@ -64,8 +64,26 @@ Plain Node `http.createServer` — intentionally no Express (`server/package.jso
 ### Python simulation (`server/simulation/`)
 A Mesa-based agent-based model (`model.py`, `agents.py`, `network.py`, `free_agents.py`) where simulated agents post statements that get scored by `fallacy_classifier.py` against `fallacy_data.json`, then bridged into the JS ledger via `real_time_bridge.py`. `api.py` exposes this over HTTP for the Node server / frontend to consume.
 
-### Training / Cognoscentae Ultrans (`training/src/`)
-A separate fallacy-detection training UI, built against its own engine: `engines/FallacyDataset.ts` (`loadFallacyDataset()`, `findMatchingFallacy()`) and `engines/FallacyMapEngine.ts`, surfaced through `interface/CognoscentaeUltrans.tsx`. This is included in the root `tsconfig.json` (`include: ["src", "training/src"]`) and shares the root fallacy corpus (`fallacy_data.json`).
+### Training / Nine Pillars (`training/src/`)
+A separate Vite app (`training/vite.config.ts`, `training/package.json`) that builds the Cognoscentae Ultrans training system. Entry point: `training/src/main.tsx`. Deployed as a WordPress plugin at `kylosarc.com/training/` (Hostinger). Also embedded in the main Sovereign Mirror app via `Dashboard.tsx` (architecture panel → "OPEN TRAINING MODULE →" link).
+
+**Canonical nine-pillar curriculum — live site at `kylosarc.com/training/` is the authority:**
+
+| # | Title | Subtitle |
+|---|-------|----------|
+| 1 | Intellectual Veracity | Logical Fallacies · Cognitive Biases · Epistemic Hygiene |
+| 2 | Relational Integrity | Conflict Resolution · Communication Protocols · Covenant-Based Coordination |
+| 3 | Environmental Stewardship | Regenerative Design · Circular Economics · Ecological Intelligence |
+| 4 | Technological Fluency | AI Alignment · Systems Architecture · Exponential Tooling |
+| 5 | Physiological Optimization | Sleep Architecture · Metabolic Flexibility · Stress Adaptation · Longevity |
+| 6 | Temporal Discipline | Deep Work · Attention Economics · Deadline Architecture |
+| 7 | Creative Synthesis | Cross-Domain Transfer · Lateral Thinking · Innovation Pipeline |
+| 8 | Collaborative Governance | DAO Primitives · Consent-Based Governance · Meritocratic Allocation |
+| 9 | The Flourishing Metric | Multi-Capital Accounting · Wellbeing Indices · Anti-Fragility |
+
+Pillar 1 is live (wraps `CognoscentaeUltrans`). Pillars 2–9 are `ModuleStub` placeholders. Do not rename pillars or change their order without updating both `ModuleRouter.tsx` and the live WordPress site. The router uses `training/src/router/ModuleRouter.tsx`; module files are `training/src/modules/Module1.tsx` through `Module9.tsx`.
+
+The fallacy detection engine (`engines/FallacyDataset.ts`, `engines/FallacyMapEngine.ts`) and `interface/CognoscentaeUltrans.tsx` are included in the root `tsconfig.json` (`include: ["src", "training/src"]`) and share the root fallacy corpus (`fallacy_data.json`).
 
 ### 3D visualization
 - `src/components/three/ResonanceTrajectory.tsx` — main canvas. `MAX_NODES = 100` (instanced mesh), Sierpinski fractal depth capped at 3 (depth ≥4 crashes most browsers), morphs in when flux > 0.5, flux clamped at 0.95 to prevent lerp collapse.

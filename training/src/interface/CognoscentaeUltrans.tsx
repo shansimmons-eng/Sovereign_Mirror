@@ -10,6 +10,8 @@ export function CognoscentaeUltrans() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [fallacyDataset, setFallacyDataset] = useState<FallacyDataset | null>(null);
   const [rebuttalSuggestion, setRebuttalSuggestion] = useState<string | null>(null);
+  const [reframe, setReframe] = useState<string | null>(null);
+  const [isReframing, setIsReframing] = useState(false);
 
   useEffect(() => {
     loadFallacyDataset().then(setFallacyDataset);
@@ -29,8 +31,10 @@ export function CognoscentaeUltrans() {
     lastBreakdown,
     analyzeInput,
     markVerdict,
+    markFalseNegative,
     triggerIntercept,
     resolveIntercept,
+    reframeStatement,
   } = useTrainingSession({ nodeId: 'NODE_001', onFrameCreated: handleFrameCreated });
 
   useEffect(() => {
@@ -53,11 +57,18 @@ export function CognoscentaeUltrans() {
   const handleAnalyze = async () => {
     if (inputText.trim() && !isAnalyzing) {
       setIsAnalyzing(true);
+      setReframe(null);
       try {
         const result = await analyzeInput(inputText);
         if (result.inverion_triggered || result.bypass_triggered) {
           triggerIntercept();
         }
+        // Always attempt reframe — fires in background, doesn't block UI
+        setIsReframing(true);
+        reframeStatement(inputText).then((r) => {
+          setReframe(r);
+          setIsReframing(false);
+        });
       } finally {
         setIsAnalyzing(false);
       }
@@ -156,7 +167,17 @@ export function CognoscentaeUltrans() {
               </div>
             )}
             {detectedFallacies.length === 0 ? (
-              <div className="no-fallacies">No fallacies detected</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span className="no-fallacies">No fallacies detected</span>
+                {lastBreakdown && (
+                  <button
+                    type="button"
+                    onClick={() => markFalseNegative(lastBreakdown.statementId)}
+                    title="Flag as missed fallacy — analyzer should have caught something here"
+                    style={{ background: 'transparent', color: '#F47B3F', border: '1px solid #F47B3F', borderRadius: '3px', cursor: 'pointer', fontSize: '10px', padding: '1px 5px', fontFamily: 'monospace' }}
+                  >FLAG MISSED</button>
+                )}
+              </div>
             ) : (
               <div className="fallacy-list">
                 {detectedFallacies.map((fallacy, index) => {
@@ -206,15 +227,30 @@ export function CognoscentaeUltrans() {
               </div>
             )}
           </div>
-          {rebuttalSuggestion && (
-            <div className="rebuttal-panel" style={{ marginTop: '8px', padding: '6px 8px', background: 'rgba(46,125,50,0.1)', border: '1px solid rgba(46,125,50,0.35)', borderRadius: '4px' }}>
-              <div style={{ color: '#2e7d32', fontSize: '9px', marginBottom: '3px', fontFamily: 'monospace', display: 'flex', alignItems: 'center', gap: '4px' }}>
+          {lastBreakdown && (
+            <div className="rebuttal-panel" style={{ marginTop: '8px', padding: '6px 8px', background: 'rgba(63,244,213,0.05)', border: '1px solid rgba(63,244,213,0.2)', borderRadius: '4px' }}>
+              <div style={{ color: '#3FF4D5', fontSize: '9px', marginBottom: '3px', fontFamily: 'monospace', display: 'flex', alignItems: 'center', gap: '4px' }}>
                 <span>↻</span>
-                <span>SUGGESTED REFRAME</span>
+                <span>REFRAME</span>
               </div>
-              <div style={{ color: '#c4c7c8', fontSize: '11px', fontFamily: 'monospace', lineHeight: '1.4' }}>
-                {rebuttalSuggestion}
-              </div>
+              {isReframing ? (
+                <div style={{ color: 'rgba(255,255,255,0.3)', fontSize: '10px', fontFamily: 'monospace', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <span className="cui-pulse" />
+                  REWRITING...
+                </div>
+              ) : reframe ? (
+                <div style={{ color: '#C2C9CC', fontSize: '11px', fontFamily: 'monospace', lineHeight: '1.5' }}>
+                  {reframe}
+                </div>
+              ) : rebuttalSuggestion ? (
+                <div style={{ color: '#9BA3A8', fontSize: '11px', fontFamily: 'monospace', lineHeight: '1.5', fontStyle: 'italic' }}>
+                  {rebuttalSuggestion}
+                </div>
+              ) : (
+                <div style={{ color: 'rgba(255,255,255,0.2)', fontSize: '10px', fontFamily: 'monospace' }}>
+                  —
+                </div>
+              )}
             </div>
           )}
         </div>

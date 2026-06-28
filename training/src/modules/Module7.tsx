@@ -1,4 +1,4 @@
 import { ModuleStub } from './ModuleStub';
 export default function Module7() {
-  return <ModuleStub pillar={7} title="Virtual Resonance" subtitle="Physicalization and the Atrophy Timer" description="A position that cannot be physicalized within the confirmation window decays. This module explores Virtual Resonance — what it means for an idea to earn physical instantiation in the ledger — and the Atrophy Timer that governs how long a claim can exist in the transitional state before it must be confirmed or released." />;
+  return <ModuleStub pillar={7} title="Creative Synthesis" subtitle="Cross-Domain Transfer · Lateral Thinking · Innovation Pipeline" description="Novel pattern generation is what separates governance that evolves from governance that fossilizes. This module trains the capacity to move between domains, recognize structural analogies, and build innovation pipelines that feed the deliberative process with genuinely new approaches rather than recombined orthodoxies." />;
 }

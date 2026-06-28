@@ -28,9 +28,9 @@ const RING_LAYERS: RingLayer[] = [
 
 const PARTICLE_COUNT_PER_RING = 32;
 
-const ECO_COLOR_STRESSED = new THREE.Color('#c0392b');
-const ECO_COLOR_NEUTRAL  = new THREE.Color('#FF8F00');
-const ECO_COLOR_HEALTHY  = new THREE.Color('#7fba6a');
+const ECO_COLOR_STRESSED = new THREE.Color('#F43F5E');
+const ECO_COLOR_NEUTRAL  = new THREE.Color('#F47B3F');
+const ECO_COLOR_HEALTHY  = new THREE.Color('#3FF4D5');
 
 function ecoRingColor(health: number): THREE.Color {
   const c = new THREE.Color();

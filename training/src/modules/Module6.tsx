@@ -1,4 +1,4 @@
 import { ModuleStub } from './ModuleStub';
 export default function Module6() {
-  return <ModuleStub pillar={6} title="Tombstone Protocol" subtitle="Remediation Without Deletion" description="Deprecated nodes are not erased — they are remediated. This module covers the Tombstone Protocol: how the system marks, quarantines, and rehabilitates positions that fail veracity checks, preserving the audit trail while preventing further propagation of discredited claims." />;
+  return <ModuleStub pillar={6} title="Temporal Discipline" subtitle="Deep Work · Attention Economics · Deadline Architecture" description="Time is the only non-renewable resource in a governance system. This module treats attention as strategic capital: how to structure deep work, resist fragmentation, design deadlines that produce rather than pressure, and build temporal habits that compound over the arc of a deliberative life." />;
 }
