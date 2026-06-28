@@ -159,18 +159,38 @@ class Kylos_Training {
             $react_js = KYLOS_TRAINING_PATH . 'dist/assets/index.js';
             $react_css = KYLOS_TRAINING_PATH . 'dist/assets/index.css';
             if (file_exists($react_js)) {
-                wp_enqueue_script('kylos-training-app', KYLOS_TRAINING_URL . 'dist/assets/index.js', [], '1.0.0', true);
-                wp_localize_script('kylos-training-app', 'kylosTraining', [
-                    'pillarId'   => strval(get_post_meta($post->ID, '_kylos_pillar_id', true) ?: '1'),
-                    'userId'     => get_current_user_id(),
-                    'nonce'      => wp_create_nonce('kx_nonce'),
-                    'ajaxUrl'    => admin_url('admin-ajax.php'),
-                    'apiBase'    => defined('KYLOS_API_BASE') ? KYLOS_API_BASE : '',
-                    'badgesBase' => KYLOS_TRAINING_URL . 'dist/badges',
-                ]);
+                wp_enqueue_script('kylos-training-app', KYLOS_TRAINING_URL . 'dist/assets/index.js', [], '2.1.0', true);
+                $slug_to_pillar = [
+                'intellectual_veracity'     => '1',
+                'relational_integrity'      => '2',
+                'environmental_stewardship' => '3',
+                'technological_fluency'     => '4',
+                'physiological_optimization'=> '5',
+                'temporal_discipline'       => '6',
+                'creative_synthesis'        => '7',
+                'collaborative_governance'  => '8',
+                'the_flourishing_metric'    => '9',
+            ];
+            $pillar_id = strval(get_post_meta($post->ID, '_kylos_pillar_id', true) ?: '');
+            if (!$pillar_id && isset($slug_to_pillar[$post->post_name])) {
+                $pillar_id = $slug_to_pillar[$post->post_name];
+            }
+            if (!$pillar_id) $pillar_id = '1';
+
+            wp_localize_script('kylos-training-app', 'kylosTraining', [
+                'pillarId'   => $pillar_id,
+                'userId'     => get_current_user_id(),
+                'nonce'      => wp_create_nonce('kx_nonce'),
+                'ajaxUrl'    => admin_url('admin-ajax.php'),
+                'apiBase'    => defined('KYLOS_API_BASE') ? KYLOS_API_BASE : '',
+                'badgesBase' => KYLOS_TRAINING_URL . 'badge',
+                'iconsBase'  => KYLOS_TRAINING_URL . 'assets/icons',
+                'logoUrl'    => KYLOS_TRAINING_URL . 'assets/kylos-red-800.png',
+                'hubUrl'     => home_url('/training/'),
+            ]);
             }
             if (file_exists($react_css)) {
-                wp_enqueue_style('kylos-training-app', KYLOS_TRAINING_URL . 'dist/assets/index.css', [], '1.0.0');
+                wp_enqueue_style('kylos-training-app', KYLOS_TRAINING_URL . 'dist/assets/index.css', [], '2.1.0');
             }
         }
     }

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Module1 from '../modules/Module1';
 import Module2 from '../modules/Module2';
 import Module3 from '../modules/Module3';
@@ -9,16 +9,16 @@ import Module7 from '../modules/Module7';
 import Module8 from '../modules/Module8';
 import Module9 from '../modules/Module9';
 
-const MODULE_META: Record<string, { short: string; live: boolean }> = {
-  '1': { short: 'INT. VERACITY',    live: true  },
-  '2': { short: 'REL. INTEGRITY',   live: true  },
-  '3': { short: 'ENV. STEWARDSHIP', live: true  },
-  '4': { short: 'TECH. FLUENCY',    live: false },
-  '5': { short: 'PHYSIO. OPTIM.',   live: false },
-  '6': { short: 'TEMPORAL DISC.',   live: false },
-  '7': { short: 'CREATIVE SYNTH.',  live: false },
-  '8': { short: 'COLLAB. GOV.',     live: false },
-  '9': { short: 'FLOURISHING',      live: false },
+const MODULE_META: Record<string, { short: string; full: string; live: boolean }> = {
+  '1': { short: 'INT. VERACITY',    full: 'Intellectual Veracity',    live: true  },
+  '2': { short: 'REL. INTEGRITY',   full: 'Relational Integrity',     live: true  },
+  '3': { short: 'ENV. STEWARDSHIP', full: 'Environmental Stewardship',live: true  },
+  '4': { short: 'TECH. FLUENCY',    full: 'Technological Fluency',    live: false },
+  '5': { short: 'PHYSIO. OPTIM.',   full: 'Physiological Optimization',live: false },
+  '6': { short: 'TEMPORAL DISC.',   full: 'Temporal Discipline',      live: false },
+  '7': { short: 'CREATIVE SYNTH.',  full: 'Creative Synthesis',       live: false },
+  '8': { short: 'COLLAB. GOV.',     full: 'Collaborative Governance', live: false },
+  '9': { short: 'FLOURISHING',      full: 'The Flourishing Metric',   live: false },
 };
 
 const moduleMap: Record<string, () => JSX.Element> = {
@@ -27,42 +27,149 @@ const moduleMap: Record<string, () => JSX.Element> = {
   '7': Module7, '8': Module8, '9': Module9,
 };
 
-const BADGES_BASE = (): string =>
-  (typeof window !== 'undefined' && window.kylosTraining?.badgesBase)
-    ? window.kylosTraining.badgesBase
-    : '/badges';
+const g = () => window.kylosTraining;
 
-interface ModuleRouterProps {
-  pillarId: string;
+function getProgress(): Record<string, boolean> {
+  try { return JSON.parse(localStorage.getItem('kylos_pillar_progress') || '{}'); }
+  catch { return {}; }
 }
+function saveProgress(p: Record<string, boolean>) {
+  try { localStorage.setItem('kylos_pillar_progress', JSON.stringify(p)); } catch {}
+}
+
+interface ModuleRouterProps { pillarId: string; }
 
 export function ModuleRouter({ pillarId }: ModuleRouterProps) {
   const [active, setActive] = useState(pillarId in moduleMap ? pillarId : '1');
+  const [progress, setProgress] = useState<Record<string, boolean>>(getProgress);
+  const [lightMode, setLightMode] = useState(false);
+
+  const toggleLight = () => setLightMode(v => !v);
+
+  useEffect(() => {
+    window.kylosOnPillarComplete = (id: string) => {
+      setProgress(prev => {
+        const next = { ...prev, [id]: true };
+        saveProgress(next);
+        return next;
+      });
+    };
+    return () => { window.kylosOnPillarComplete = undefined; };
+  }, []);
+
   const Module = moduleMap[active] ?? Module1;
+  const hubUrl    = g()?.hubUrl    || 'https://kylosarc.com/training/';
+  const logoUrl   = g()?.logoUrl   || '';
+  const iconsBase = g()?.iconsBase || '';
+  const badgesBase = g()?.badgesBase || '';
+
+  const isUnlocked = (id: string) => id === '1' || !!progress[String(Number(id) - 1)];
 
   return (
-    <div className="kylos-shell">
-      <nav className="module-nav" aria-label="Pillar navigation">
-        {Object.entries(MODULE_META).map(([id, meta]) => (
-          <button
-            key={id}
-            className={`nav-pill${active === id ? ' nav-pill--active' : ''}${!meta.live ? ' nav-pill--stub' : ''}`}
-            onClick={() => setActive(id)}
-            title={meta.live ? `Pillar ${id} — ${meta.short}` : `Pillar ${id} — ${meta.short} (in development)`}
-          >
-            <img
-              src={`${BADGES_BASE()}/pillar${id}-badge.png`}
-              alt={`Pillar ${id}`}
-              className="nav-pill__badge-img"
-              aria-hidden="true"
-            />
-            <span className="nav-pill__label">{meta.short}</span>
-          </button>
-        ))}
-      </nav>
+    <div className={`kylos-shell${lightMode ? ' kylos-light' : ''}`}>
 
-      <div className="module-loading-wrap">
-        <Module />
+      {/* ── Header ── */}
+      <header className="kylos-header">
+        <div className="kylos-header__brand">
+          {logoUrl && <img src={logoUrl} alt="Kylos Arc" className="kylos-header__logo" />}
+          <div className="kylos-header__wordmark">
+            <div className="kylos-header__title">KYLOS ARC TRAINING</div>
+            <div className="kylos-header__sub">COGNOSCENTAE ULTRANS</div>
+          </div>
+        </div>
+        <div className="kylos-header__actions">
+          <button className="kylos-header__theme" onClick={toggleLight} title="Toggle light/dark">
+            {lightMode ? '◐ DARK' : '○ LIGHT'}
+          </button>
+          <a href={hubUrl} className="kylos-header__back">&#8592; ALL MODULES</a>
+        </div>
+      </header>
+
+      {/* ── Mobile nav ── */}
+      <div className="kylos-nav-mobile">
+        <select className="kylos-nav-select" value={active}
+          onChange={e => setActive(e.target.value)} aria-label="Select pillar">
+          {Object.entries(MODULE_META).map(([id, meta]) => (
+            <option key={id} value={id}>
+              {String(id).padStart(2, '0')} — {meta.full}
+              {!meta.live ? ' (Coming Soon)' : progress[id] ? ' ✓' : ''}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {/* ── Body ── */}
+      <div className="kylos-body">
+
+        {/* ── Sidebar ── */}
+        <aside className="kylos-sidebar">
+
+          {/* Operator block */}
+          <div className="kylos-sidebar__operator">
+            <div className="kylos-sidebar__op-icon">O1</div>
+            <div>
+              <div className="kylos-sidebar__op-name">OPERATOR_01</div>
+              <div className="kylos-sidebar__op-clearance">CLEARANCE: OMEGA</div>
+            </div>
+          </div>
+
+          {/* Pillar nav */}
+          <nav className="kylos-sidebar__nav">
+            {Object.entries(MODULE_META).map(([id, meta]) => {
+              const done = !!progress[id];
+              const isActive = active === id;
+              return (
+                <button key={id}
+                  className={[
+                    'kylos-sidebar__item',
+                    isActive        ? 'kylos-sidebar__item--active' : '',
+                    !meta.live      ? 'kylos-sidebar__item--stub'   : '',
+                  ].filter(Boolean).join(' ')}
+                  onClick={() => meta.live && setActive(id)}
+                  title={meta.full}
+                >
+                  <span className="kylos-sidebar__item-icon">
+                    {iconsBase
+                      ? <img src={`${iconsBase}/pillar-${id}.webp`} alt="" />
+                      : <span className="kylos-sidebar__item-num">{id}</span>
+                    }
+                  </span>
+                  <span className="kylos-sidebar__item-label">{meta.full}</span>
+                  {done && <span className="kylos-sidebar__item-check">&#10003;</span>}
+                </button>
+              );
+            })}
+          </nav>
+
+          {/* Badge + video for active live pillar */}
+          {MODULE_META[active]?.live && (
+            <div className="kylos-sidebar__tools">
+              {badgesBase && (
+                <img
+                  src={`${badgesBase}/pillar${active}-badge100.png`}
+                  alt={`Pillar ${active} badge`}
+                  className={`kylos-sidebar__badge${progress[active] ? ' kylos-sidebar__badge--earned' : ''}`}
+                />
+              )}
+              <button className="kylos-sidebar__video-btn">&#9654; VIDEO</button>
+            </div>
+          )}
+
+          <button className="kylos-sidebar__sync">INITIALIZE NEURAL SYNC</button>
+
+        </aside>
+
+        {/* ── Main content ── */}
+        <main className="kylos-main">
+          {!isUnlocked(active) && MODULE_META[active]?.live && (
+            <div className="kylos-locked-banner">
+              LOCKED — complete Pillar {Number(active) - 1}:{' '}
+              {MODULE_META[String(Number(active) - 1)]?.full} first
+            </div>
+          )}
+          <Module />
+        </main>
+
       </div>
     </div>
   );

@@ -7,5 +7,9 @@ interface Window {
     ajaxUrl?: string;
     apiBase?: string;
     badgesBase?: string;
+    iconsBase?: string;
+    logoUrl?: string;
+    hubUrl?: string;
   };
+  kylosOnPillarComplete?: (pillarId: string) => void;
 }
