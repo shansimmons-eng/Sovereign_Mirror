@@ -1,5 +1,22 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+/* Kill any grain/texture overlay injected by WordPress theme or kylos.css */
+.kylos-shell::before,
+.kylos-shell::after,
+#kylos-training-root::before,
+#kylos-training-root::after {
+  display: none !important;
+  content: none !important;
+}
+.kylos-shell,
+.kylos-shell .kylos-header,
+.kylos-shell .kylos-sidebar,
+.kylos-shell .kylos-main,
+.kylos-shell .cui-container,
+.kylos-shell .panel {
+  background-image: none !important;
+}
+
 html, body, #kylos-training-root {
   height: 100%;
   background: #0a0a0f;
@@ -756,3 +773,151 @@ html, body, #kylos-training-root {
   .inverion-horizon { writing-mode: horizontal-tb; transform: none; }
   .panel          { padding: 1rem; }
 }
+
+/* ── Instructions + progress ─────────────────────────────────── */
+
+.cui-instructions {
+  padding: 0.875rem 1rem;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 6px;
+  font-size: 0.875rem;
+  color: rgba(212,212,216,0.7);
+  line-height: 1.65;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.cui-instructions strong { color: #f4f4f5; font-weight: 600; }
+
+.cui-progress { display: flex; flex-direction: column; gap: 0.4rem; }
+
+.cui-progress-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.78rem;
+  color: rgba(212,212,216,0.5);
+}
+
+.cui-progress-count { font-weight: 600; color: #818cf8; }
+
+.cui-progress-track {
+  height: 5px;
+  background: rgba(255,255,255,0.07);
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.cui-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #4F46E5, #818cf8);
+  border-radius: 99px;
+  transition: width 0.5s ease;
+}
+
+/* ── Completion banner ───────────────────────────────────────── */
+
+.cui-complete-banner {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.75rem;
+  background: rgba(79,70,229,0.12);
+  border-bottom: 1px solid rgba(79,70,229,0.3);
+}
+
+.cui-complete-icon {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  background: #4F46E5;
+  color: #fff;
+  font-size: 1.1rem;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+
+.cui-complete-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #f4f4f5;
+}
+
+.cui-complete-sub {
+  font-size: 0.82rem;
+  color: rgba(212,212,216,0.65);
+  margin-top: 0.15rem;
+}
+
+/* ── Flag missed button states ───────────────────────────────── */
+
+.flag-btn          { background: transparent; border: 1px solid rgba(249,115,22,0.45); color: #f97316; border-radius: 4px; cursor: pointer; font-size: 0.75rem; padding: 2px 8px; font-family: inherit; transition: background 0.15s, color 0.15s; }
+.flag-btn:hover    { background: rgba(249,115,22,0.08); }
+.flag-btn--done    { background: rgba(249,115,22,0.1); color: #f97316; border-color: rgba(249,115,22,0.6); cursor: default; }
+
+/* ══════════════════════════════════════════════════════════════
+   LIGHT MODE — CUI component overrides
+   ════════════════════════════════════════════════════════════ */
+
+.kylos-light .panel-label    { color: #1a1a2e; }
+.kylos-light .panel-sublabel { color: rgba(0,0,0,0.45); }
+
+.kylos-light .cui-instructions {
+  background: rgba(0,0,0,0.03);
+  border-color: rgba(0,0,0,0.08);
+  color: rgba(0,0,0,0.6);
+}
+.kylos-light .cui-instructions strong { color: #1a1a2e; }
+
+.kylos-light .cui-progress-label     { color: rgba(0,0,0,0.4); }
+.kylos-light .cui-progress-track     { background: rgba(0,0,0,0.08); }
+
+.kylos-light .input-area {
+  background: #fff;
+  border-color: rgba(0,0,0,0.12);
+  color: #1a1a2e;
+}
+.kylos-light .input-area::placeholder { color: rgba(0,0,0,0.3); }
+.kylos-light .input-area:focus        { border-color: rgba(79,70,229,0.5); }
+
+.kylos-light .fallacy-spectrograph .spectrograph-label { color: rgba(0,0,0,0.4); }
+.kylos-light .weights-strip                            { color: rgba(0,0,0,0.4); }
+.kylos-light .no-fallacies                             { color: rgba(0,0,0,0.35); }
+.kylos-light .fallacy-item                             { background: rgba(249,115,22,0.04); }
+.kylos-light .fallacy-id                               { color: #1a1a2e; }
+.kylos-light .fallacy-score                            { color: rgba(0,0,0,0.45); }
+
+.kylos-light .divider         { background: rgba(0,0,0,0.02); border-color: rgba(0,0,0,0.06); }
+.kylos-light .inverion-horizon { color: rgba(0,0,0,0.15); }
+
+.kylos-light .ledger-content  { background: rgba(0,0,0,0.03); border-color: rgba(0,0,0,0.08); }
+.kylos-light .ledger-content.locked { background: rgba(244,63,94,0.04); border-color: rgba(244,63,94,0.2); }
+
+.kylos-light .veracity-pending { color: rgba(0,0,0,0.35); }
+
+.kylos-light .metrics-panel   { background: rgba(0,0,0,0.03); border-color: rgba(0,0,0,0.07); }
+.kylos-light .metric-label    { color: rgba(0,0,0,0.45); }
+.kylos-light .metric-value    { color: #1a1a2e; }
+
+.kylos-light .current-statement { background: rgba(79,70,229,0.05) !important; border-color: rgba(79,70,229,0.15) !important; }
+
+.kylos-light .log-label  { color: rgba(0,0,0,0.4); }
+.kylos-light .log-entry  { background: rgba(0,0,0,0.02); border-color: rgba(0,0,0,0.07); }
+.kylos-light .log-text   { color: rgba(0,0,0,0.7); }
+.kylos-light .log-count  { color: rgba(0,0,0,0.3); }
+.kylos-light .log-agent  { color: rgba(0,0,0,0.4); }
+.kylos-light .log-empty  { color: rgba(0,0,0,0.3); }
+
+.kylos-light .rebuttal-panel   { background: rgba(79,70,229,0.04); border-color: rgba(79,70,229,0.15); }
+
+.kylos-light .cui-footer        { background: rgba(0,0,0,0.03); border-top-color: rgba(0,0,0,0.07); }
+.kylos-light .state-indicator   { color: rgba(0,0,0,0.4); }
+.kylos-light .threshold-note    { color: rgba(0,0,0,0.4); }
+
+.kylos-light .cui-complete-banner { background: rgba(79,70,229,0.07); border-bottom-color: rgba(79,70,229,0.2); }
+.kylos-light .cui-complete-title  { color: #1a1a2e; }
+.kylos-light .cui-complete-sub    { color: rgba(0,0,0,0.5); }
+
+.kylos-light .modal-content     { background: #fff; border-color: rgba(244,63,94,0.25); }
+.kylos-light .modal-instruction { color: rgba(0,0,0,0.6); }
+.kylos-light .refactor-input    { background: #f8f8f8; border-color: rgba(0,0,0,0.12); color: #1a1a2e; }

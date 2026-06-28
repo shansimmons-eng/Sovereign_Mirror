@@ -12,6 +12,7 @@ export function CognoscentaeUltrans() {
   const [rebuttalSuggestion, setRebuttalSuggestion] = useState<string | null>(null);
   const [reframe, setReframe] = useState<string | null>(null);
   const [isReframing, setIsReframing] = useState(false);
+  const [flaggedStatements, setFlaggedStatements] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     loadFallacyDataset().then(setFallacyDataset);
@@ -98,11 +99,21 @@ export function CognoscentaeUltrans() {
   };
 
   const getStateColor = (fallacy: FallacyVector): string => {
-    if (fallacy.confidenceScore >= 0.7) return '#FF4500';
-    if (fallacy.confidenceScore >= 0.5) return '#FFB300';
-    if (fallacy.confidenceScore >= 0.3) return '#FFA500';
-    return '#FFD700';
+    if (fallacy.confidenceScore >= 0.7) return '#F43F5E';
+    if (fallacy.confidenceScore >= 0.5) return '#F97316';
+    if (fallacy.confidenceScore >= 0.3) return '#F97316';
+    return 'rgba(249,115,22,0.5)';
   };
+
+  const PASSES_NEEDED = 5;
+  const passCount = statementLog.filter(e => e.radicalVeracityPassed).length;
+  const isComplete = passCount >= PASSES_NEEDED;
+
+  useEffect(() => {
+    if (isComplete) {
+      window.kylosOnPillarComplete?.('1');
+    }
+  }, [isComplete]);
 
   return (
     <div className="cui-container">
@@ -112,12 +123,38 @@ export function CognoscentaeUltrans() {
         <span className="stage">STAGE: 01</span>
       </header>
 
+      {isComplete && (
+        <div className="cui-complete-banner">
+          <span className="cui-complete-icon">✓</span>
+          <div>
+            <div className="cui-complete-title">Pillar 1 Complete</div>
+            <div className="cui-complete-sub">You have demonstrated epistemic discipline. Pillar 2 is now unlocked.</div>
+          </div>
+        </div>
+      )}
+
       <main className="cui-main">
         <div className="panel left-panel">
           <div className="panel-header">
             <span className="panel-label">THE DARWINIAN SHADOW</span>
-            <span className="panel-sublabel">(Linguistic Input & Projections)</span>
+            <span className="panel-sublabel">Linguistic Input &amp; Fallacy Detection</span>
           </div>
+
+          <div className="cui-instructions">
+            <p>Submit statements to analyze them for logical fallacies and cognitive biases. Any statement works — a belief you hold, a claim you've heard, or an argument you want to test.</p>
+            <p><strong>To complete this module:</strong> earn {PASSES_NEEDED} passing statements (a statement passes when its fallacy score is below the veracity threshold).</p>
+          </div>
+
+          <div className="cui-progress">
+            <div className="cui-progress-label">
+              <span>Module Progress</span>
+              <span className="cui-progress-count">{Math.min(passCount, PASSES_NEEDED)} / {PASSES_NEEDED} passing</span>
+            </div>
+            <div className="cui-progress-track">
+              <div className="cui-progress-fill" style={{ width: `${Math.min(passCount / PASSES_NEEDED * 100, 100)}%` }} />
+            </div>
+          </div>
+
           <textarea
             className="input-area"
             value={inputText}
@@ -169,14 +206,22 @@ export function CognoscentaeUltrans() {
             {detectedFallacies.length === 0 ? (
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                 <span className="no-fallacies">No fallacies detected</span>
-                {lastBreakdown && (
-                  <button
-                    type="button"
-                    onClick={() => markFalseNegative(lastBreakdown.statementId)}
-                    title="Flag as missed fallacy"
-                    style={{ background: 'transparent', color: '#f97316', border: '1px solid rgba(249,115,22,0.45)', borderRadius: '4px', cursor: 'pointer', fontSize: '0.75rem', padding: '2px 8px' }}
-                  >Flag missed</button>
-                )}
+                {lastBreakdown && (() => {
+                  const flagged = flaggedStatements.has(lastBreakdown.statementId);
+                  return (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (!flagged) {
+                          markFalseNegative(lastBreakdown.statementId);
+                          setFlaggedStatements(prev => new Set(prev).add(lastBreakdown.statementId));
+                        }
+                      }}
+                      className={`flag-btn${flagged ? ' flag-btn--done' : ''}`}
+                      title={flagged ? 'Flagged — thank you' : 'Flag as missed fallacy'}
+                    >{flagged ? '✓ Flagged' : 'Flag missed'}</button>
+                  );
+                })()}
               </div>
             ) : (
               <div className="fallacy-list">
