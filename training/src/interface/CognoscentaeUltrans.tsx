@@ -124,58 +124,58 @@ export function CognoscentaeUltrans() {
             onChange={(e) => setInputText(e.target.value)}
             placeholder="Enter your statement for analysis..."
             disabled={interceptActive}
-            style={{ width: '100%', minHeight: '80px', background: '#0a0a0a', border: '1px solid rgba(255,179,0,0.3)', color: '#fff', padding: '8px', fontFamily: 'monospace', fontSize: '12px', resize: 'vertical' }}
           />
           <button
             onClick={handleAnalyze}
             disabled={interceptActive || !inputText.trim() || isAnalyzing}
             style={{
-              marginTop: '8px',
-              padding: '8px 16px',
-              background: inputText.trim() && !interceptActive && !isAnalyzing ? '#FFB300' : '#333',
-              color: inputText.trim() && !interceptActive && !isAnalyzing ? '#000' : '#666',
+              marginTop: '0.75rem',
+              padding: '0.75rem 1rem',
+              background: inputText.trim() && !interceptActive && !isAnalyzing ? '#F43F5E' : 'rgba(255,255,255,0.06)',
+              color: inputText.trim() && !interceptActive && !isAnalyzing ? '#fff' : 'rgba(255,255,255,0.25)',
               border: 'none',
-              borderRadius: '4px',
+              borderRadius: '6px',
               cursor: inputText.trim() && !interceptActive && !isAnalyzing ? 'pointer' : 'not-allowed',
-              fontFamily: 'monospace',
-              fontSize: '11px',
-              fontWeight: 'bold',
+              fontSize: '0.9rem',
+              fontWeight: '600',
+              letterSpacing: '0.06em',
               display: 'flex',
               alignItems: 'center',
-              gap: '8px',
+              gap: '0.5rem',
               justifyContent: 'center',
               width: '100%',
+              transition: 'background 0.15s',
             }}
           >
             {isAnalyzing && <span className="cui-spinner" aria-label="Analyzing" />}
-            {isAnalyzing ? 'ANALYZING...' : 'ANALYZE'}
+            {isAnalyzing ? 'ANALYZING...' : 'ANALYZE STATEMENT'}
           </button>
           {isAnalyzing && (
-            <div style={{ marginTop: '6px', fontSize: '10px', color: '#FFB300', fontFamily: 'monospace', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <div style={{ marginTop: '0.4rem', fontSize: '0.8rem', color: 'rgba(99,102,241,0.6)', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
               <span className="cui-pulse" />
-              ROUTING TO RO+BERTa · GROQ · OPENROUTER
+              Routing to classifiers...
             </div>
           )}
           <div className="fallacy-spectrograph">
             <span className="spectrograph-label">FALLACY SPECTROGRAPH</span>
             {lastBreakdown && (
-              <div className="weights-strip" style={{ fontSize: '10px', color: '#FFB300', marginBottom: '6px', fontFamily: 'monospace' }}>
-                <span style={{ marginRight: '8px' }}>WEIGHTED: {lastBreakdown.weightedScore.toFixed(2)}</span>
-                <span style={{ marginRight: '8px' }}>R:{weights.roberta?.toFixed(2) ?? '1.00'}</span>
-                {lastBreakdown.groq && <span style={{ marginRight: '8px' }}>G:{weights.groq?.toFixed(2) ?? '1.00'}</span>}
-                {lastBreakdown.openrouter.length > 0 && <span style={{ marginRight: '8px' }}>OR:{weights.openrouter?.toFixed(2) ?? '1.00'}</span>}
+              <div className="weights-strip">
+                <span style={{ marginRight: '0.75rem' }}>Weighted: {lastBreakdown.weightedScore.toFixed(2)}</span>
+                <span style={{ marginRight: '0.75rem' }}>R:{weights.roberta?.toFixed(2) ?? '1.00'}</span>
+                {lastBreakdown.groq && <span style={{ marginRight: '0.75rem' }}>G:{weights.groq?.toFixed(2) ?? '1.00'}</span>}
+                {lastBreakdown.openrouter.length > 0 && <span style={{ marginRight: '0.75rem' }}>OR:{weights.openrouter?.toFixed(2) ?? '1.00'}</span>}
               </div>
             )}
             {detectedFallacies.length === 0 ? (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                 <span className="no-fallacies">No fallacies detected</span>
                 {lastBreakdown && (
                   <button
                     type="button"
                     onClick={() => markFalseNegative(lastBreakdown.statementId)}
-                    title="Flag as missed fallacy — analyzer should have caught something here"
-                    style={{ background: 'transparent', color: '#F47B3F', border: '1px solid #F47B3F', borderRadius: '3px', cursor: 'pointer', fontSize: '10px', padding: '1px 5px', fontFamily: 'monospace' }}
-                  >FLAG MISSED</button>
+                    title="Flag as missed fallacy"
+                    style={{ background: 'transparent', color: '#f97316', border: '1px solid rgba(249,115,22,0.45)', borderRadius: '4px', cursor: 'pointer', fontSize: '0.75rem', padding: '2px 8px' }}
+                  >Flag missed</button>
                 )}
               </div>
             ) : (
@@ -186,39 +186,39 @@ export function CognoscentaeUltrans() {
                     <div
                       key={index}
                       className="fallacy-item"
-                      style={{ borderLeftColor: getStateColor(fallacy), paddingLeft: '8px' }}
+                      style={{ borderLeftColor: getStateColor(fallacy) }}
                     >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                         <span className="fallacy-id">{fallacy.fallacyId}</span>
                         <span className="fallacy-score">({fallacy.confidenceScore.toFixed(2)})</span>
                         <button
                           type="button"
                           onClick={() => handleMark(fallacy.fallacyId, 'correct')}
                           disabled={!!verdict}
-                          title="Mark this detection as correct"
-                          style={{ background: verdict === 'correct' ? '#2e7d32' : 'transparent', color: verdict === 'correct' ? '#fff' : '#2e7d32', border: '1px solid #2e7d32', borderRadius: '3px', cursor: verdict ? 'default' : 'pointer', fontSize: '10px', padding: '0 4px', fontFamily: 'monospace' }}
+                          title="Mark as correct detection"
+                          style={{ background: verdict === 'correct' ? '#4F46E5' : 'transparent', color: verdict === 'correct' ? '#fff' : '#818cf8', border: '1px solid rgba(79,70,229,0.5)', borderRadius: '3px', cursor: verdict ? 'default' : 'pointer', fontSize: '0.75rem', padding: '1px 6px' }}
                         >✓</button>
                         <button
                           type="button"
                           onClick={() => handleMark(fallacy.fallacyId, 'incorrect')}
                           disabled={!!verdict}
-                          title="Mark this detection as a false positive"
-                          style={{ background: verdict === 'incorrect' ? '#c62828' : 'transparent', color: verdict === 'incorrect' ? '#fff' : '#c62828', border: '1px solid #c62828', borderRadius: '3px', cursor: verdict ? 'default' : 'pointer', fontSize: '10px', padding: '0 4px', fontFamily: 'monospace' }}
+                          title="Mark as false positive"
+                          style={{ background: verdict === 'incorrect' ? '#F43F5E' : 'transparent', color: verdict === 'incorrect' ? '#fff' : '#F43F5E', border: '1px solid rgba(244,63,94,0.45)', borderRadius: '3px', cursor: verdict ? 'default' : 'pointer', fontSize: '0.75rem', padding: '1px 6px' }}
                         >✗</button>
                       </div>
                       {lastBreakdown && (
-                        <div style={{ fontSize: '9px', color: '#888', marginTop: '2px', fontFamily: 'monospace' }}>
+                        <div style={{ fontSize: '0.75rem', color: 'rgba(212,212,216,0.4)', marginTop: '0.25rem' }}>
                           {lastBreakdown.groq && (
-                            <span style={{ marginRight: '6px' }} title={lastBreakdown.groq.reasoning}>
-                              groq: {lastBreakdown.groq.detected ? 'YES' : 'no'} ({lastBreakdown.groq.confidence.toFixed(2)})
+                            <span style={{ marginRight: '0.6rem' }} title={lastBreakdown.groq.reasoning}>
+                              groq: {lastBreakdown.groq.detected ? 'yes' : 'no'} ({lastBreakdown.groq.confidence.toFixed(2)})
                             </span>
                           )}
                           {lastBreakdown.openrouter.length > 0 && (
-                            <span style={{ marginRight: '6px' }}>
-                              or: {lastBreakdown.openrouter.filter(o => o.detected).length}/{lastBreakdown.openrouter.length} ({lastBreakdown.openrouter.map(o => o.detected ? '✓' : '✗').join(' ')})
+                            <span style={{ marginRight: '0.6rem' }}>
+                              or: {lastBreakdown.openrouter.filter(o => o.detected).length}/{lastBreakdown.openrouter.length}
                             </span>
                           )}
-                          {verdict && <span style={{ color: verdict === 'correct' ? '#2e7d32' : '#c62828' }}>[{verdict === 'correct' ? 'CONFIRMED' : 'VETOED'}]</span>}
+                          {verdict && <span style={{ color: verdict === 'correct' ? '#818cf8' : '#F43F5E' }}>[{verdict === 'correct' ? 'confirmed' : 'vetoed'}]</span>}
                         </div>
                       )}
                     </div>
@@ -228,26 +228,26 @@ export function CognoscentaeUltrans() {
             )}
           </div>
           {lastBreakdown && (
-            <div className="rebuttal-panel" style={{ marginTop: '8px', padding: '6px 8px', background: 'rgba(63,244,213,0.05)', border: '1px solid rgba(63,244,213,0.2)', borderRadius: '4px' }}>
-              <div style={{ color: '#3FF4D5', fontSize: '9px', marginBottom: '3px', fontFamily: 'monospace', display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <div className="rebuttal-panel">
+              <div style={{ color: '#6366f1', fontSize: '0.75rem', fontWeight: '600', marginBottom: '0.4rem', display: 'flex', alignItems: 'center', gap: '0.3rem', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
                 <span>↻</span>
-                <span>REFRAME</span>
+                <span>Reframe Module</span>
               </div>
               {isReframing ? (
-                <div style={{ color: 'rgba(255,255,255,0.3)', fontSize: '10px', fontFamily: 'monospace', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <div style={{ color: 'rgba(212,212,216,0.4)', fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                   <span className="cui-pulse" />
-                  REWRITING...
+                  Rewriting...
                 </div>
               ) : reframe ? (
-                <div style={{ color: '#C2C9CC', fontSize: '11px', fontFamily: 'monospace', lineHeight: '1.5' }}>
+                <div style={{ color: '#d4d4d8', fontSize: '0.9rem', lineHeight: '1.6' }}>
                   {reframe}
                 </div>
               ) : rebuttalSuggestion ? (
-                <div style={{ color: '#9BA3A8', fontSize: '11px', fontFamily: 'monospace', lineHeight: '1.5', fontStyle: 'italic' }}>
+                <div style={{ color: 'rgba(212,212,216,0.65)', fontSize: '0.9rem', lineHeight: '1.6', fontStyle: 'italic' }}>
                   {rebuttalSuggestion}
                 </div>
               ) : (
-                <div style={{ color: 'rgba(255,255,255,0.2)', fontSize: '10px', fontFamily: 'monospace' }}>
+                <div style={{ color: 'rgba(212,212,216,0.25)', fontSize: '0.875rem' }}>
                   —
                 </div>
               )}
@@ -276,7 +276,7 @@ export function CognoscentaeUltrans() {
               const weighted = lastBreakdown?.weightedScore ?? null;
               const passed = weighted === null ? null : weighted < FALLACY_CRITICAL_THRESHOLD;
               if (passed === null) {
-                return <div className="veracity-pending" style={{ color: '#888' }}><span>—</span><span>Awaiting first analysis</span></div>;
+                return <div className="veracity-pending"><span>—</span><span>Awaiting first analysis</span></div>;
               }
               return passed ? (
                 <div className="veracity-passed">
@@ -284,7 +284,7 @@ export function CognoscentaeUltrans() {
                   <span>Radical Veracity Passed{weighted !== null ? ` (${weighted.toFixed(2)} &lt; ${FALLACY_CRITICAL_THRESHOLD})` : ''}</span>
                 </div>
               ) : (
-                <div className="veracity-failed" style={{ color: '#FF4500' }}>
+                <div className="veracity-failed">
                   <span className="cross-icon">✗</span>
                   <span>Radical Veracity Failed{weighted !== null ? ` (${weighted.toFixed(2)} ≥ ${FALLACY_CRITICAL_THRESHOLD})` : ''}</span>
                 </div>
@@ -300,15 +300,15 @@ export function CognoscentaeUltrans() {
               <span className="metric-label">Streak:</span>
               <span className="metric-value">{metrics.currentStreak} / {metrics.maxStreak}</span>
             </div>
-            <div className="metric-row" style={{ fontSize: '10px', color: '#FFB300' }} title="Agent voting weights (adjust on Mark correct/incorrect)">
+            <div className="metric-row" style={{ fontSize: '0.8rem' }} title="Agent voting weights (adjust on Mark correct/incorrect)">
               <span className="metric-label">Weights:</span>
               <span className="metric-value">R:{weights.roberta?.toFixed(2)} G:{weights.groq?.toFixed(2)} OR:{weights.openrouter?.toFixed(2)}</span>
             </div>
           </div>
-          <div className="current-statement" style={{ marginTop: '8px', padding: '6px 8px', background: 'rgba(255,179,0,0.08)', border: '1px solid rgba(255,179,0,0.2)', borderRadius: '4px', fontFamily: 'monospace', fontSize: '11px' }} title="The most recent statement analyzed">
-            <div style={{ color: '#FFB300', fontSize: '9px', marginBottom: '2px' }}>CURRENT</div>
-            <div style={{ color: '#fff', wordBreak: 'break-word' }}>
-              {lastBreakdown?.text || inputText || <em style={{ color: '#666' }}>(type a statement and click ANALYZE)</em>}
+          <div className="current-statement" style={{ marginTop: '0.5rem', padding: '0.75rem 1rem', background: 'rgba(79,70,229,0.06)', border: '1px solid rgba(79,70,229,0.2)', borderRadius: '6px' }} title="The most recent statement analyzed">
+            <div style={{ color: '#818cf8', fontSize: '0.7rem', fontWeight: '600', letterSpacing: '0.07em', marginBottom: '0.35rem', textTransform: 'uppercase' }}>Current Statement</div>
+            <div style={{ color: '#d4d4d8', fontSize: '0.9rem', wordBreak: 'break-word', lineHeight: '1.55' }}>
+              {lastBreakdown?.text || inputText || <em style={{ color: 'rgba(212,212,216,0.3)' }}>(type a statement and click Analyze)</em>}
             </div>
           </div>
           <div className="statement-log">
