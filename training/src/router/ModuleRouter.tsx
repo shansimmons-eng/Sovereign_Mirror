@@ -12,7 +12,7 @@ import Module9 from '../modules/Module9';
 const MODULE_META: Record<string, { short: string; live: boolean }> = {
   '1': { short: 'INT. VERACITY',    live: true  },
   '2': { short: 'REL. INTEGRITY',   live: true  },
-  '3': { short: 'ENV. STEWARDSHIP', live: false },
+  '3': { short: 'ENV. STEWARDSHIP', live: true  },
   '4': { short: 'TECH. FLUENCY',    live: false },
   '5': { short: 'PHYSIO. OPTIM.',   live: false },
   '6': { short: 'TEMPORAL DISC.',   live: false },

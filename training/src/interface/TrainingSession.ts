@@ -333,16 +333,23 @@ export function useTrainingSession({ nodeId, onFrameCreated }: TrainingSessionPr
     setDetectedFallacies(detectedFallacies);
 
     const w = (n: string) => weights[n] ?? 1.0;
-    const robertaScore = robertaResults.length > 0 ? maxConfidence : 0;
+    // When RoBERTa times out, contextual regex results are in robertaFallaciesForLog — use them
+    // as a fallback at 0.7× weight (regex is less reliable than the ML model).
+    const contextualFired = !robertaData && robertaFallaciesForLog.length > 0;
+    const robertaScore = robertaResults.length > 0
+      ? maxConfidence
+      : contextualFired ? maxConfidence * 0.7 : 0;
     const groqNumeric = groqScore ? groqScore.score : null;
     const openrouterMean = openrouterScores.length > 0
       ? openrouterScores.reduce((s, a) => s + a.score, 0) / openrouterScores.length
       : null;
 
     const contributors: Array<{ name: string; score: number; weight: number }> = [];
-    if (robertaScore > 0 || robertaResults.length > 0) contributors.push({ name: 'roberta', score: robertaScore, weight: w('roberta') });
-    if (groqNumeric !== null) contributors.push({ name: 'groq', score: groqNumeric, weight: w('groq') });
-    if (openrouterMean !== null) contributors.push({ name: 'openrouter', score: openrouterMean, weight: w('openrouter') });
+    if (robertaScore > 0) contributors.push({ name: 'roberta', score: robertaScore, weight: w('roberta') });
+    // Only include LLM agents when confidence is meaningful — confidence < 0.3 means errored or
+    // genuinely uncertain, and `1 - confidence` would otherwise inject a spurious positive signal.
+    if (groqNumeric !== null && groqScore && groqScore.confidence >= 0.3) contributors.push({ name: 'groq', score: groqNumeric, weight: w('groq') });
+    if (openrouterMean !== null && openrouterScores.some(o => o.confidence >= 0.3)) contributors.push({ name: 'openrouter', score: openrouterMean, weight: w('openrouter') });
 
     const totalWeight = contributors.reduce((s, c) => s + c.weight, 0) || 1;
     const weightedScore = contributors.reduce((s, c) => s + c.score * c.weight, 0) / totalWeight;

@@ -912,6 +912,158 @@ Evaluate the student's response against this rubric. Return ONLY valid JSON with
     return;
   }
 
+  if (url.pathname === '/api/pillar3/evaluate' && req.method === 'POST') {
+    const PILLAR3_QUESTIONS = {
+      q1: {
+        question: 'When two resource systems are in competition — say, energy and water — what principle guides which to address first?',
+        rubric: `Surface: Addresses whichever is more immediately scarce or urgent, without a structural principle.
+Developing: Notes that some systems depend on others, or that solving one enables solving another.
+Deep: Identifies cascade dependency as the governing principle — you ask which system is prerequisite to the other. Energy enables water solutions at scale (desalination, pumping, treatment) but water is not similarly prerequisite to energy generation in most scenarios. The right sequence is not determined by severity alone but by which intervention unlocks the others. A deep answer also notes that second-order effects must be traced: solving energy cheaply might increase water consumption, worsening the original problem.`,
+      },
+      q2: {
+        question: 'What is a second-order consequence? Describe one from any system you can think of.',
+        rubric: `Surface: A secondary effect, or "unintended consequence," described without structural clarity.
+Developing: Correctly identifies a consequence of a consequence — the effect of the effect — with a plausible example.
+Deep: Articulates the chain: a first-order effect is the direct result of an intervention; a second-order effect is what that result causes in turn. A deep answer traces at least two steps (A causes B, B causes C) and recognizes that second-order effects are frequently more significant than first-order ones — and often in the opposite direction. Strong examples: electric vehicles reduce emissions (1st order) but increase lithium mining demand, which causes habitat destruction and water contamination (2nd order). Or: deforestation increases agricultural land (1st order) but causes topsoil erosion, which reduces long-term agricultural yield (2nd order).`,
+      },
+      q3: {
+        question: 'What distinguishes a regenerative approach to ecological systems from a merely sustainable one?',
+        rubric: `Surface: Regenerative is better than sustainable, or goes further, without explaining the structural difference.
+Developing: Sustainability maintains the status quo; regenerative improves it.
+Deep: Sustainability is a floor — it means not making things worse, maintaining current capacity. Regenerative is a direction — it means actively restoring degraded capacity, building surplus, increasing the system's own resilience over time. A sustainable farm doesn't deplete the soil. A regenerative farm builds topsoil year over year. The distinction matters because many planetary systems are already below their baseline — merely sustaining a depleted state perpetuates the deficit. Regenerative design acknowledges that the goal is not equilibrium with a damaged baseline but restoration toward a healthier one.`,
+      },
+    };
+
+    let body = '';
+    let size = 0;
+    req.on('data', chunk => {
+      size += chunk.length;
+      if (size > MAX_BODY_SIZE) { req.destroy(); return; }
+      body += chunk;
+    });
+    req.on('end', async () => {
+      if (req.destroyed) return;
+      try {
+        const { questionId, response } = JSON.parse(body);
+        const q = PILLAR3_QUESTIONS[questionId];
+        if (!q || !response || typeof response !== 'string' || response.trim().length === 0) {
+          res.writeHead(400, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: 'questionId and response required' }));
+          return;
+        }
+        const key = getGroqKey();
+        if (!key) {
+          res.writeHead(503, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: 'Evaluation service unavailable' }));
+          return;
+        }
+        const systemPrompt = `You are an evaluator for a philosophical training module on Environmental Stewardship and systems thinking. A student has responded to the following question. Evaluate the depth of their thinking honestly but generously.
+
+QUESTION: ${q.question}
+
+DEPTH RUBRIC:
+${q.rubric}
+
+Evaluate the student's response against this rubric. Return ONLY valid JSON with no preamble:
+{"depth": "surface" or "developing" or "deep", "reflection": "2-4 sentences that surface what the question was really probing, acknowledge what the student got right, and name what they may have missed — be honest without being harsh"}`;
+
+        try {
+          const groqRes = await fetch(GROQ_API_URL, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${key}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              model: GROQ_REFRAME_MODEL,
+              messages: [
+                { role: 'system', content: systemPrompt },
+                { role: 'user', content: response.trim() },
+              ],
+              max_tokens: 300,
+              temperature: 0.4,
+            }),
+            signal: AbortSignal.timeout(REFRAME_TIMEOUT_MS),
+          });
+          if (!groqRes.ok) throw new Error(`groq ${groqRes.status}`);
+          const data = await groqRes.json();
+          const content = data?.choices?.[0]?.message?.content?.trim();
+          if (!content) throw new Error('empty response');
+          const parsed = JSON.parse(content);
+          if (!parsed.depth || !parsed.reflection) throw new Error('malformed response');
+          console.log(`[PILLAR3] q=${questionId} depth=${parsed.depth}`);
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ depth: parsed.depth, reflection: parsed.reflection }));
+        } catch (e) {
+          res.writeHead(502, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: 'Evaluation failed', detail: e.message }));
+        }
+      } catch {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'Invalid request' }));
+      }
+    });
+    return;
+  }
+
+  if (url.pathname === '/api/pillar3/sequence' && req.method === 'POST') {
+    // WEFE scenario: Water Table -42%, Energy Cost +18%
+    // Canonical cascade: Geothermal → Fermentation → Solar → Atmospheric
+    // Reasoning: expensive energy → cheapest baseload first (Geothermal);
+    // reduce agricultural water demand before adding more water supply (Fermentation);
+    // scale energy once baseload is established (Solar);
+    // atmospheric harvesting is energy-intensive and works best last (Atmospheric).
+    const CANONICAL = ['geothermal', 'fermentation', 'solar', 'atmospheric'];
+    const INTERVENTION_LABELS = {
+      geothermal:   'Deep Geothermal Gyrotrons',
+      fermentation: 'Precision Fermentation',
+      solar:        'Space-Based Solar Power',
+      atmospheric:  'Atmospheric Water Harvesting',
+    };
+    const CASCADE_EXPLANATION = `Given Water Table −42% and Energy Cost +18%, the governing constraint is expensive energy — every other intervention depends on cheap, reliable power.
+
+1. Deep Geothermal first: baseload power from Earth's heat requires no fuel cost after installation, and energy is the prerequisite to everything else. With energy costs already elevated, the highest-leverage move is the cheapest baseload source.
+
+2. Precision Fermentation second: decoupling protein production from agriculture immediately reduces pressure on the water table — no energy-intensive infrastructure required. This buys time on the water crisis before deploying the next intervention.
+
+3. Space-Based Solar third: now that geothermal baseload is established, additional solar capacity allows energy-intensive desalination and industrial water treatment at scale.
+
+4. Atmospheric Water Harvesting last: moisture capture arrays are energy-intensive to run at meaningful scale. They become viable only when energy surplus exists and agricultural water demand has already been reduced. Deploying them first would be prohibitively expensive given the energy cost baseline.`;
+
+    let body = '';
+    let size = 0;
+    req.on('data', chunk => {
+      size += chunk.length;
+      if (size > MAX_BODY_SIZE) { req.destroy(); return; }
+      body += chunk;
+    });
+    req.on('end', () => {
+      if (req.destroyed) return;
+      try {
+        const { sequence } = JSON.parse(body);
+        if (!Array.isArray(sequence) || sequence.length !== 4) {
+          res.writeHead(400, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: 'sequence must be an array of 4 intervention ids' }));
+          return;
+        }
+        // Score: count positions matching canonical
+        const matches = sequence.filter((id, i) => id === CANONICAL[i]).length;
+        const score = matches; // 0–4
+        const label = score === 4 ? 'exact' : score >= 2 ? 'partial' : 'inverted';
+        console.log(`[PILLAR3] sequence=${sequence.join(',')} score=${score}/4`);
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({
+          score,
+          label,
+          canonical: CANONICAL,
+          canonicalLabels: INTERVENTION_LABELS,
+          explanation: CASCADE_EXPLANATION,
+        }));
+      } catch {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'Invalid request' }));
+      }
+    });
+    return;
+  }
+
   if (url.pathname === '/api/reframe' && req.method === 'POST') {
     let body = '';
     let size = 0;
@@ -1091,6 +1243,8 @@ server.listen(PORT, () => {
   console.log(`  GET  /api/feedback/analyses`);
   console.log(`  POST /api/reframe`);
   console.log(`  POST /api/pillar2/evaluate`);
+  console.log(`  POST /api/pillar3/evaluate`);
+  console.log(`  POST /api/pillar3/sequence`);
   console.log(`  GET  /api/crypto/status`);
   console.log(`  POST /api/crypto/keypair`);
   console.log(`  POST /api/crypto/sign`);
