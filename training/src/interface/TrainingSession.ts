@@ -188,6 +188,12 @@ export function useTrainingSession({ nodeId, onFrameCreated }: TrainingSessionPr
   const slidingWindowRef = useRef(new SlidingWindowBuffer(512, 0.5));
   const manifoldDeformerRef = useRef(new ManifoldDeformer(64));
   const semanticBridgeRef = useRef(new SemanticBridge(manifoldDeformerRef.current));
+  const statementLogRef = useRef(statementLog);
+  const lastBreakdownRef = useRef(lastBreakdown);
+
+  // Keep refs in sync with state
+  useEffect(() => { statementLogRef.current = statementLog; }, [statementLog]);
+  useEffect(() => { lastBreakdownRef.current = lastBreakdown; }, [lastBreakdown]);
 
   const analyzeInput = useCallback(async (rawInput: string): Promise<ManifoldUpdate> => {
     const slidingWindow = slidingWindowRef.current;
@@ -195,13 +201,12 @@ export function useTrainingSession({ nodeId, onFrameCreated }: TrainingSessionPr
     const semanticBridge = semanticBridgeRef.current;
     const startedAt = Date.now();
 
-    const wordCount = rawInput.trim().split(/\s+/).length;
+    const trimmedInput = rawInput.length > MAX_INPUT_LENGTH ? rawInput.substring(0, MAX_INPUT_LENGTH) : rawInput;
+    const wordCount = trimmedInput.trim().split(/\s+/).filter(w => w.length > 0).length;
     if (wordCount < 4) {
       setDetectedFallacies([]);
       return semanticBridge.processLLMOutput([], 1);
     }
-
-    const trimmedInput = rawInput.length > MAX_INPUT_LENGTH ? rawInput.substring(0, MAX_INPUT_LENGTH) : rawInput;
 
     slidingWindow.ingest(trimmedInput);
 
@@ -279,12 +284,14 @@ export function useTrainingSession({ nodeId, onFrameCreated }: TrainingSessionPr
         robertaFallaciesForLog = [];
         detectedFallacies = [];
         for (const fallacy of robertaResults) {
-          maxConfidence = Math.max(maxConfidence, fallacy.confidence);
-          robertaFallaciesForLog.push({ id: fallacy.mappedLabel, score: fallacy.confidence });
+          if (typeof fallacy.mappedLabel !== 'string' || typeof fallacy.confidence !== 'number') continue;
+          const clampedConfidence = Math.min(1, Math.max(0, isFinite(fallacy.confidence) ? fallacy.confidence : 0));
+          maxConfidence = Math.max(maxConfidence, clampedConfidence);
+          robertaFallaciesForLog.push({ id: fallacy.mappedLabel, score: clampedConfidence });
           detectedFallacies.push({
             fallacyId: fallacy.mappedLabel,
-            confidenceScore: fallacy.confidence,
-            validationProof: btoa(`roberta:${fallacy.mappedLabel}:${fallacy.confidence}:${Date.now()}`),
+            confidenceScore: clampedConfidence,
+            validationProof: btoa(`roberta:${fallacy.mappedLabel}:${clampedConfidence}:${Date.now()}`),
           });
         }
         setDetectedFallacies([...detectedFallacies]);
@@ -453,8 +460,8 @@ export function useTrainingSession({ nodeId, onFrameCreated }: TrainingSessionPr
   }, [nodeId, onFrameCreated, weights]);
 
   const markVerdict = useCallback(async (statementId: string, fallacyId: string, verdict: 'correct' | 'incorrect') => {
-    const entry = statementLog.find(e => e.id === statementId);
-    const breakdown = entry?.breakdown ?? lastBreakdown;
+    const entry = statementLogRef.current.find(e => e.id === statementId);
+    const breakdown = entry?.breakdown ?? lastBreakdownRef.current;
     if (!breakdown) return;
 
     const agentScores: Record<string, { detected: boolean; confidence: number; model?: string }> = {};
@@ -483,7 +490,7 @@ export function useTrainingSession({ nodeId, onFrameCreated }: TrainingSessionPr
     setStatementLog(prev => prev.map(e => e.id === statementId && e.breakdown
       ? { ...e, breakdown: { ...e.breakdown, fallacyVerdicts: { ...e.breakdown.fallacyVerdicts, [fallacyId]: verdict } } }
       : e));
-  }, [statementLog, lastBreakdown]);
+  }, []);
 
 interface SessionMetrics {
   totalIntercepts: number;
@@ -518,7 +525,7 @@ interface SessionMetrics {
   }, []);
 
   const markFalseNegative = useCallback(async (statementId: string) => {
-    const breakdown = statementLog.find(e => e.id === statementId)?.breakdown ?? lastBreakdown;
+    const breakdown = statementLogRef.current.find(e => e.id === statementId)?.breakdown ?? lastBreakdownRef.current;
     if (!breakdown) return;
     const agentScores: Record<string, { detected: boolean; confidence: number; model?: string }> = {};
     agentScores.roberta = { detected: false, confidence: 0 };
@@ -536,7 +543,7 @@ interface SessionMetrics {
       const data = await res.json();
       setWeights(parseWeights(data));
     } catch {}
-  }, [statementLog, lastBreakdown]);
+  }, []);
 
   const reframeStatement = useCallback(async (text: string): Promise<string | null> => {
     try {
@@ -615,7 +622,7 @@ const PRONOUNS = new Set([
   'this', 'that', 'these', 'those', 'who', 'whom', 'whose',
 ]);
 
-const ABSOLUTE_TRIGGERS = ['always', 'never', 'everyone', 'noone', 'nobody', 'everybody', 'all', 'none'];
+const ABSOLUTE_TRIGGERS = ['always', 'never', 'everyone', 'no one', 'nobody', 'everybody', 'all', 'none'];
 
 function hasContentWords(text: string, minWords = 2): boolean {
   const words = text.toLowerCase().split(/\s+/).filter(w => w.length > 2);
