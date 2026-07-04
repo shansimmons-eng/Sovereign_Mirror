@@ -49,6 +49,9 @@ export function ModuleRouter({ pillarId }: ModuleRouterProps) {
         localStorage.setItem('kylos_training_light_mode', 'true');
         return true;
       }
+      /* Backward compat: old PHP hub used 'dark'/'light', now standardized to 'true'/'false' */
+      if (stored === 'dark') { localStorage.setItem('kylos_training_light_mode', 'false'); return false; }
+      if (stored === 'light') { localStorage.setItem('kylos_training_light_mode', 'true'); return true; }
       return stored === 'true';
     } catch {
       return true;

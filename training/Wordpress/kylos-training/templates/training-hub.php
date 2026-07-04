@@ -312,15 +312,15 @@
   var hub = document.getElementById('kylos-hub');
   var checkbox = document.getElementById('kxh-theme-checkbox');
   var saved = localStorage.getItem('kylos_training_light_mode');
-  /* Default to light */
-  var isDark = saved === 'dark';
+  /* Default to light — value is 'true' (light) or 'false' (dark) */
+  var isDark = saved === 'false';
   checkbox.checked = isDark;
   setTheme(isDark);
 
   checkbox.addEventListener('change', function() {
     isDark = checkbox.checked;
     setTheme(isDark);
-    localStorage.setItem('kylos_training_light_mode', isDark ? 'dark' : 'light');
+    localStorage.setItem('kylos_training_light_mode', isDark ? 'false' : 'true');
   });
 
   function setTheme(dark) {

@@ -2022,3 +2022,73 @@ body:has(.kylos-light) {
   border-left: 4px solid var(--pc, #F43F5E) !important;
   color: #e11d48 !important;
 }
+
+/* Light mode sidebar icons — undo invert so they show naturally on cream bg */
+.kylos-shell.kylos-light .kylos-sidebar__item-icon img {
+  filter: none !important;
+}
+.kylos-shell.kylos-light .kylos-sidebar__item--active .kylos-sidebar__item-icon img {
+  filter: brightness(0.9) saturate(1.2) !important;
+}
+
+/* Kill WordPress wrapper bleed — match body to React shell */
+body { background: #0a0a0f !important; }
+body:has(.kylos-light) { background: #fef6f2 !important; }
+.kx-layout { background: inherit !important; }
+.kx-main { background: inherit !important; }
+#kylos-training-root { background: inherit !important; }
+
+/* ── Analyze button ──────────────────────────────────────────── */
+.cui-analyze-btn {
+  margin-top: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  justify-content: center;
+  width: 100%;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.cui-analyze-btn:disabled {
+  cursor: not-allowed;
+  background: rgba(255,255,255,0.06);
+  color: rgba(255,255,255,0.25);
+  border: 1px solid rgba(255,255,255,0.08);
+}
+.cui-analyze-btn:not(:disabled) {
+  cursor: pointer;
+  background: rgba(244,63,94,0.08);
+  color: #e11d48;
+  border: 1px solid rgba(244,63,94,0.3);
+}
+.cui-analyze-btn:not(:disabled):hover {
+  background: rgba(244,63,94,0.14);
+  border-color: rgba(244,63,94,0.45);
+}
+.kylos-light .cui-analyze-btn:disabled {
+  background: rgba(0,0,0,0.04);
+  color: rgba(0,0,0,0.25);
+  border: 1px solid rgba(0,0,0,0.1);
+}
+.kylos-light .cui-analyze-btn:not(:disabled) {
+  background: rgba(244,63,94,0.08);
+  color: #e11d48;
+  border: 1px solid rgba(244,63,94,0.3);
+}
+.kylos-light .cui-analyze-btn:not(:disabled):hover {
+  background: rgba(244,63,94,0.14);
+  border-color: rgba(244,63,94,0.5);
+}
+
+.cui-analyze-status {
+  margin-top: 0.4rem;
+  font-size: 0.8rem;
+  color: rgba(99,102,241,0.6);
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}

@@ -18,8 +18,20 @@ const ABSOLUTE_BYPASS_RE = /\b(all|every|always|never|none|no one|nobody|everyon
 const LS_KEY = 'kylos:statementLog';
 const USE_ROBERTA = true;
 const USE_FREE_AGENTS = true;
+const DEBUG = false;
+const MAX_INPUT_LENGTH = 2000;
 
 const DEFAULT_WEIGHTS = { roberta: 1.0, groq: 1.0, openrouter: 1.0 };
+
+function parseWeights(data: { weights?: Record<string, { weight?: number }> | null }): Record<string, number> {
+  const w: Record<string, number> = { ...DEFAULT_WEIGHTS };
+  if (data?.weights) {
+    for (const [k, v] of Object.entries(data.weights)) {
+      if (typeof v?.weight === 'number') w[k] = v.weight;
+    }
+  }
+  return w;
+}
 
 interface AgentScore {
   agent: string;
@@ -112,15 +124,11 @@ export function useTrainingSession({ nodeId, onFrameCreated }: TrainingSessionPr
   const [lastBreakdown, setLastBreakdown] = useState<AnalysisBreakdown | null>(null);
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      console.log('[TRAINING] lastBreakdown state changed', { hasBreakdown: !!lastBreakdown, statementId: lastBreakdown?.statementId, weightedScore: lastBreakdown?.weightedScore });
-    }
+    if (DEBUG) console.log('[TRAINING] lastBreakdown state changed', { hasBreakdown: !!lastBreakdown, statementId: lastBreakdown?.statementId, weightedScore: lastBreakdown?.weightedScore });
   }, [lastBreakdown]);
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      console.log('[TRAINING] statementLog state changed', { count: statementLog.length, firstId: statementLog[0]?.id });
-    }
+    if (DEBUG) console.log('[TRAINING] statementLog state changed', { count: statementLog.length, firstId: statementLog[0]?.id });
   }, [statementLog]);
 
   useEffect(() => {
@@ -131,13 +139,7 @@ export function useTrainingSession({ nodeId, onFrameCreated }: TrainingSessionPr
         if (!res.ok) return;
         const data = await res.json();
         if (cancelled) return;
-        if (data?.weights) {
-          const w: Record<string, number> = { ...DEFAULT_WEIGHTS };
-          for (const [k, v] of Object.entries(data.weights)) {
-            if (typeof (v as { weight: number }).weight === 'number') w[k] = (v as { weight: number }).weight;
-          }
-          setWeights(w);
-        }
+        setWeights(parseWeights(data));
       } catch {}
     })();
     return () => { cancelled = true; };
@@ -199,9 +201,11 @@ export function useTrainingSession({ nodeId, onFrameCreated }: TrainingSessionPr
       return semanticBridge.processLLMOutput([], 1);
     }
 
-    slidingWindow.ingest(rawInput);
+    const trimmedInput = rawInput.length > MAX_INPUT_LENGTH ? rawInput.substring(0, MAX_INPUT_LENGTH) : rawInput;
 
-    const detectedFallacies: FallacyVector[] = [];
+    slidingWindow.ingest(trimmedInput);
+
+    let detectedFallacies: FallacyVector[] = [];
     let maxConfidence = 0;
     let robertaRaw: unknown = null;
     let robertaResults: Array<{mappedLabel: string, confidence: number}> = [];
@@ -213,14 +217,14 @@ export function useTrainingSession({ nodeId, onFrameCreated }: TrainingSessionPr
     const openrouterScores: AgentScore[] = [];
 
     // INSTANT: client-side regex fallback runs synchronously before any network
-    const contextualAnalysis = analyzeFallaciesContextual(rawInput);
+    const contextualAnalysis = analyzeFallaciesContextual(trimmedInput);
     for (const detection of contextualAnalysis.detections) {
       maxConfidence = Math.max(maxConfidence, detection.confidence);
       robertaFallaciesForLog.push({ id: detection.fallacyId, score: detection.confidence });
       detectedFallacies.push({
         fallacyId: detection.fallacyId,
         confidenceScore: detection.confidence,
-        validationProof: btoa(`${detection.fallacyId}:${detection.confidence}:${Date.now()}:${rawInput.substring(0, 50)}`),
+        validationProof: btoa(`${detection.fallacyId}:${detection.confidence}:${Date.now()}:${trimmedInput.substring(0, 50)}`),
       });
     }
     setDetectedFallacies([...detectedFallacies]);
@@ -234,7 +238,7 @@ export function useTrainingSession({ nodeId, onFrameCreated }: TrainingSessionPr
             const response = await fetch(ROBERTA_ENDPOINT(), {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ text: rawInput }),
+              body: JSON.stringify({ text: trimmedInput }),
               signal: controller.signal,
             });
             clearTimeout(tid);
@@ -253,7 +257,7 @@ export function useTrainingSession({ nodeId, onFrameCreated }: TrainingSessionPr
             const response = await fetch(FREE_AGENTS_ENDPOINT(), {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ text: rawInput }),
+              body: JSON.stringify({ text: trimmedInput }),
               signal: controller.signal,
             });
             clearTimeout(tid);
@@ -273,7 +277,7 @@ export function useTrainingSession({ nodeId, onFrameCreated }: TrainingSessionPr
         robertaResults = robertaData.fallacies;
         maxConfidence = 0;
         robertaFallaciesForLog = [];
-        detectedFallacies.length = 0;
+        detectedFallacies = [];
         for (const fallacy of robertaResults) {
           maxConfidence = Math.max(maxConfidence, fallacy.confidence);
           robertaFallaciesForLog.push({ id: fallacy.mappedLabel, score: fallacy.confidence });
@@ -325,11 +329,6 @@ export function useTrainingSession({ nodeId, onFrameCreated }: TrainingSessionPr
       }
     }
 
-    // If RoBERTa responded, overlay its findings; otherwise keep regex results
-    if (!robertaData) {
-      // keep regex results from above
-    }
-
     setDetectedFallacies(detectedFallacies);
 
     const w = (n: string) => weights[n] ?? 1.0;
@@ -355,7 +354,7 @@ export function useTrainingSession({ nodeId, onFrameCreated }: TrainingSessionPr
     const weightedScore = contributors.reduce((s, c) => s + c.score * c.weight, 0) / totalWeight;
     const rawScore = Math.min(1, Math.max(0, isFinite(weightedScore) ? weightedScore : 0));
     // Dampen short inputs unless they contain absolute-generalization language
-    const hasAbsolute = ABSOLUTE_BYPASS_RE.test(rawInput);
+    const hasAbsolute = ABSOLUTE_BYPASS_RE.test(trimmedInput);
     const dampener = hasAbsolute ? 1.0
       : wordCount < 7  ? 0.65
       : wordCount < 12 ? 0.85
@@ -375,7 +374,7 @@ export function useTrainingSession({ nodeId, onFrameCreated }: TrainingSessionPr
 
     const breakdown: AnalysisBreakdown = {
       statementId,
-      text: rawInput,
+      text: trimmedInput,
       roberta: { detected: robertaResults.length > 0, score: robertaScore, fallacies: robertaFallaciesForLog, raw: robertaRaw },
       groq: groqScore,
       openrouter: openrouterScores,
@@ -402,7 +401,7 @@ export function useTrainingSession({ nodeId, onFrameCreated }: TrainingSessionPr
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         statementId,
-        text: rawInput,
+        text: trimmedInput,
         robertaFallacies: robertaFallaciesForLog,
         robertaMax: robertaScore,
         groqScore: groqNumeric,
@@ -422,7 +421,7 @@ export function useTrainingSession({ nodeId, onFrameCreated }: TrainingSessionPr
 
     const logEntry: StatementLog = {
       id: statementId,
-      text: rawInput,
+      text: trimmedInput,
       timestamp: breakdown.timestamp,
       fallacies: detectedFallacies,
       inverionState: state,
@@ -430,20 +429,20 @@ export function useTrainingSession({ nodeId, onFrameCreated }: TrainingSessionPr
       breakdown,
       freeAgentValidation,
     };
-    if (typeof window !== 'undefined') console.log('[TRAINING] analyze complete', { statementId, weightedScore: safeScore, state: InverionState[state], fallacies: detectedFallacies.length, logEntryId: logEntry.id });
+    if (DEBUG) console.log('[TRAINING] analyze complete', { statementId, weightedScore: safeScore, state: InverionState[state], fallacies: detectedFallacies.length, logEntryId: logEntry.id });
     setStatementLog((prev: StatementLog[]) => {
       const next = [logEntry, ...prev].slice(0, 50);
-      if (typeof window !== 'undefined') console.log('[TRAINING] statementLog updated', { count: next.length, firstId: next[0]?.id });
+      if (DEBUG) console.log('[TRAINING] statementLog updated', { count: next.length, firstId: next[0]?.id });
       return next;
     });
 
     if (onFrameCreated && (safeScore >= FALLACY_CRITICAL_THRESHOLD || detectedFallacies.length > 0)) {
-      onFrameCreated({ detectedFallacies, inverionState: state, radicalVeracityPassed }, rawInput);
+      onFrameCreated({ detectedFallacies, inverionState: state, radicalVeracityPassed }, trimmedInput);
     }
 
     manifoldDeformer.initializeMesh(10.0);
     const llmJson = detectedFallacies.map(f => ({
-      claim_text: rawInput,
+      claim_text: trimmedInput,
       fallacy_type: f.fallacyId.replace('CU-FALLACY-', '').toLowerCase(),
       magnitude: f.confidenceScore,
       persistence: 0.5,
@@ -475,13 +474,7 @@ export function useTrainingSession({ nodeId, onFrameCreated }: TrainingSessionPr
       });
       if (!res.ok) return;
       const data = await res.json();
-      if (data?.weights) {
-        const w: Record<string, number> = { ...DEFAULT_WEIGHTS };
-        for (const [k, v] of Object.entries(data.weights)) {
-          if (typeof (v as { weight: number }).weight === 'number') w[k] = (v as { weight: number }).weight;
-        }
-        setWeights(w);
-      }
+      setWeights(parseWeights(data));
     } catch {}
 
     setLastBreakdown(prev => prev?.statementId === statementId
@@ -541,13 +534,7 @@ interface SessionMetrics {
       });
       if (!res.ok) return;
       const data = await res.json();
-      if (data?.weights) {
-        const w: Record<string, number> = { ...DEFAULT_WEIGHTS };
-        for (const [k, v] of Object.entries(data.weights)) {
-          if (typeof (v as { weight: number }).weight === 'number') w[k] = (v as { weight: number }).weight;
-        }
-        setWeights(w);
-      }
+      setWeights(parseWeights(data));
     } catch {}
   }, [statementLog, lastBreakdown]);
 

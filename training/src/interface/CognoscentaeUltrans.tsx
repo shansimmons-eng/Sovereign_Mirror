@@ -200,32 +200,15 @@ export function CognoscentaeUltrans() {
           />
           <CharacterCounter text={inputText} />
           <button
+            className="cui-analyze-btn"
             onClick={handleAnalyze}
             disabled={interceptActive || !inputText.trim() || isAnalyzing}
-            style={{
-              marginTop: '0.75rem',
-              padding: '0.75rem 1rem',
-              background: inputText.trim() && !interceptActive && !isAnalyzing ? 'rgba(244,63,94,0.08)' : 'rgba(255,255,255,0.06)',
-              color: inputText.trim() && !interceptActive && !isAnalyzing ? '#e11d48' : 'rgba(255,255,255,0.25)',
-              border: inputText.trim() && !interceptActive && !isAnalyzing ? '1px solid rgba(244,63,94,0.3)' : '1px solid rgba(255,255,255,0.08)',
-              borderRadius: '6px',
-              cursor: inputText.trim() && !interceptActive && !isAnalyzing ? 'pointer' : 'not-allowed',
-              fontSize: '0.9rem',
-              fontWeight: '600',
-              letterSpacing: '0.06em',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-              justifyContent: 'center',
-              width: '100%',
-              transition: 'background 0.15s',
-            }}
           >
             {isAnalyzing && <span className="cui-spinner" aria-label="Analyzing" />}
             {isAnalyzing ? 'ANALYZING...' : 'ANALYZE STATEMENT'}
           </button>
           {isAnalyzing && (
-            <div style={{ marginTop: '0.4rem', fontSize: '0.8rem', color: 'rgba(99,102,241,0.6)', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+            <div className="cui-analyze-status">
               <span className="cui-pulse" />
               Routing to classifiers...
             </div>
