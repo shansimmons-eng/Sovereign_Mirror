@@ -52,9 +52,7 @@ body:has(.kylos-light) {
 .kylos-light .kylos-sidebar__op-name     { color: #1a1208; }
 .kylos-light .kylos-sidebar__op-clearance { color: rgba(0,0,0,0.4); }
 
-.kylos-light .kylos-sidebar__item        { color: rgba(0,0,0,0.5); background: transparent; border: 1px solid rgba(0,0,0,0.06); }
-.kylos-light .kylos-sidebar__item:hover  { color: rgba(0,0,0,0.75); background: rgba(0,0,0,0.03); border-color: rgba(0,0,0,0.1); border-left: 3px solid rgba(0,0,0,0.12); }
-.kylos-light .kylos-sidebar__item--active { color: #e11d48; background: transparent; border: 1px solid rgba(0,0,0,0.08); border-left: 4px solid #F43F5E; }
+/* sidebar item light mode — moved to definitive block at end of file */
 
 .kylos-light .kylos-sidebar__sync {
   background: #4F46E5;
@@ -340,47 +338,21 @@ body:has(.kylos-light) {
   flex: 1;
 }
 
+/* sidebar items base — moved to definitive block at end of file */
 .kylos-sidebar__item {
   display: flex;
   align-items: center;
   gap: 0.6rem;
   padding: 0.7rem 0.875rem;
-  background: rgba(255,255,255,0.03);
-  border: 1px solid rgba(255,255,255,0.06);
-  border-left: 3px solid transparent;
-  color: rgba(255,255,255,0.45);
   font-family: inherit;
   font-size: 0.85rem;
   letter-spacing: 0.01em;
   text-align: left;
   cursor: pointer;
   width: 100%;
-  transition: border-color 0.15s, color 0.15s, background 0.15s;
   margin-bottom: 4px;
 }
-
-.kylos-sidebar__item:hover {
-  border-left-color: rgba(244,63,94,0.35);
-  border-color: rgba(255,255,255,0.1);
-  border-left-width: 3px;
-  color: rgba(255,255,255,0.7);
-  background: rgba(255,255,255,0.05);
-}
-
-.kylos-sidebar__item--active {
-  border-left: 4px solid #F43F5E;
-  border-top: 1px solid rgba(255,255,255,0.08);
-  border-right: 1px solid rgba(255,255,255,0.08);
-  border-bottom: 1px solid rgba(255,255,255,0.08);
-  color: #F43F5E;
-  background: transparent;
-}
-
-.kylos-sidebar__item--stub {
-  opacity: 0.45;
-  cursor: default;
-  pointer-events: none;
-}
+.kylos-sidebar__item--stub { opacity: 0.45; cursor: default; pointer-events: none; }
 
 .kylos-sidebar__item-icon {
   width: 28px;
@@ -1059,9 +1031,7 @@ body:has(.kylos-light) {
   border-color: rgba(0,0,0,0.1);
 }
 
-.kylos-sidebar__item:hover:not(.kylos-sidebar__item--active) {
-  transform: translateX(2px);
-}
+/* sidebar hover transform — moved to definitive block at end of file */
 
 /* ══════════════════════════════════════════════════════════════
    SHARED MODULE STYLES — Pillars 2, 3, …
@@ -1827,12 +1797,11 @@ body:has(.kylos-light) {
   border-color: rgba(79,70,229,0.5) !important;
 }
 
-/* Sidebar width increase to match designer spec (w-72 = 288px) */
+/* Sidebar width */
 .kylos-sidebar { width: 256px !important; }
 .kylos-body { }
 
 /* Per-pillar sidebar border colors */
-.kylos-sidebar__item { border-left: 3px solid transparent; transition: border-left-color 0.15s, background 0.15s, color 0.15s, transform 0.1s; }
 .kylos-sidebar__item[data-pillar="1"] { --pc: #F43F5E; }
 .kylos-sidebar__item[data-pillar="2"] { --pc: #4F46E5; }
 .kylos-sidebar__item[data-pillar="3"] { --pc: #3FF4D5; }
@@ -1842,9 +1811,6 @@ body:has(.kylos-light) {
 .kylos-sidebar__item[data-pillar="7"] { --pc: #F43F5E; }
 .kylos-sidebar__item[data-pillar="8"] { --pc: #818cf8; }
 .kylos-sidebar__item[data-pillar="9"] { --pc: #3FF4D5; }
-.kylos-sidebar__item { border-left-color: rgba(128,128,128,0.12); }
-.kylos-sidebar__item:hover:not(.kylos-sidebar__item--stub):not(.kylos-sidebar__item--active) { border-left-color: var(--pc, rgba(255,255,255,0.2)); transform: translateX(2px); }
-.kylos-sidebar__item--active { border-left-color: var(--pc, #F43F5E) !important; background: transparent !important; }
 
 /* fade-in animation for results appearing */
 @keyframes fade-up {
@@ -2005,4 +1971,54 @@ body:has(.kylos-light) {
 }
 .kylos-sidebar__sync:hover {
   box-shadow: 0 0 28px rgba(79,70,229,0.6), 0 0 60px rgba(79,70,229,0.2);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   SIDEBAR ITEMS — single source of truth (overrides everything above)
+   ════════════════════════════════════════════════════════════ */
+
+/* Dark mode (default) */
+.kylos-shell .kylos-sidebar__item {
+  background: rgba(255,255,255,0.03) !important;
+  border: 1px solid rgba(255,255,255,0.06) !important;
+  border-left: 3px solid transparent !important;
+  color: rgba(255,255,255,0.45) !important;
+  transition: border-left-color 0.15s, color 0.15s, transform 0.1s;
+}
+.kylos-shell .kylos-sidebar__item:hover:not(.kylos-sidebar__item--stub):not(.kylos-sidebar__item--active) {
+  border-left-color: var(--pc, rgba(255,255,255,0.2)) !important;
+  border-color: rgba(255,255,255,0.1) !important;
+  color: rgba(255,255,255,0.7) !important;
+  background: rgba(255,255,255,0.05) !important;
+  transform: translateX(2px);
+}
+.kylos-shell .kylos-sidebar__item--active {
+  border: 1px solid rgba(255,255,255,0.08) !important;
+  border-left: 4px solid var(--pc, #F43F5E) !important;
+  color: #F43F5E !important;
+  background: transparent !important;
+}
+.kylos-shell .kylos-sidebar__item--active .kylos-sidebar__item-icon img {
+  filter: invert(0.85) sepia(1) saturate(2) hue-rotate(300deg) brightness(1.1) !important;
+}
+
+/* Light mode */
+.kylos-shell.kylos-light .kylos-sidebar__item {
+  background: rgba(0,0,0,0.03) !important;
+  border: 1px solid rgba(0,0,0,0.06) !important;
+  border-left: 3px solid rgba(0,0,0,0.08) !important;
+  color: rgba(0,0,0,0.5) !important;
+}
+.kylos-shell.kylos-light .kylos-sidebar__item:hover:not(.kylos-sidebar__item--stub):not(.kylos-sidebar__item--active) {
+  background: rgba(0,0,0,0.04) !important;
+  border-color: rgba(0,0,0,0.1) !important;
+  border-left-color: var(--pc, rgba(0,0,0,0.12)) !important;
+  color: rgba(0,0,0,0.75) !important;
+  transform: translateX(2px);
+}
+.kylos-shell.kylos-light .kylos-sidebar__item--active {
+  background: transparent !important;
+  border: 1px solid rgba(0,0,0,0.08) !important;
+  border-left: 4px solid var(--pc, #F43F5E) !important;
+  color: #e11d48 !important;
 }
