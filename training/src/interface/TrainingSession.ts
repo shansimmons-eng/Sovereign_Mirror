@@ -223,7 +223,7 @@ export function useTrainingSession({ nodeId, onFrameCreated }: TrainingSessionPr
         validationProof: btoa(`${detection.fallacyId}:${detection.confidence}:${Date.now()}:${rawInput.substring(0, 50)}`),
       });
     }
-    setDetectedFallacies(detectedFallacies);
+    setDetectedFallacies([...detectedFallacies]);
 
     // BACKGROUND: API calls with tight timeouts — don't block UI
     const classifyPromise = USE_ROBERTA

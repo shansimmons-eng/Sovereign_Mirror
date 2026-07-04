@@ -1844,7 +1844,7 @@ body:has(.kylos-light) {
 .kylos-sidebar__item[data-pillar="9"] { --pc: #3FF4D5; }
 .kylos-sidebar__item { border-left-color: rgba(128,128,128,0.12); }
 .kylos-sidebar__item:hover:not(.kylos-sidebar__item--stub):not(.kylos-sidebar__item--active) { border-left-color: var(--pc, rgba(255,255,255,0.2)); transform: translateX(2px); }
-.kylos-sidebar__item--active { border-left-color: var(--pc, #F43F5E) !important; background: transparent; }
+.kylos-sidebar__item--active { border-left-color: var(--pc, #F43F5E) !important; background: transparent !important; }
 
 /* fade-in animation for results appearing */
 @keyframes fade-up {
