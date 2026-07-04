@@ -269,7 +269,7 @@ export function useTrainingSession({ nodeId, onFrameCreated }: TrainingSessionPr
 
     if (robertaData) {
       robertaRaw = robertaData;
-      if (robertaData.fallacies && Array.isArray(robertaData.fallacies)) {
+      if (robertaData.fallacies && Array.isArray(robertaData.fallacies) && robertaData.fallacies.length > 0) {
         robertaResults = robertaData.fallacies;
         maxConfidence = 0;
         robertaFallaciesForLog = [];

@@ -1,29 +1,22 @@
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
-/* Kill any grain/texture overlay injected by WordPress theme or kylos.css */
-.kylos-shell::before,
-.kylos-shell::after,
-#kylos-training-root::before,
-#kylos-training-root::after {
-  display: none !important;
-  content: none !important;
-}
-.kylos-shell,
-.kylos-shell .kylos-header,
-.kylos-shell .kylos-sidebar,
-.kylos-shell .kylos-main,
-.kylos-shell .cui-container,
-.kylos-shell .panel {
-  background-image: none !important;
-}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 html, body, #kylos-training-root {
   height: 100%;
   background: #0a0a0f;
   color: #d4d4d8;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', Helvetica, Arial, sans-serif;
-  font-size: 15px;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+  font-size: 17px;
   -webkit-font-smoothing: antialiased;
+}
+
+/* Kill black bleed at bottom — body must match shell in light mode */
+.kylos-light, .kylos-light #kylos-training-root {
+  background: #fef6f2;
+}
+body:has(.kylos-light) {
+  background: #fef6f2;
 }
 
 /* ── Shell ───────────────────────────────────────────────────── */
@@ -39,12 +32,12 @@ html, body, #kylos-training-root {
 /* ── Light mode ──────────────────────────────────────────────── */
 
 .kylos-light {
-  background: #f5f0eb;
+  background: #fef6f2;
   color: #1a1208;
 }
 
 .kylos-light .kylos-header {
-  background: rgba(245,240,235,0.97);
+  background: rgba(254,246,242,0.97);
   border-bottom-color: rgba(244,63,94,0.28);
 }
 
@@ -59,13 +52,14 @@ html, body, #kylos-training-root {
 .kylos-light .kylos-sidebar__op-name     { color: #1a1208; }
 .kylos-light .kylos-sidebar__op-clearance { color: rgba(0,0,0,0.4); }
 
-.kylos-light .kylos-sidebar__item        { color: rgba(0,0,0,0.4); }
-.kylos-light .kylos-sidebar__item:hover  { color: rgba(0,0,0,0.75); background: rgba(244,63,94,0.05); }
-.kylos-light .kylos-sidebar__item--active { color: #1a1208; background: rgba(244,63,94,0.09); }
+.kylos-light .kylos-sidebar__item        { color: rgba(0,0,0,0.5); background: transparent; border: 1px solid rgba(0,0,0,0.06); }
+.kylos-light .kylos-sidebar__item:hover  { color: rgba(0,0,0,0.75); background: rgba(0,0,0,0.03); border-color: rgba(0,0,0,0.1); border-left: 3px solid rgba(0,0,0,0.12); }
+.kylos-light .kylos-sidebar__item--active { color: #e11d48; background: transparent; border: 1px solid rgba(0,0,0,0.08); border-left: 4px solid #F43F5E; }
 
 .kylos-light .kylos-sidebar__sync {
-  border-color: rgba(63,244,213,0.4);
-  color: #0a7a6e;
+  background: #4F46E5;
+  color: #fff;
+  box-shadow: 0 0 14px rgba(79,70,229,0.25);
 }
 
 .kylos-light .kylos-nav-select {
@@ -74,7 +68,26 @@ html, body, #kylos-training-root {
   color: #1a1208;
 }
 
-.kylos-light .kylos-main { background: #f5f0eb; }
+.kylos-light .kylos-main { background: #fef6f2; }
+
+/* Fix light mode button contrast — near-white text invisible on cream */
+.kylos-light .kylos-header__theme {
+  border-color: rgba(0,0,0,0.18);
+  color: rgba(0,0,0,0.55);
+}
+.kylos-light .kylos-header__theme:hover {
+  border-color: rgba(0,0,0,0.35);
+  color: rgba(0,0,0,0.8);
+}
+.kylos-light .kylos-header__back {
+  border-color: rgba(244,63,94,0.55);
+  color: #e11d48;
+}
+.kylos-light .kylos-header__back:hover {
+  border-color: #e11d48;
+  color: #e11d48;
+  background: rgba(244,63,94,0.06);
+}
 
 /* ── Header ──────────────────────────────────────────────────── */
 
@@ -87,7 +100,7 @@ html, body, #kylos-training-root {
   border-bottom: 1px solid rgba(244,63,94,0.18);
   position: sticky;
   top: 0;
-  z-index: 50;
+  z-index: 5;
   flex-shrink: 0;
 }
 
@@ -103,23 +116,55 @@ html, body, #kylos-training-root {
   height: 32px;
   object-fit: contain;
   flex-shrink: 0;
+  position: relative;
+}
+
+/* Center dot on logo — cream in dark mode, rose in light mode, pulses */
+.kylos-header__logo::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: background 0.5s, box-shadow 0.5s;
+}
+
+/* Dark mode: cream dot */
+.kylos-shell:not(.kylos-light) .kylos-header__logo::after {
+  background: #fef6f2;
+  box-shadow: 0 0 4px rgba(254,246,242,0.5);
+}
+
+/* Light mode: rose dot with pulse */
+.kylos-light .kylos-header__logo::after {
+  background: #F43F5E;
+  box-shadow: 0 0 8px rgba(244,63,94,0.6);
+  animation: logo-dot-pulse 2s ease-in-out infinite;
+}
+
+@keyframes logo-dot-pulse {
+  0%, 100% { box-shadow: 0 0 4px rgba(244,63,94,0.3); transform: translate(-50%, -50%) scale(1); }
+  50%      { box-shadow: 0 0 12px rgba(244,63,94,0.8); transform: translate(-50%, -50%) scale(1.3); }
 }
 
 .kylos-header__wordmark { min-width: 0; }
 
 .kylos-header__title {
   color: #e8e8e8;
-  font-size: 0.78rem;
+  font-size: 28px;
   font-weight: bold;
-  letter-spacing: 0.18em;
+  letter-spacing: 0.14em;
   line-height: 1.2;
   white-space: nowrap;
 }
 
 .kylos-header__sub {
-  color: rgba(255,255,255,0.22);
-  font-size: 0.52rem;
-  letter-spacing: 0.22em;
+  color: rgba(255,255,255,0.3);
+  font-size: 0.65rem;
+  letter-spacing: 0.18em;
   margin-top: 2px;
   white-space: nowrap;
 }
@@ -147,6 +192,62 @@ html, body, #kylos-training-root {
 .kylos-header__theme:hover {
   border-color: rgba(255,255,255,0.3);
   color: rgba(255,255,255,0.6);
+}
+
+/* ── iOS-style toggle switch ──────────────────────────────────── */
+.theme-toggle {
+  position: relative;
+  width: 52px;
+  height: 28px;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.theme-toggle input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+  position: absolute;
+}
+
+.theme-toggle__track {
+  position: absolute;
+  inset: 0;
+  border-radius: 14px;
+  transition: background 0.3s;
+}
+
+.kylos-shell:not(.kylos-light) .theme-toggle__track {
+  background: #383B3D;
+}
+.kylos-light .theme-toggle__track {
+  background: #C2C9CC;
+}
+
+.theme-toggle__thumb {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  transition: transform 0.3s, background 0.3s, box-shadow 0.3s;
+}
+
+.kylos-shell:not(.kylos-light) .theme-toggle__thumb {
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+.kylos-light .theme-toggle__thumb {
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+}
+
+.theme-toggle input:checked ~ .theme-toggle__track {
+  background: #F43F5E;
+}
+.theme-toggle input:checked ~ .theme-toggle__thumb {
+  transform: translateX(24px);
 }
 
 .kylos-header__back {
@@ -218,7 +319,7 @@ html, body, #kylos-training-root {
 
 .kylos-sidebar__op-name {
   color: #f4f4f5;
-  font-size: 0.75rem;
+  font-size: 0.875rem;
   font-weight: 600;
   letter-spacing: 0.04em;
   line-height: 1.3;
@@ -226,7 +327,7 @@ html, body, #kylos-training-root {
 
 .kylos-sidebar__op-clearance {
   color: rgba(255,255,255,0.35);
-  font-size: 0.65rem;
+  font-size: 0.75rem;
   letter-spacing: 0.03em;
   margin-top: 1px;
 }
@@ -243,41 +344,47 @@ html, body, #kylos-training-root {
   display: flex;
   align-items: center;
   gap: 0.6rem;
-  padding: 0.6rem 0.875rem;
-  background: transparent;
-  border: none;
+  padding: 0.7rem 0.875rem;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.06);
   border-left: 3px solid transparent;
   color: rgba(255,255,255,0.45);
   font-family: inherit;
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   letter-spacing: 0.01em;
   text-align: left;
   cursor: pointer;
   width: 100%;
   transition: border-color 0.15s, color 0.15s, background 0.15s;
+  margin-bottom: 4px;
 }
 
 .kylos-sidebar__item:hover {
   border-left-color: rgba(244,63,94,0.35);
-  color: rgba(255,255,255,0.65);
-  background: rgba(244,63,94,0.04);
+  border-color: rgba(255,255,255,0.1);
+  border-left-width: 3px;
+  color: rgba(255,255,255,0.7);
+  background: rgba(255,255,255,0.05);
 }
 
 .kylos-sidebar__item--active {
-  border-left-color: #F43F5E;
-  color: #f4f4f5;
-  background: rgba(244,63,94,0.08);
+  border-left: 4px solid #F43F5E;
+  border-top: 1px solid rgba(255,255,255,0.08);
+  border-right: 1px solid rgba(255,255,255,0.08);
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  color: #F43F5E;
+  background: transparent;
 }
 
 .kylos-sidebar__item--stub {
-  opacity: 0.3;
+  opacity: 0.45;
   cursor: default;
   pointer-events: none;
 }
 
 .kylos-sidebar__item-icon {
-  width: 20px;
-  height: 20px;
+  width: 28px;
+  height: 28px;
   flex-shrink: 0;
   display: flex;
   align-items: center;
@@ -332,49 +439,45 @@ html, body, #kylos-training-root {
 
 .kylos-sidebar__video-btn {
   width: 100%;
-  padding: 0.4rem 0;
-  background: transparent;
-  border: 1px solid rgba(249,115,22,0.3);
-  color: rgba(249,115,22,0.7);
+  padding: 0.45rem 0;
+  background: #F97316;
+  border: none;
+  color: #fff;
   font-family: inherit;
-  font-size: 0.7rem;
-  font-weight: 500;
-  letter-spacing: 0.04em;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
   cursor: pointer;
-  border-radius: 4px;
-  transition: border-color 0.15s, color 0.15s, background 0.15s;
+  transition: background 0.15s, transform 0.1s;
 }
 
 .kylos-sidebar__video-btn:hover {
-  border-color: rgba(249,115,22,0.7);
-  color: #f97316;
-  background: rgba(249,115,22,0.06);
+  background: #ea6c0a;
+  transform: translateY(-1px);
 }
 
 /* Neural sync button */
 .kylos-sidebar__sync {
   margin: 0.75rem;
   margin-top: auto;
-  padding: 0.55rem;
-  background: transparent;
-  border: 1px solid rgba(79,70,229,0.35);
-  color: rgba(99,102,241,0.75);
+  padding: 0.6rem;
+  background: #4F46E5;
+  border: none;
+  color: #fff;
   font-family: inherit;
   font-size: 0.7rem;
-  font-weight: 500;
-  letter-spacing: 0.03em;
+  font-weight: 700;
+  letter-spacing: 0.06em;
   cursor: pointer;
-  border-radius: 4px;
   width: calc(100% - 1.5rem);
   text-align: center;
-  transition: border-color 0.15s, color 0.15s, background 0.15s;
+  transition: background 0.15s, transform 0.1s, box-shadow 0.15s;
   flex-shrink: 0;
 }
 
 .kylos-sidebar__sync:hover {
-  border-color: rgba(99,102,241,0.65);
-  color: #818cf8;
-  background: rgba(79,70,229,0.07);
+  background: #6366f1;
+  transform: translateY(-1px);
 }
 
 /* ── Main content ─────────────────────────────────────────────── */
@@ -413,13 +516,14 @@ html, body, #kylos-training-root {
 
 .kylos-locked-banner {
   margin: 1rem;
-  padding: 0.75rem 1rem;
-  background: rgba(244,63,94,0.06);
-  border: 1px solid rgba(244,63,94,0.25);
+  padding: 0.85rem 1rem;
+  background: rgba(244,63,94,0.1);
+  border: 1px solid rgba(244,63,94,0.35);
   border-radius: 3px;
-  color: rgba(244,63,94,0.7);
-  font-size: 0.7rem;
+  color: #e11d48;
+  font-size: 0.8rem;
   letter-spacing: 0.1em;
+  font-weight: 600;
 }
 
 /* ── Responsive ──────────────────────────────────────────────── */
@@ -430,6 +534,7 @@ html, body, #kylos-training-root {
   .kylos-header__title { font-size: 0.7rem; letter-spacing: 0.12em; }
   .kylos-header__sub   { display: none; }
   .kylos-sidebar__sync { display: none; }
+  .kx-layout          { padding-top: 80px !important; }
 }
 
 @media (max-width: 480px) {
@@ -721,7 +826,7 @@ html, body, #kylos-training-root {
   font-size: 0.875rem;
   font-weight: 600;
   letter-spacing: 0.03em;
-  transition: background 0.15s;
+  transition: background 0.15s, box-shadow 0.2s, transform 0.1s;
 }
 .submit-btn:hover { background: #6366f1; }
 
@@ -732,7 +837,7 @@ html, body, #kylos-training-root {
   justify-content: space-between;
   padding: 0.6rem 1.75rem;
   border-top: 1px solid rgba(255,255,255,0.06);
-  background: rgba(0,0,0,0.15);
+  background: transparent;
   font-size: 0.75rem;
 }
 
@@ -899,7 +1004,7 @@ html, body, #kylos-training-root {
 .kylos-light .metric-label    { color: rgba(0,0,0,0.45); }
 .kylos-light .metric-value    { color: #1a1a2e; }
 
-.kylos-light .current-statement { background: rgba(79,70,229,0.05) !important; border-color: rgba(79,70,229,0.15) !important; }
+.kylos-light .current-statement { background: rgba(63,244,213,0.03) !important; border-color: rgba(63,244,213,0.2) !important; }
 
 .kylos-light .log-label  { color: rgba(0,0,0,0.4); }
 .kylos-light .log-entry  { background: rgba(0,0,0,0.02); border-color: rgba(0,0,0,0.07); }
@@ -910,7 +1015,7 @@ html, body, #kylos-training-root {
 
 .kylos-light .rebuttal-panel   { background: rgba(79,70,229,0.04); border-color: rgba(79,70,229,0.15); }
 
-.kylos-light .cui-footer        { background: rgba(0,0,0,0.03); border-top-color: rgba(0,0,0,0.07); }
+.kylos-light .cui-footer        { background: transparent; border-top-color: rgba(0,0,0,0.07); }
 .kylos-light .state-indicator   { color: rgba(0,0,0,0.4); }
 .kylos-light .threshold-note    { color: rgba(0,0,0,0.4); }
 
@@ -921,3 +1026,983 @@ html, body, #kylos-training-root {
 .kylos-light .modal-content     { background: #fff; border-color: rgba(244,63,94,0.25); }
 .kylos-light .modal-instruction { color: rgba(0,0,0,0.6); }
 .kylos-light .refactor-input    { background: #f8f8f8; border-color: rgba(0,0,0,0.12); color: #1a1a2e; }
+
+/* Fix ledger border: override WordPress kylos.css which injects a rose border */
+.kylos-shell .ledger-content { border: 1px solid rgba(255,255,255,0.09) !important; }
+.kylos-shell .ledger-content.locked { border-color: rgba(244,63,94,0.3) !important; }
+.kylos-light .kylos-shell .ledger-content { border-color: rgba(0,0,0,0.08) !important; background: rgba(0,0,0,0.025) !important; }
+.kylos-light .kylos-shell .ledger-content.locked { border-color: rgba(244,63,94,0.2) !important; }
+
+/* ══════════════════════════════════════════════════════════════
+   HOVER ANIMATIONS — kinetic border, card lift
+   ════════════════════════════════════════════════════════════ */
+
+.fallacy-item {
+  transition: transform 0.15s, box-shadow 0.15s, border-left-color 0.15s;
+}
+.fallacy-item:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 3px 14px -3px rgba(0,0,0,0.28);
+  border-left-color: rgba(249,115,22,0.85);
+}
+
+.log-entry {
+  transition: background 0.15s, border-color 0.15s, transform 0.12s;
+}
+.log-entry:hover {
+  background: rgba(255,255,255,0.038);
+  border-color: rgba(255,255,255,0.11);
+  transform: translateX(2px);
+}
+.kylos-light .log-entry:hover {
+  background: rgba(0,0,0,0.04);
+  border-color: rgba(0,0,0,0.1);
+}
+
+.kylos-sidebar__item:hover:not(.kylos-sidebar__item--active) {
+  transform: translateX(2px);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   SHARED MODULE STYLES — Pillars 2, 3, …
+   All class-based; no inline backgrounds. Light mode inherits.
+   ════════════════════════════════════════════════════════════ */
+
+/* ── Character counter ─────────────────────────────────────── */
+.char-counter {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0.5rem;
+  font-family: 'Courier New', monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+}
+.char-counter__label { color: rgba(212,212,216,0.35); }
+.char-counter__value { color: rgba(212,212,216,0.6); font-weight: 600; }
+.char-counter__max   { color: rgba(212,212,216,0.25); }
+.char-counter__divider { color: rgba(212,212,216,0.15); margin: 0 0.2rem; }
+.kylos-light .char-counter__label { color: rgba(0,0,0,0.3); }
+.kylos-light .char-counter__value { color: rgba(0,0,0,0.55); }
+.kylos-light .char-counter__max   { color: rgba(0,0,0,0.25); }
+.kylos-light .char-counter__divider { color: rgba(0,0,0,0.15); }
+
+/* ── Textarea focus animation ──────────────────────────────── */
+@keyframes textarea-glow {
+  0%   { box-shadow: 0 0 0 0 rgba(244,63,94,0.0); }
+  50%  { box-shadow: 0 0 0 3px rgba(244,63,94,0.1), 0 0 16px 0 rgba(244,63,94,0.05); }
+  100% { box-shadow: 0 0 0 0 rgba(244,63,94,0.0); }
+}
+
+.kylos-shell .mod-textarea:focus,
+.kylos-shell .input-area:focus {
+  animation: textarea-glow 2.5s ease-in-out infinite;
+}
+
+.mod-container {
+  padding: 2rem 2.5rem;
+  min-height: 60vh;
+  color: #d4d4d8;
+  max-width: 860px;
+}
+
+.mod-header {
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+  padding-bottom: 1rem;
+  margin-bottom: 2rem;
+}
+
+.mod-pillar-tag {
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: rgba(212,212,216,0.38);
+  text-transform: uppercase;
+  margin-bottom: 0.35rem;
+}
+
+.mod-pillar-sub { font-size: 0.875rem; color: rgba(212,212,216,0.5); }
+
+.mod-instructions {
+  padding: 0.875rem 1rem;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 6px;
+  font-size: 0.9rem;
+  color: rgba(212,212,216,0.7);
+  line-height: 1.65;
+  margin-bottom: 1.75rem;
+}
+.mod-instructions strong { color: #f4f4f5; font-weight: 600; }
+
+.mod-progress      { display: flex; gap: 6px; margin-bottom: 2rem; }
+.mod-progress-seg  { flex: 1; height: 3px; border-radius: 99px; transition: background 0.3s; }
+
+.mod-question-num {
+  font-size: 0.72rem; font-weight: 600; letter-spacing: 0.1em;
+  color: rgba(212,212,216,0.35); text-transform: uppercase; margin-bottom: 0.75rem;
+}
+
+.mod-question-text {
+  font-size: 1.1rem; color: #f4f4f5; line-height: 1.62;
+  font-weight: 400; margin-bottom: 0.75rem;
+}
+
+.mod-hint {
+  font-size: 0.82rem; color: rgba(212,212,216,0.35);
+  font-style: italic; margin-bottom: 1.25rem;
+}
+
+/* High-specificity to beat WordPress theme button/input resets */
+.kylos-shell .mod-textarea {
+  width: 100%;
+  background: rgba(0,0,0,0.25);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 6px;
+  color: #f4f4f5;
+  font-family: inherit;
+  font-size: 0.95rem;
+  padding: 0.875rem 1rem;
+  resize: vertical;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.2s;
+  min-height: 120px;
+}
+.kylos-shell .mod-textarea::placeholder { color: rgba(212,212,216,0.3); }
+.kylos-shell .mod-textarea:focus { border-color: rgba(79,70,229,0.5); }
+.kylos-shell .mod-textarea:disabled { opacity: 0.4; }
+
+.kylos-shell .mod-btn-primary {
+  padding: 0.65rem 1.75rem;
+  background: #F43F5E;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s, box-shadow 0.2s;
+  display: inline-block;
+  letter-spacing: 0.03em;
+}
+.kylos-shell .mod-btn-primary:hover:not(:disabled) { background: #e11d48; transform: translateY(-1px); }
+.kylos-shell .mod-btn-primary:disabled {
+  background: rgba(255,255,255,0.07) !important;
+  color: rgba(255,255,255,0.25) !important;
+  cursor: not-allowed;
+}
+
+.kylos-shell .mod-btn-outline {
+  padding: 0.65rem 1.75rem;
+  background: transparent;
+  color: #818cf8;
+  border: 1px solid rgba(99,102,241,0.4);
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s, transform 0.1s, box-shadow 0.2s;
+}
+.kylos-shell .mod-btn-outline:hover { border-color: #818cf8; transform: translateY(-1px); }
+
+.kylos-shell .mod-btn-ghost {
+  padding: 0.55rem 1.25rem;
+  background: transparent;
+  color: rgba(212,212,216,0.4);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s, box-shadow 0.2s;
+}
+.kylos-shell .mod-btn-ghost:hover { border-color: rgba(255,255,255,0.2); color: rgba(212,212,216,0.7); }
+
+.mod-actions { display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; margin-top: 0.875rem; }
+.mod-error   { color: #F43F5E; font-size: 0.82rem; margin-top: 0.5rem; }
+
+.mod-depth-row { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.25rem; }
+.mod-depth-dot   { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.mod-depth-label { font-size: 0.78rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; }
+.mod-depth-line  { flex: 1; height: 1px; }
+
+.mod-reflection {
+  padding: 1rem 1.25rem; border-radius: 6px;
+  font-size: 0.9rem; line-height: 1.7; color: #d4d4d8;
+  margin-bottom: 1.25rem;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.mod-reflection:hover { transform: translateY(-1px); box-shadow: 0 4px 20px -5px rgba(0,0,0,0.35); }
+
+.mod-response-echo {
+  margin-bottom: 1.5rem; padding: 0.875rem 1rem;
+  background: rgba(255,255,255,0.02); border-radius: 4px;
+  border-left: 2px solid rgba(255,255,255,0.1);
+}
+.mod-response-label { color: rgba(212,212,216,0.3); font-size: 0.65rem; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 0.4rem; }
+.mod-response-text  { color: rgba(212,212,216,0.65); font-size: 0.875rem; line-height: 1.6; }
+
+.mod-scenario {
+  padding: 1rem 1.25rem; border-radius: 6px; margin-bottom: 2rem;
+  background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.07);
+}
+.mod-scenario-tag  { color: rgba(212,212,216,0.3); font-size: 0.65rem; letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 0.75rem; }
+.mod-scenario-stats { display: flex; gap: 2rem; margin-bottom: 0.75rem; }
+.mod-scenario-stat-num { font-size: 1.1rem; font-weight: 700; }
+.mod-scenario-stat-label { color: rgba(212,212,216,0.4); font-size: 0.78rem; margin-left: 0.4rem; }
+.mod-scenario-text { color: rgba(212,212,216,0.5); font-size: 0.875rem; line-height: 1.6; }
+
+.mod-seq-label { color: rgba(212,212,216,0.35); font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 0.75rem; }
+.mod-seq-slots { display: flex; gap: 8px; margin-bottom: 1.25rem; }
+.mod-seq-slot  { flex: 1; padding: 0.65rem; border-radius: 6px; min-height: 60px; transition: border-color 0.15s, background 0.15s; }
+.mod-seq-slot-num   { color: rgba(212,212,216,0.25); font-size: 0.62rem; margin-bottom: 0.3rem; }
+.mod-seq-slot-label { font-size: 0.72rem; line-height: 1.4; }
+
+.mod-interventions { display: flex; flex-direction: column; gap: 8px; margin-bottom: 1.5rem; }
+.kylos-shell .mod-intervention {
+  display: flex; align-items: center; gap: 1rem;
+  padding: 0.875rem 1rem; border-radius: 6px;
+  cursor: pointer; text-align: left; font-family: inherit;
+  width: 100%;
+  transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
+}
+.kylos-shell .mod-intervention:hover { transform: translateY(-1px); box-shadow: 0 4px 18px -4px rgba(0,0,0,0.3); }
+.mod-intervention-num {
+  width: 22px; height: 22px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.72rem; font-weight: 700; flex-shrink: 0;
+}
+.mod-intervention-title { font-size: 0.9rem; margin-bottom: 2px; }
+.mod-intervention-sub   { font-size: 0.75rem; color: rgba(212,212,216,0.45); }
+
+.mod-seq-compare      { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem; }
+.mod-seq-compare-head { color: rgba(212,212,216,0.3); font-size: 0.65rem; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 0.5rem; }
+.mod-seq-item-num     { color: rgba(212,212,216,0.25); font-size: 0.72rem; width: 14px; }
+.mod-seq-item-name    { font-size: 0.82rem; }
+
+.mod-summary-list  { display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 2rem; }
+.mod-summary-item  { display: flex; gap: 1rem; align-items: flex-start; }
+.mod-summary-dot   { width: 8px; height: 8px; border-radius: 50%; margin-top: 5px; flex-shrink: 0; }
+.mod-summary-q     { font-size: 0.82rem; color: rgba(212,212,216,0.6); margin-bottom: 0.2rem; }
+.mod-summary-depth { font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 600; }
+
+.mod-complete-banner {
+  display: flex; align-items: center; gap: 1rem;
+  padding: 1rem 1.75rem;
+  background: rgba(79,70,229,0.1); border-bottom: 1px solid rgba(79,70,229,0.25);
+}
+.mod-complete-icon {
+  width: 36px; height: 36px; border-radius: 50%; background: #4F46E5;
+  color: #fff; font-size: 1.1rem;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.mod-complete-title { font-size: 0.95rem; font-weight: 700; color: #f4f4f5; }
+.mod-complete-sub   { font-size: 0.82rem; color: rgba(212,212,216,0.6); margin-top: 0.15rem; }
+
+/* ── Light mode overrides for shared module classes ──────────── */
+
+.kylos-light .mod-container   { color: #1a1a2e; }
+.kylos-light .mod-header      { border-bottom-color: rgba(0,0,0,0.07); }
+.kylos-light .mod-pillar-tag  { color: rgba(0,0,0,0.35); }
+.kylos-light .mod-pillar-sub  { color: rgba(0,0,0,0.5); }
+.kylos-light .mod-instructions { background: rgba(0,0,0,0.025); border-color: rgba(0,0,0,0.07); color: rgba(0,0,0,0.6); }
+.kylos-light .mod-instructions strong { color: #1a1a2e; }
+.kylos-light .mod-question-num  { color: rgba(0,0,0,0.3); }
+.kylos-light .mod-question-text { color: #1a1a2e; }
+.kylos-light .mod-hint          { color: rgba(0,0,0,0.35); }
+.kylos-light .kylos-shell .mod-textarea,
+.kylos-light .mod-textarea {
+  background: #fff !important;
+  border-color: rgba(0,0,0,0.12) !important;
+  color: #1a1a2e !important;
+}
+.kylos-light .mod-textarea::placeholder { color: rgba(0,0,0,0.3); }
+.kylos-light .mod-reflection         { color: #2a2a3e; }
+.kylos-light .mod-response-echo      { background: rgba(0,0,0,0.02); border-left-color: rgba(0,0,0,0.1); }
+.kylos-light .mod-response-label     { color: rgba(0,0,0,0.3); }
+.kylos-light .mod-response-text      { color: rgba(0,0,0,0.6); }
+.kylos-light .mod-scenario           { background: rgba(0,0,0,0.02); border-color: rgba(0,0,0,0.07); }
+.kylos-light .mod-scenario-tag       { color: rgba(0,0,0,0.3); }
+.kylos-light .mod-scenario-stat-label { color: rgba(0,0,0,0.45); }
+.kylos-light .mod-scenario-text      { color: rgba(0,0,0,0.5); }
+.kylos-light .mod-seq-label          { color: rgba(0,0,0,0.3); }
+.kylos-light .mod-seq-slot-num       { color: rgba(0,0,0,0.2); }
+.kylos-light .mod-intervention-sub   { color: rgba(0,0,0,0.4); }
+.kylos-light .mod-summary-q          { color: rgba(0,0,0,0.55); }
+.kylos-light .mod-seq-compare-head   { color: rgba(0,0,0,0.3); }
+.kylos-light .mod-seq-item-num       { color: rgba(0,0,0,0.25); }
+.kylos-light .mod-complete-banner    { background: rgba(79,70,229,0.07); border-bottom-color: rgba(79,70,229,0.2); }
+.kylos-light .mod-complete-title     { color: #1a1a2e; }
+.kylos-light .mod-complete-sub       { color: rgba(0,0,0,0.5); }
+.kylos-light .kylos-shell .mod-btn-ghost {
+  border-color: rgba(0,0,0,0.12);
+  color: rgba(0,0,0,0.4);
+}
+.kylos-light .kylos-shell .mod-btn-ghost:hover {
+  border-color: rgba(0,0,0,0.25);
+  color: rgba(0,0,0,0.65);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   BORDER RADIUS — relaxed from brutalist: 0 for panels,
+   3px for cards, 4px for buttons, 50% for circles
+   ════════════════════════════════════════════════════════════ */
+
+.kylos-shell * { border-radius: 0 !important; }
+
+/* Cards get soft corners */
+.kylos-shell .metric-card,
+.kylos-shell .fallacy-item,
+.kylos-shell .log-entry,
+.kylos-shell .rebuttal-panel,
+.kylos-shell .cui-instructions,
+.kylos-shell .mod-instructions,
+.kylos-shell .mod-scenario,
+.kylos-shell .mod-question-card,
+.kylos-shell .mod-reflection,
+.kylos-shell .stub-card,
+.kylos-shell .modal-content { border-radius: 3px !important; }
+
+/* Buttons get slightly softer corners */
+.kylos-shell .mod-btn-primary,
+.kylos-shell .mod-btn-indigo,
+.kylos-shell .mod-btn-outline,
+.kylos-shell .mod-btn-ghost,
+.kylos-shell .mod-btn-cyan,
+.kylos-shell .mod-btn-orange,
+.kylos-shell .submit-btn,
+.kylos-shell .kylos-sidebar__sync,
+.kylos-shell .kylos-sidebar__video-btn,
+.kylos-shell .flag-btn { border-radius: 4px !important; }
+
+/* Exceptions: circular status indicators, spinners, dots */
+.kylos-shell .cui-complete-icon,
+.kylos-shell .mod-complete-icon,
+.kylos-shell .kylos-sidebar__op-icon,
+.kylos-shell .cui-spinner,
+.kylos-shell .cui-pulse,
+.kylos-shell .mod-depth-dot,
+.kylos-shell .mod-summary-dot,
+.kylos-shell .mod-intervention-num,
+.kylos-shell .stub-pulse-dot { border-radius: 50% !important; }
+
+/* Pill shapes on segmented/fluid progress fills only */
+.kylos-shell .cui-progress-fill,
+.kylos-shell .cui-progress-track,
+.kylos-shell .mod-progress-seg { border-radius: 99px !important; }
+
+/* Sidebar badge */
+.kylos-shell .kylos-sidebar__badge { border-radius: 2px !important; }
+
+/* ══════════════════════════════════════════════════════════════
+   CARD ELEVATION — subtle shadows, gradient borders, depth
+   ════════════════════════════════════════════════════════════ */
+
+.metric-card {
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2), 0 0 0 1px rgba(255,255,255,0.05);
+}
+.metric-card:hover {
+  box-shadow: 0 4px 20px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.08);
+}
+
+.fallacy-item {
+  box-shadow: 0 1px 2px rgba(0,0,0,0.15);
+}
+.fallacy-item:hover {
+  box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+}
+
+.log-entry {
+  box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+
+.mod-question-card {
+  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.02);
+  padding: 1.5rem 1.75rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  position: relative;
+  overflow: hidden;
+}
+
+.mod-question-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--pillar-color, #4F46E5), transparent);
+  opacity: 0.6;
+}
+
+.modal-content {
+  box-shadow: 0 12px 60px rgba(0,0,0,0.6), 0 0 0 1px rgba(244,63,94,0.2);
+}
+
+.rebuttal-panel {
+  box-shadow: 0 2px 12px rgba(79,70,229,0.08);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   KINETIC PANEL BORDERS — CUI left/right panels
+   Permanent 4px colored left border, inset glow on hover.
+   ════════════════════════════════════════════════════════════ */
+
+.kylos-shell .left-panel {
+  border-left: 4px solid rgba(244,63,94,0.75) !important;
+  transition: box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.kylos-shell .left-panel:hover {
+  box-shadow: inset 10px 0 20px -12px rgba(244,63,94,0.45);
+}
+.kylos-shell .left-panel .panel-header {
+  border-bottom: 1px solid rgba(244,63,94,0.45);
+  padding-bottom: 0.875rem;
+  margin-bottom: 0;
+}
+
+.kylos-shell .right-panel {
+  border-left: 4px solid rgba(63,244,213,0.55) !important;
+  transition: box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.kylos-shell .right-panel:hover {
+  box-shadow: inset 10px 0 20px -12px rgba(63,244,213,0.25);
+}
+.kylos-shell .right-panel .panel-header {
+  border-bottom: 1px solid rgba(63,244,213,0.35);
+  padding-bottom: 0.875rem;
+  margin-bottom: 0;
+}
+
+/* ── Metrics: large 2-column cards (from designer mock) ─────── */
+
+.metrics-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.625rem;
+}
+
+.metric-card {
+  padding: 1.1rem 1.25rem;
+  border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.02);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.2rem;
+  transition: border-color 0.15s, transform 0.15s, box-shadow 0.15s;
+  cursor: default;
+}
+.metric-card:hover {
+  border-color: rgba(255,255,255,0.18);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 18px -5px rgba(0,0,0,0.3);
+}
+
+.metric-card-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: rgba(212,212,216,0.45);
+  text-transform: uppercase;
+}
+
+.metric-card-value {
+  font-size: 1.65rem;
+  font-weight: 700;
+  color: #f4f4f5;
+  line-height: 1;
+}
+
+.metric-card-best { font-size: 1.1rem; color: rgba(212,212,216,0.45); font-weight: 400; }
+.metric-card-desc { font-size: 0.72rem; color: rgba(212,212,216,0.3); letter-spacing: 0.06em; margin-top: 0.15rem; }
+
+/* Weights row kept small below grid */
+.metric-weights {
+  margin-top: 0.4rem;
+  font-size: 0.75rem;
+  color: rgba(212,212,216,0.35);
+  padding: 0.4rem 0.75rem;
+  border: 1px solid rgba(255,255,255,0.05);
+  display: flex;
+  justify-content: space-between;
+}
+
+/* ── Log entries: tabular (# | text | PASS/FAIL) ────────────── */
+
+.log-entries { display: flex; flex-direction: column; }
+
+.log-entry {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 0.875rem;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  background: rgba(255,255,255,0.015);
+  cursor: default;
+  transition: background 0.15s, border-color 0.12s;
+}
+.log-entry:first-child { border-top: 1px solid rgba(255,255,255,0.06); }
+.log-entry:hover {
+  background: rgba(255,255,255,0.038);
+  border-bottom-color: rgba(255,255,255,0.1);
+}
+
+.log-idx {
+  font-size: 0.68rem;
+  font-weight: 500;
+  color: rgba(212,212,216,0.35);
+  flex-shrink: 0;
+  min-width: 52px;
+  letter-spacing: 0.02em;
+}
+
+.log-text {
+  flex: 1;
+  font-size: 0.875rem;
+  color: rgba(212,212,216,0.8);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+/* PASS/FAIL badge: keep existing .log-state but ensure it's flex-shrink: 0 */
+.log-state { flex-shrink: 0; }
+
+/* ── Confidence bar (segmented, 10 blocks) ───────────────────── */
+
+.confidence-bar {
+  display: flex;
+  gap: 2px;
+  margin-top: 0.3rem;
+}
+.confidence-seg {
+  height: 5px;
+  flex: 1;
+}
+
+/* Fallacy item: full border, segmented bar below */
+.fallacy-item {
+  padding: 0.625rem 0.875rem;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-left: none !important;
+  background: rgba(255,255,255,0.015);
+  position: relative;
+}
+.fallacy-item::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+}
+.fallacy-item-row {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  flex-wrap: wrap;
+}
+.fallacy-conf-pct {
+  font-size: 0.72rem;
+  font-weight: 700;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   MODULE STUB — visual richness for placeholder modules
+   ════════════════════════════════════════════════════════════ */
+
+.stub-container {
+  min-height: 60vh;
+  padding: 2rem 2.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.stub-card {
+  background: rgba(255,183,0,0.03);
+  border: 1px solid rgba(255,183,0,0.15);
+  border-left: 3px solid rgba(255,183,0,0.5);
+  padding: 1.5rem 1.75rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+  position: relative;
+  overflow: hidden;
+}
+
+.stub-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #FFB300, transparent);
+  opacity: 0.5;
+}
+
+.stub-tag {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  color: rgba(255,183,0,0.5);
+  text-transform: uppercase;
+  margin-bottom: 0.5rem;
+}
+
+.stub-title {
+  color: #FFB300;
+  font-size: 1.4rem;
+  font-weight: 700;
+  margin: 0 0 0.25rem;
+  line-height: 1.3;
+}
+
+.stub-subtitle {
+  color: rgba(255,255,255,0.4);
+  font-size: 0.85rem;
+  margin-bottom: 1.5rem;
+}
+
+.stub-desc {
+  color: rgba(255,255,255,0.6);
+  max-width: 640px;
+  line-height: 1.7;
+  font-size: 0.9rem;
+}
+
+.stub-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 2rem;
+  padding: 0.75rem 1.25rem;
+  border: 1px solid rgba(255,183,0,0.2);
+  color: rgba(255,255,255,0.3);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  position: relative;
+}
+
+.stub-badge::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #FFB300;
+  animation: stub-pulse 2s ease-in-out infinite;
+}
+
+@keyframes stub-pulse {
+  0%, 100% { opacity: 0.3; transform: scale(1); }
+  50%      { opacity: 1; transform: scale(1.3); }
+}
+
+.stub-pulse-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #FFB300;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   BUTTON GLOW — animated box-shadow on hover, scale on active
+   ════════════════════════════════════════════════════════════ */
+
+.kylos-shell .mod-btn-primary:hover:not(:disabled) {
+  box-shadow: 0 0 20px rgba(244,63,94,0.35), 0 4px 12px rgba(244,63,94,0.2);
+}
+.kylos-shell .mod-btn-primary:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.kylos-shell .mod-btn-indigo:hover:not(:disabled) {
+  box-shadow: 0 0 20px rgba(79,70,229,0.35), 0 4px 12px rgba(79,70,229,0.2);
+}
+.kylos-shell .mod-btn-indigo:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.kylos-shell .mod-btn-cyan:hover:not(:disabled) {
+  box-shadow: 0 0 20px rgba(63,244,213,0.3), 0 4px 12px rgba(63,244,213,0.15);
+}
+.kylos-shell .mod-btn-cyan:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.kylos-shell .mod-btn-orange:hover:not(:disabled) {
+  box-shadow: 0 0 20px rgba(249,115,22,0.35), 0 4px 12px rgba(249,115,22,0.2);
+}
+.kylos-shell .mod-btn-orange:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.kylos-shell .mod-btn-outline:hover {
+  box-shadow: 0 0 16px rgba(129,140,248,0.2);
+}
+.kylos-shell .mod-btn-outline:active {
+  transform: scale(0.97);
+}
+
+.kylos-shell .submit-btn:hover {
+  box-shadow: 0 0 16px rgba(79,70,229,0.3);
+}
+.kylos-shell .submit-btn:active {
+  transform: scale(0.97);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   ENTRANCE ANIMATIONS — staggered card reveals
+   ════════════════════════════════════════════════════════════ */
+
+@keyframes card-enter {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes glow-breathe {
+  0%, 100% { opacity: 0.4; }
+  50%      { opacity: 0.8; }
+}
+
+@keyframes border-shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.card-enter {
+  animation: card-enter 0.4s ease forwards;
+}
+.card-enter-1 { animation: card-enter 0.4s 0.05s ease forwards; opacity: 0; }
+.card-enter-2 { animation: card-enter 0.4s 0.12s ease forwards; opacity: 0; }
+.card-enter-3 { animation: card-enter 0.4s 0.2s ease forwards; opacity: 0; }
+.card-enter-4 { animation: card-enter 0.4s 0.3s ease forwards; opacity: 0; }
+
+/* Glow breathe on active sidebar items */
+.kylos-sidebar__item--active::after {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+  background: var(--pc, #F43F5E);
+  animation: glow-breathe 2.5s ease-in-out infinite;
+}
+
+/* Progress segment glow when filled */
+.mod-progress-seg {
+  position: relative;
+}
+.mod-progress-seg[style*="F43F5E"],
+.mod-progress-seg[style*="F97316"],
+.mod-progress-seg[style*="3FF4D5"] {
+  box-shadow: 0 0 8px currentColor;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   ANIMATED FOCUS BORDERS — pulse glow on all input/textarea
+   ════════════════════════════════════════════════════════════ */
+
+@keyframes input-glow {
+  0%   { box-shadow: 0 0 0 0 rgba(79,70,229,0.0); }
+  50%  { box-shadow: 0 0 0 3px rgba(79,70,229,0.14), 0 0 18px 0 rgba(79,70,229,0.07); }
+  100% { box-shadow: 0 0 0 0 rgba(79,70,229,0.0); }
+}
+
+.kylos-shell .mod-textarea:focus,
+.kylos-shell .input-area:focus,
+.kylos-shell .refactor-input:focus {
+  border-color: rgba(79,70,229,0.65) !important;
+  outline: none;
+  animation: input-glow 2s ease-in-out infinite;
+}
+
+.kylos-light .kylos-shell .mod-textarea:focus,
+.kylos-light .mod-textarea:focus,
+.kylos-light .kylos-shell .input-area:focus,
+.kylos-light .kylos-shell .refactor-input:focus {
+  border-color: rgba(79,70,229,0.5) !important;
+}
+
+/* Sidebar width increase to match designer spec (w-72 = 288px) */
+.kylos-sidebar { width: 256px !important; }
+.kylos-body { }
+
+/* Per-pillar sidebar border colors */
+.kylos-sidebar__item { border-left: 3px solid transparent; transition: border-left-color 0.15s, background 0.15s, color 0.15s, transform 0.1s; }
+.kylos-sidebar__item[data-pillar="1"] { --pc: #F43F5E; }
+.kylos-sidebar__item[data-pillar="2"] { --pc: #4F46E5; }
+.kylos-sidebar__item[data-pillar="3"] { --pc: #3FF4D5; }
+.kylos-sidebar__item[data-pillar="4"] { --pc: #F97316; }
+.kylos-sidebar__item[data-pillar="5"] { --pc: #F43F5E; }
+.kylos-sidebar__item[data-pillar="6"] { --pc: #818cf8; }
+.kylos-sidebar__item[data-pillar="7"] { --pc: #F43F5E; }
+.kylos-sidebar__item[data-pillar="8"] { --pc: #818cf8; }
+.kylos-sidebar__item[data-pillar="9"] { --pc: #3FF4D5; }
+.kylos-sidebar__item { border-left-color: rgba(128,128,128,0.12); }
+.kylos-sidebar__item:hover:not(.kylos-sidebar__item--stub):not(.kylos-sidebar__item--active) { border-left-color: var(--pc, rgba(255,255,255,0.2)); transform: translateX(2px); }
+.kylos-sidebar__item--active { border-left-color: var(--pc, #F43F5E) !important; background: transparent; }
+
+/* fade-in animation for results appearing */
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.fade-up { animation: fade-up 0.35s ease forwards; }
+.fade-up-1 { animation-delay: 0.05s; opacity: 0; animation: fade-up 0.35s 0.05s ease forwards; }
+.fade-up-2 { animation-delay: 0.12s; opacity: 0; animation: fade-up 0.35s 0.12s ease forwards; }
+.fade-up-3 { animation-delay: 0.20s; opacity: 0; animation: fade-up 0.35s 0.20s ease forwards; }
+
+/* ── CUI Mobile: bottom nav bar ──────────────────────────────── */
+
+.cui-mobile-nav {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .cui-mobile-nav {
+    display: flex;
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    height: 52px;
+    background: #0e0e13;
+    border-top: 1px solid rgba(255,255,255,0.1);
+    z-index: 60;
+    flex-shrink: 0;
+  }
+  .cui-mobile-tab {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: rgba(212,212,216,0.4);
+    font-family: inherit;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: color 0.15s, background 0.15s;
+    border-top: 3px solid transparent;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .cui-mobile-tab.active-shadow {
+    color: #F43F5E;
+    border-top-color: #F43F5E;
+  }
+  .cui-mobile-tab.active-ledger {
+    color: #3FF4D5;
+    border-top-color: #3FF4D5;
+  }
+  .cui-main { padding-bottom: 52px; }
+  .panel.mobile-hidden { display: none; }
+  .divider.mobile-hidden { display: none; }
+}
+
+/* Light mode adjustments for new elements */
+.kylos-light .metric-card { background: rgba(0,0,0,0.025); border-color: rgba(0,0,0,0.12); }
+.kylos-light .metric-card:hover { border-color: rgba(0,0,0,0.18); }
+.kylos-light .metric-card-label { color: rgba(0,0,0,0.45); }
+.kylos-light .metric-card-value { color: #1a1a2e; }
+.kylos-light .metric-card-best  { color: rgba(0,0,0,0.45); }
+.kylos-light .metric-card-desc  { color: rgba(0,0,0,0.32); }
+.kylos-light .metric-weights    { color: rgba(0,0,0,0.4); border-color: rgba(0,0,0,0.1); }
+.kylos-light .log-entry         { background: rgba(0,0,0,0.015); border-bottom-color: rgba(0,0,0,0.1); }
+.kylos-light .log-entry:first-child { border-top-color: rgba(0,0,0,0.1); }
+.kylos-light .log-entry:hover   { background: rgba(0,0,0,0.04); }
+.kylos-light .log-idx           { color: rgba(0,0,0,0.3); }
+.kylos-light .log-text          { color: rgba(0,0,0,0.7); }
+.kylos-light .kylos-shell .left-panel  { border-left-color: rgba(244,63,94,0.7) !important; }
+.kylos-light .kylos-shell .right-panel { border-left-color: rgba(63,244,213,0.5) !important; }
+
+/* Stronger card borders in light mode */
+.kylos-light .fallacy-item { border-color: rgba(0,0,0,0.1); }
+.kylos-light .cui-instructions { border-color: rgba(0,0,0,0.12); }
+.kylos-light .mod-instructions { border-color: rgba(0,0,0,0.12); }
+.kylos-light .mod-scenario { border-color: rgba(0,0,0,0.1); }
+
+/* Stronger secondary text in light mode */
+.kylos-light .mod-pillar-tag { color: rgba(0,0,0,0.5); }
+.kylos-light .mod-pillar-sub { color: rgba(0,0,0,0.6); }
+.kylos-light .mod-hint { color: rgba(0,0,0,0.45); }
+.kylos-light .mod-question-num { color: rgba(0,0,0,0.45); }
+.kylos-light .panel-sublabel { color: rgba(0,0,0,0.55); }
+
+/* Button glow in light mode */
+.kylos-light .kylos-shell .mod-btn-primary:hover:not(:disabled) {
+  box-shadow: 0 0 16px rgba(244,63,94,0.2), 0 4px 10px rgba(244,63,94,0.12);
+}
+.kylos-light .kylos-shell .mod-btn-indigo:hover:not(:disabled) {
+  box-shadow: 0 0 16px rgba(79,70,229,0.2), 0 4px 10px rgba(79,70,229,0.12);
+}
+.kylos-light .kylos-shell .mod-btn-cyan:hover:not(:disabled) {
+  box-shadow: 0 0 16px rgba(63,244,213,0.2), 0 4px 10px rgba(63,244,213,0.1);
+}
+.kylos-light .kylos-shell .mod-btn-orange:hover:not(:disabled) {
+  box-shadow: 0 0 16px rgba(249,115,22,0.2), 0 4px 10px rgba(249,115,22,0.12);
+}
+
+/* ── Button color variants ─────────────────────────────────── */
+
+.kylos-shell .mod-btn-indigo {
+  padding: 0.65rem 1.75rem;
+  background: #4F46E5;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s, box-shadow 0.2s;
+  display: inline-block;
+  letter-spacing: 0.03em;
+}
+.kylos-shell .mod-btn-indigo:hover:not(:disabled) { background: #6366f1; transform: translateY(-1px); }
+.kylos-shell .mod-btn-indigo:disabled { background: rgba(255,255,255,0.07) !important; color: rgba(255,255,255,0.25) !important; cursor: not-allowed; }
+
+.kylos-shell .mod-btn-cyan {
+  padding: 0.65rem 1.75rem;
+  background: #3FF4D5;
+  color: #0a0a0f;
+  border: none;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s, box-shadow 0.2s;
+  display: inline-block;
+  letter-spacing: 0.03em;
+}
+.kylos-shell .mod-btn-cyan:hover:not(:disabled) { background: #2de0be; transform: translateY(-1px); }
+.kylos-shell .mod-btn-cyan:disabled { background: rgba(255,255,255,0.07) !important; color: rgba(255,255,255,0.25) !important; cursor: not-allowed; }
+
+.kylos-shell .mod-btn-orange {
+  padding: 0.65rem 1.75rem;
+  background: #F97316;
+  color: #fff;
+  border: none;
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s, box-shadow 0.2s;
+  display: inline-block;
+  letter-spacing: 0.03em;
+}
+.kylos-shell .mod-btn-orange:hover:not(:disabled) { background: #ea6c0a; transform: translateY(-1px); }
+.kylos-shell .mod-btn-orange:disabled { background: rgba(255,255,255,0.07) !important; color: rgba(255,255,255,0.25) !important; cursor: not-allowed; }
+
+/* ══════════════════════════════════════════════════════════════
+   NEURAL SYNC GLOW — enhanced with pulse
+   ════════════════════════════════════════════════════════════ */
+
+.kylos-sidebar__sync {
+  box-shadow: 0 0 14px rgba(79,70,229,0.35);
+}
+.kylos-sidebar__sync:hover {
+  box-shadow: 0 0 28px rgba(79,70,229,0.6), 0 0 60px rgba(79,70,229,0.2);
+}

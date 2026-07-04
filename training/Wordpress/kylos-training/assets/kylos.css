@@ -81,6 +81,11 @@ body.kylos-page {
   padding: 0;
 }
 
+/* Kill black bleed from WordPress theme footer */
+body {
+  background-color: #fef6f2 !important;
+}
+
 body.kylos-page h1,
 body.kylos-page h2,
 body.kylos-page h3,
@@ -770,4 +775,40 @@ body.kylos-page h4 {
 @keyframes kx-badge-pulse {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.4; }
+}
+
+/* ============================================
+   FOOTER - Desaturated site palette overrides
+   ============================================ */
+
+.ct-footer,
+[data-footer*=type-1] .ct-footer {
+  background-color: rgba(30, 41, 59, 0.27) !important;
+}
+
+[data-footer*=type-1] .ct-footer [data-row*=top] {
+  background-color: rgba(245, 124, 64, 0.64) !important;
+}
+
+[data-footer*=type-1] .ct-footer [data-row*=middle] {
+  background-color: rgba(245, 64, 94, 0.65) !important;
+}
+
+[data-footer*=type-1] .ct-footer [data-row*=bottom] {
+  background-color: #F43F5E !important;
+}
+
+[data-footer*=type-1] .ct-footer [data-id=menu] > ul > li > a {
+  --theme-link-initial-color: #FFFAF0;
+  --theme-link-hover-color: #FDE68A;
+}
+
+[data-footer*=type-1] [data-id=copyright] {
+  --theme-text-color: #FFFAF0;
+  --theme-link-initial-color: #FFFAF0;
+}
+
+[data-footer*=type-1] [data-id=socials].ct-footer-socials [data-color=custom] {
+  --theme-icon-color: #FFFAF0;
+  --theme-icon-hover-color: #FDE68A;
 }

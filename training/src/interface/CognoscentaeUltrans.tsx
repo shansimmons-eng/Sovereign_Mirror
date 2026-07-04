@@ -1,13 +1,45 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
+import { animate } from 'animejs';
 import { InverionState, FallacyVector } from '../types';
 import { useTrainingSession } from './TrainingSession';
 import { FALLACY_CRITICAL_THRESHOLD } from '../types';
+import { CharacterCounter } from '../components/CharacterCounter';
 import { loadFallacyDataset, findMatchingFallacy, FallacyDataset } from '../engines/FallacyDataset';
+
+function useCountUp(value: number, duration = 700): number {
+  const [display, setDisplay] = useState(value);
+  const prevRef = useRef(value);
+  useEffect(() => {
+    const from = prevRef.current;
+    prevRef.current = value;
+    if (from === value) return;
+    const obj = { v: from };
+    animate(obj, {
+      v: value,
+      duration,
+      ease: 'outExpo',
+      onUpdate: () => setDisplay(Math.round(obj.v)),
+    });
+  }, [value, duration]);
+  return display;
+}
+
+function ConfidenceBar({ score, color }: { score: number; color: string }) {
+  const filled = Math.round(score * 10);
+  return (
+    <div className="confidence-bar">
+      {Array.from({length: 10}, (_, i) => (
+        <div key={i} className="confidence-seg" style={{ background: i < filled ? color : 'rgba(255,255,255,0.1)' }} />
+      ))}
+    </div>
+  );
+}
 
 export function CognoscentaeUltrans() {
   const [inputText, setInputText] = useState('');
   const [refactorText, setRefactorText] = useState('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [mobilePanel, setMobilePanel] = useState<'shadow' | 'ledger'>('shadow');
   const [fallacyDataset, setFallacyDataset] = useState<FallacyDataset | null>(null);
   const [rebuttalSuggestion, setRebuttalSuggestion] = useState<string | null>(null);
   const [reframe, setReframe] = useState<string | null>(null);
@@ -37,6 +69,10 @@ export function CognoscentaeUltrans() {
     resolveIntercept,
     reframeStatement,
   } = useTrainingSession({ nodeId: 'NODE_001', onFrameCreated: handleFrameCreated });
+
+  const displayIntercepts = useCountUp(metrics.totalIntercepts);
+  const displayStreak     = useCountUp(metrics.currentStreak);
+  const displayMaxStreak  = useCountUp(metrics.maxStreak);
 
   useEffect(() => {
     if (!fallacyDataset || !lastBreakdown || detectedFallacies.length === 0) {
@@ -134,9 +170,9 @@ export function CognoscentaeUltrans() {
       )}
 
       <main className="cui-main">
-        <div className="panel left-panel">
+        <div className={`panel left-panel${mobilePanel !== 'shadow' ? ' mobile-hidden' : ''}`}>
           <div className="panel-header">
-            <span className="panel-label">THE DARWINIAN SHADOW</span>
+            <span className="panel-label">PILLAR 1</span>
             <span className="panel-sublabel">Linguistic Input &amp; Fallacy Detection</span>
           </div>
 
@@ -162,15 +198,16 @@ export function CognoscentaeUltrans() {
             placeholder="Enter your statement for analysis..."
             disabled={interceptActive}
           />
+          <CharacterCounter text={inputText} />
           <button
             onClick={handleAnalyze}
             disabled={interceptActive || !inputText.trim() || isAnalyzing}
             style={{
               marginTop: '0.75rem',
               padding: '0.75rem 1rem',
-              background: inputText.trim() && !interceptActive && !isAnalyzing ? '#F43F5E' : 'rgba(255,255,255,0.06)',
-              color: inputText.trim() && !interceptActive && !isAnalyzing ? '#fff' : 'rgba(255,255,255,0.25)',
-              border: 'none',
+              background: inputText.trim() && !interceptActive && !isAnalyzing ? 'rgba(244,63,94,0.08)' : 'rgba(255,255,255,0.06)',
+              color: inputText.trim() && !interceptActive && !isAnalyzing ? '#e11d48' : 'rgba(255,255,255,0.25)',
+              border: inputText.trim() && !interceptActive && !isAnalyzing ? '1px solid rgba(244,63,94,0.3)' : '1px solid rgba(255,255,255,0.08)',
               borderRadius: '6px',
               cursor: inputText.trim() && !interceptActive && !isAnalyzing ? 'pointer' : 'not-allowed',
               fontSize: '0.9rem',
@@ -226,46 +263,34 @@ export function CognoscentaeUltrans() {
             ) : (
               <div className="fallacy-list">
                 {detectedFallacies.map((fallacy, index) => {
+                  const color = getStateColor(fallacy);
                   const verdict = lastBreakdown?.fallacyVerdicts?.[fallacy.fallacyId];
                   return (
                     <div
                       key={index}
-                      className="fallacy-item"
-                      style={{ borderLeftColor: getStateColor(fallacy) }}
+                      className={`fallacy-item fade-up-${Math.min(index + 1, 3)}`}
+                      style={{ '--item-color': color } as React.CSSProperties}
                     >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <div className="fallacy-item-row">
                         <span className="fallacy-id">{fallacy.fallacyId}</span>
-                        <span className="fallacy-score">({fallacy.confidenceScore.toFixed(2)})</span>
+                        <span className="fallacy-conf-pct" style={{ color }}>{Math.round(fallacy.confidenceScore * 100)}%</span>
                         <button
                           type="button"
                           onClick={() => handleMark(fallacy.fallacyId, 'correct')}
                           disabled={!!verdict}
                           title="Mark as correct detection"
-                          style={{ background: verdict === 'correct' ? '#4F46E5' : 'transparent', color: verdict === 'correct' ? '#fff' : '#818cf8', border: '1px solid rgba(79,70,229,0.5)', borderRadius: '3px', cursor: verdict ? 'default' : 'pointer', fontSize: '0.75rem', padding: '1px 6px' }}
+                          style={{ background: verdict === 'correct' ? '#4F46E5' : 'transparent', color: verdict === 'correct' ? '#fff' : '#818cf8', border: '1px solid rgba(79,70,229,0.5)', cursor: verdict ? 'default' : 'pointer', fontSize: '0.72rem', padding: '1px 6px' }}
                         >✓</button>
                         <button
                           type="button"
                           onClick={() => handleMark(fallacy.fallacyId, 'incorrect')}
                           disabled={!!verdict}
                           title="Mark as false positive"
-                          style={{ background: verdict === 'incorrect' ? '#F43F5E' : 'transparent', color: verdict === 'incorrect' ? '#fff' : '#F43F5E', border: '1px solid rgba(244,63,94,0.45)', borderRadius: '3px', cursor: verdict ? 'default' : 'pointer', fontSize: '0.75rem', padding: '1px 6px' }}
+                          style={{ background: verdict === 'incorrect' ? '#F43F5E' : 'transparent', color: verdict === 'incorrect' ? '#fff' : '#F43F5E', border: '1px solid rgba(244,63,94,0.45)', cursor: verdict ? 'default' : 'pointer', fontSize: '0.72rem', padding: '1px 6px' }}
                         >✗</button>
+                        {verdict && <span style={{ fontSize: '0.68rem', color: verdict === 'correct' ? '#818cf8' : '#F43F5E', marginLeft: 'auto' }}>[{verdict === 'correct' ? 'confirmed' : 'vetoed'}]</span>}
                       </div>
-                      {lastBreakdown && (
-                        <div style={{ fontSize: '0.75rem', color: 'rgba(212,212,216,0.4)', marginTop: '0.25rem' }}>
-                          {lastBreakdown.groq && (
-                            <span style={{ marginRight: '0.6rem' }} title={lastBreakdown.groq.reasoning}>
-                              groq: {lastBreakdown.groq.detected ? 'yes' : 'no'} ({lastBreakdown.groq.confidence.toFixed(2)})
-                            </span>
-                          )}
-                          {lastBreakdown.openrouter.length > 0 && (
-                            <span style={{ marginRight: '0.6rem' }}>
-                              or: {lastBreakdown.openrouter.filter(o => o.detected).length}/{lastBreakdown.openrouter.length}
-                            </span>
-                          )}
-                          {verdict && <span style={{ color: verdict === 'correct' ? '#818cf8' : '#F43F5E' }}>[{verdict === 'correct' ? 'confirmed' : 'vetoed'}]</span>}
-                        </div>
-                      )}
+                      <ConfidenceBar score={fallacy.confidenceScore} color={color} />
                     </div>
                   );
                 })}
@@ -300,13 +325,13 @@ export function CognoscentaeUltrans() {
           )}
         </div>
 
-        <div className="divider">
+        <div className={`divider${mobilePanel !== 'shadow' ? ' mobile-hidden' : ''}`}>
           <div className="inverion-horizon">
             <span>THE INVERION DIVIDE HORIZON</span>
           </div>
         </div>
 
-        <div className="panel right-panel">
+        <div className={`panel right-panel${mobilePanel !== 'ledger' ? ' mobile-hidden' : ''}`}>
           <div className="panel-header">
             <span className="panel-label">THE LEDGER CORE</span>
             <span className="panel-sublabel">(Verified Epistemic Invariants)</span>
@@ -336,24 +361,31 @@ export function CognoscentaeUltrans() {
               );
             })()}
           </div>
-          <div className="metrics-panel">
-            <div className="metric-row" title="Count of times you were prompted to refactor a statement that failed veracity">
-              <span className="metric-label">Intercepts:</span>
-              <span className="metric-value">{metrics.totalIntercepts}</span>
+          <div className="metrics-grid">
+            <div className="metric-card" title="How many statements triggered a fallacy intercept">
+              <span className="metric-card-label">FLAGGED</span>
+              <span className="metric-card-value">{displayIntercepts}</span>
+              <span className="metric-card-desc">statements intercepted</span>
             </div>
-            <div className="metric-row" title="Consecutive successful refactors / Best streak ever">
-              <span className="metric-label">Streak:</span>
-              <span className="metric-value">{metrics.currentStreak} / {metrics.maxStreak}</span>
-            </div>
-            <div className="metric-row" style={{ fontSize: '0.8rem' }} title="Agent voting weights (adjust on Mark correct/incorrect)">
-              <span className="metric-label">Weights:</span>
-              <span className="metric-value">R:{weights.roberta?.toFixed(2)} G:{weights.groq?.toFixed(2)} OR:{weights.openrouter?.toFixed(2)}</span>
+            <div className="metric-card" title="Consecutive passes / personal best">
+              <span className="metric-card-label">STREAK</span>
+              <span className="metric-card-value">
+                {displayStreak}<span className="metric-card-best">/{displayMaxStreak}</span>
+              </span>
+              <span className="metric-card-desc">passes / personal best</span>
             </div>
           </div>
-          <div className="current-statement" style={{ marginTop: '0.5rem', padding: '0.75rem 1rem', background: 'rgba(79,70,229,0.06)', border: '1px solid rgba(79,70,229,0.2)', borderRadius: '6px' }} title="The most recent statement analyzed">
-            <div style={{ color: '#818cf8', fontSize: '0.7rem', fontWeight: '600', letterSpacing: '0.07em', marginBottom: '0.35rem', textTransform: 'uppercase' }}>Current Statement</div>
-            <div style={{ color: '#d4d4d8', fontSize: '0.9rem', wordBreak: 'break-word', lineHeight: '1.55' }}>
-              {lastBreakdown?.text || inputText || <em style={{ color: 'rgba(212,212,216,0.3)' }}>(type a statement and click Analyze)</em>}
+          <div className="metric-weights" title="Classifier agent confidence weights — auto-adjust as you flag correct/incorrect verdicts">
+            <span>R: {weights.roberta?.toFixed(2) ?? '1.00'}</span>
+            <span>GROQ: {weights.groq?.toFixed(2) ?? '1.00'}</span>
+            <span>OR: {weights.openrouter?.toFixed(2) ?? '1.00'}</span>
+          </div>
+          <div className="current-statement" style={{ marginTop: '0.5rem', padding: '1rem 1.25rem', background: 'rgba(63,244,213,0.06)', border: '1px solid rgba(63,244,213,0.3)' }} title="The most recent statement analyzed">
+            <div style={{ color: '#3FF4D5', fontSize: '0.77rem', fontWeight: '700', letterSpacing: '0.12em', marginBottom: '0.5rem', textTransform: 'uppercase' }}>CURRENT STATEMENT PREVIEW</div>
+            <div style={{ color: '#d4d4d8', fontSize: '0.95rem', lineHeight: '1.6', borderLeft: '2px solid rgba(63,244,213,0.4)', paddingLeft: '0.75rem' }}>
+              {(lastBreakdown?.text || inputText)
+                ? <><span style={{ color: '#3FF4D5', marginRight: '0.4rem' }}>::</span>{lastBreakdown?.text || inputText}</>
+                : <em style={{ color: 'rgba(212,212,216,0.35)' }}>type a statement and click Analyze</em>}
             </div>
           </div>
           <div className="statement-log">
@@ -362,27 +394,33 @@ export function CognoscentaeUltrans() {
               {statementLog.length === 0 ? (
                 <div className="log-empty">{lastBreakdown ? 'Statement analyzed (log sync pending)' : 'No statements analyzed'}</div>
               ) : (
-                statementLog.slice(0, 5).map((entry) => (
-                  <div key={entry.id} className="log-entry">
-                    <div className="log-text">{entry.text.substring(0, 60)}{entry.text.length > 60 ? '...' : ''}</div>
-                    <div className="log-meta">
+                statementLog.slice(0, 8).map((entry, idx) => {
+                  const d = new Date(entry.timestamp);
+                  const ts = `${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}:${d.getSeconds().toString().padStart(2,'0')}`;
+                  return (
+                    <div key={entry.id} className="log-entry fade-up" style={{ animationDelay: `${idx * 0.04}s`, opacity: 0 }}>
+                      <span className="log-idx">{ts}</span>
+                      <span className="log-text">{entry.text.substring(0, 46)}{entry.text.length > 46 ? '…' : ''}</span>
                       <span className={`log-state ${entry.radicalVeracityPassed ? 'passed' : 'failed'}`}>
                         {entry.radicalVeracityPassed ? 'PASS' : 'FAIL'}
                       </span>
-                      <span className="log-count">{entry.fallacies.length} fallacies</span>
-                      {entry.freeAgentValidation && (
-                        <span className="log-agent" title={entry.freeAgentValidation.reason}>
-                          [{entry.freeAgentValidation.agent.toUpperCase()}]
-                        </span>
-                      )}
                     </div>
-                  </div>
-                ))
+                  );
+                })
               )}
             </div>
           </div>
         </div>
       </main>
+
+      <nav className="cui-mobile-nav">
+        <button className={`cui-mobile-tab${mobilePanel === 'shadow' ? ' active-shadow' : ''}`} onClick={() => setMobilePanel('shadow')}>
+          PILLAR 1
+        </button>
+        <button className={`cui-mobile-tab${mobilePanel === 'ledger' ? ' active-ledger' : ''}`} onClick={() => setMobilePanel('ledger')}>
+          LEDGER CORE
+        </button>
+      </nav>
 
       {interceptActive && (
         <div className="intercept-modal">
@@ -401,6 +439,7 @@ export function CognoscentaeUltrans() {
                 onChange={(e) => setRefactorText(e.target.value)}
                 placeholder="Enter corrected statement without cognitive distortions..."
               />
+              <CharacterCounter text={refactorText} />
               <button type="submit" className="submit-btn">
                 Settle to Ledger
               </button>

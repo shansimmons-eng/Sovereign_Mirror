@@ -13,8 +13,8 @@ const MODULE_META: Record<string, { short: string; full: string; live: boolean }
   '1': { short: 'INT. VERACITY',    full: 'Intellectual Veracity',    live: true  },
   '2': { short: 'REL. INTEGRITY',   full: 'Relational Integrity',     live: true  },
   '3': { short: 'ENV. STEWARDSHIP', full: 'Environmental Stewardship',live: true  },
-  '4': { short: 'TECH. FLUENCY',    full: 'Technological Fluency',    live: false },
-  '5': { short: 'PHYSIO. OPTIM.',   full: 'Physiological Optimization',live: false },
+  '4': { short: 'TECH. FLUENCY',    full: 'Technological Fluency',    live: true  },
+  '5': { short: 'PHYSIO. OPTIM.',   full: 'Physiological Optimization',live: true  },
   '6': { short: 'TEMPORAL DISC.',   full: 'Temporal Discipline',      live: false },
   '7': { short: 'CREATIVE SYNTH.',  full: 'Creative Synthesis',       live: false },
   '8': { short: 'COLLAB. GOV.',     full: 'Collaborative Governance', live: false },
@@ -42,9 +42,24 @@ interface ModuleRouterProps { pillarId: string; }
 export function ModuleRouter({ pillarId }: ModuleRouterProps) {
   const [active, setActive] = useState(pillarId in moduleMap ? pillarId : '1');
   const [progress, setProgress] = useState<Record<string, boolean>>(getProgress);
-  const [lightMode, setLightMode] = useState(false);
+  const [lightMode, setLightMode] = useState<boolean>(() => {
+    try {
+      const stored = localStorage.getItem('kylos_training_light_mode');
+      if (stored === null) {
+        localStorage.setItem('kylos_training_light_mode', 'true');
+        return true;
+      }
+      return stored === 'true';
+    } catch {
+      return true;
+    }
+  });
 
-  const toggleLight = () => setLightMode(v => !v);
+  const toggleLight = () => setLightMode(v => {
+    const next = !v;
+    try { localStorage.setItem('kylos_training_light_mode', String(next)); } catch {}
+    return next;
+  });
 
   useEffect(() => {
     window.kylosOnPillarComplete = (id: string) => {
@@ -56,6 +71,12 @@ export function ModuleRouter({ pillarId }: ModuleRouterProps) {
     };
     return () => { window.kylosOnPillarComplete = undefined; };
   }, []);
+
+  /* Sync body background with light mode to prevent black bleed */
+  useEffect(() => {
+    document.body.style.background = lightMode ? '#fef6f2' : '#0a0a0f';
+    document.documentElement.style.background = lightMode ? '#fef6f2' : '#0a0a0f';
+  }, [lightMode]);
 
   const Module = moduleMap[active] ?? Module1;
   const hubUrl    = g()?.hubUrl    || 'https://kylosarc.com/training/';
@@ -78,9 +99,11 @@ export function ModuleRouter({ pillarId }: ModuleRouterProps) {
           </div>
         </div>
         <div className="kylos-header__actions">
-          <button className="kylos-header__theme" onClick={toggleLight} title="Toggle light/dark">
-            {lightMode ? '◐ DARK' : '○ LIGHT'}
-          </button>
+          <label className="theme-toggle" title="Toggle light/dark">
+            <input type="checkbox" checked={lightMode} onChange={toggleLight} />
+            <span className="theme-toggle__track"></span>
+            <span className="theme-toggle__thumb"></span>
+          </label>
           <a href={hubUrl} className="kylos-header__back">&#8592; ALL MODULES</a>
         </div>
       </header>
@@ -120,6 +143,7 @@ export function ModuleRouter({ pillarId }: ModuleRouterProps) {
               const isActive = active === id;
               return (
                 <button key={id}
+                  data-pillar={id}
                   className={[
                     'kylos-sidebar__item',
                     isActive        ? 'kylos-sidebar__item--active' : '',
