@@ -2092,3 +2092,148 @@ body:has(.kylos-light) { background: #fef6f2 !important; }
   align-items: center;
   gap: 0.4rem;
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   LIGHT MODE — Button contrast fixes
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Analyze button — boost contrast */
+.kylos-light .cui-analyze-btn:disabled {
+  background: rgba(0,0,0,0.06);
+  color: rgba(0,0,0,0.3);
+  border: 1px solid rgba(0,0,0,0.12);
+}
+.kylos-light .cui-analyze-btn:not(:disabled) {
+  background: rgba(244,63,94,0.12);
+  color: #d31945;
+  border: 1px solid rgba(244,63,94,0.4);
+}
+.kylos-light .cui-analyze-btn:not(:disabled):hover {
+  background: rgba(244,63,94,0.2);
+  border-color: rgba(244,63,94,0.6);
+}
+
+/* Module buttons — solid backgrounds in light mode */
+.kylos-light .kylos-shell .mod-btn-primary,
+.kylos-light .kylos-shell .mod-btn-indigo {
+  color: #fff !important;
+}
+.kylos-light .kylos-shell .mod-btn-primary:disabled,
+.kylos-light .kylos-shell .mod-btn-indigo:disabled {
+  background: rgba(0,0,0,0.08) !important;
+  color: rgba(0,0,0,0.3) !important;
+}
+.kylos-light .kylos-shell .mod-btn-cyan {
+  color: #0a0a0f !important;
+}
+.kylos-light .kylos-shell .mod-btn-cyan:disabled {
+  background: rgba(0,0,0,0.06) !important;
+  color: rgba(0,0,0,0.3) !important;
+}
+.kylos-light .kylos-shell .mod-btn-orange {
+  color: #fff !important;
+}
+.kylos-light .kylos-shell .mod-btn-orange:disabled {
+  background: rgba(0,0,0,0.06) !important;
+  color: rgba(0,0,0,0.3) !important;
+}
+
+/* Ghost button — visible border in light mode */
+.kylos-light .kylos-shell .mod-btn-ghost {
+  border-color: rgba(0,0,0,0.2) !important;
+  color: rgba(0,0,0,0.55) !important;
+}
+.kylos-light .kylos-shell .mod-btn-ghost:hover {
+  border-color: rgba(0,0,0,0.4) !important;
+  color: rgba(0,0,0,0.8) !important;
+  background: rgba(0,0,0,0.03) !important;
+}
+
+/* Outline button — visible border in light mode */
+.kylos-light .kylos-shell .mod-btn-outline {
+  border-color: rgba(0,0,0,0.2) !important;
+  color: rgba(0,0,0,0.6) !important;
+}
+.kylos-light .kylos-shell .mod-btn-outline:hover {
+  border-color: rgba(79,70,229,0.5) !important;
+  color: #4F46E5 !important;
+  background: rgba(79,70,229,0.06) !important;
+}
+
+/* Flag button — visible in light mode */
+.kylos-light .flag-btn {
+  border-color: rgba(249,115,22,0.5) !important;
+  color: #c2410c !important;
+}
+.kylos-light .flag-btn:hover {
+  background: rgba(249,115,22,0.1) !important;
+}
+.kylos-light .flag-btn--done {
+  background: rgba(249,115,22,0.12) !important;
+  color: #c2410c !important;
+  border-color: rgba(249,115,22,0.6) !important;
+}
+
+/* Submit button (refactor modal) */
+.kylos-light .submit-btn {
+  background: #4F46E5 !important;
+  color: #fff !important;
+}
+
+/* Sidebar sync + video buttons */
+.kylos-light .kylos-sidebar__sync {
+  background: #4F46E5 !important;
+  color: #fff !important;
+}
+.kylos-light .kylos-sidebar__video-btn {
+  border-color: rgba(63,244,213,0.4) !important;
+  color: #0d9488 !important;
+}
+
+/* Verdict buttons (correct/incorrect) */
+.kylos-light .fallacy-item button[title="Mark as correct detection"],
+.kylos-light .fallacy-item button[title="Mark as false positive"] {
+  border-color: rgba(0,0,0,0.2) !important;
+}
+.kylos-light .fallacy-item button[title="Mark as correct detection"]:not([disabled]) {
+  color: #4F46E5 !important;
+}
+.kylos-light .fallacy-item button[title="Mark as false positive"]:not([disabled]) {
+  color: #d31945 !important;
+}
+
+/* Mobile nav tabs — light mode */
+@media (max-width: 768px) {
+  .kylos-light .cui-mobile-nav {
+    background: #fef6f2 !important;
+    border-top-color: rgba(0,0,0,0.1) !important;
+  }
+  .kylos-light .cui-mobile-tab {
+    color: rgba(0,0,0,0.35) !important;
+  }
+  .kylos-light .cui-mobile-tab.active-shadow {
+    color: #d31945 !important;
+    border-top-color: #d31945 !important;
+  }
+  .kylos-light .cui-mobile-tab.active-ledger {
+    color: #0d9488 !important;
+    border-top-color: #0d9488 !important;
+  }
+}
+
+/* Mobile nav select dropdown */
+.kylos-light .kylos-nav-select {
+  background: rgba(255,255,255,0.9) !important;
+  border-color: rgba(0,0,0,0.15) !important;
+  color: #1a1208 !important;
+}
+
+/* Header back button — ensure visible */
+.kylos-light .kylos-header__back {
+  border-color: rgba(244,63,94,0.5) !important;
+  color: #d31945 !important;
+}
+.kylos-light .kylos-header__back:hover {
+  background: rgba(244,63,94,0.08) !important;
+  border-color: rgba(244,63,94,0.7) !important;
+}
